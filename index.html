@@ -345,6 +345,7 @@ function App(){
   useEffect(()=>{setPubArm(false);},[monday,store]);
   const [day,setDay]=useState(0); // week always opens on Monday
   const [emp,setEmp]=useState(null);
+  const [pay,setPay]=useState(null);   // {empId:{rate,rateType}} — manager-only, kept out of the staff-readable roster
   const [week,setWeek]=useState(emptyWeek());
   const [avail,setAvail]=useState({});
   const [oWeek,setOWeek]=useState(null);
@@ -422,17 +423,40 @@ function App(){
 
   useEffect(()=>{
     if(!authed)return;
-    setEmp(null);setWeek(emptyWeek());setAvail({});setEditor(null);
+    setEmp(null);setPay(null);setWeek(emptyWeek());setAvail({});setEditor(null);
     setWeekLoaded(false);setAvailLoaded(false);
     const u1=onSnapshot(D('emp_'+store),(s)=>{if(!trustSnap('emp_'+store,s))return;setEmp(s.exists()?s.data().list:SEED_EMP);},()=>setConnected(false));
+    const u6=onSnapshot(D('pay_'+store),(s)=>{if(!trustSnap('pay_'+store,s))return;setPay(s.exists()?(s.data().rates||{}):{});},()=>setConnected(false));
     const u2=onSnapshot(D(`week_${store}_${monday}`),(s)=>{if(!trustSnap('week_'+store+'_'+monday,s))return;setWeek(s.exists()?s.data():emptyWeek());setWeekLoaded(true);},()=>setConnected(false));
     const u3=onSnapshot(D(`avail_${store}_${monday}`),(s)=>{if(!trustSnap('avail_'+store+'_'+monday,s))return;setAvail(s.exists()?(s.data().byEmp||{}):{});setAvailLoaded(true);},()=>setConnected(false));
     const oStore=store==='astoria'?'macdougal':'astoria';
     setOWeek(null);setOEmp(null);
     const u4=onSnapshot(D(`week_${oStore}_${monday}`),(s)=>{if(!trustSnap('week_'+oStore+'_'+monday,s))return;setOWeek(s.exists()?s.data():{shifts:[]});},()=>{});
     const u5=onSnapshot(D('emp_'+oStore),(s)=>{if(!trustSnap('emp_'+oStore,s))return;setOEmp(s.exists()?(s.data().list||[]):SEED_EMP);},()=>{});
-    return ()=>{u1();u2();u3();u4();u5();};
+    return ()=>{u1();u2();u3();u4();u5();u6();};
   },[store,monday,authed]);
+
+  // one-time: move pay rates out of the staff-readable roster into a manager-only pay_ doc
+  useEffect(()=>{
+    if(!authed)return;
+    if(localStorage.getItem('gc-pay-migrated')==='1')return;
+    (async()=>{
+      try{
+        for(const st of ['astoria','macdougal']){
+          const es=await getDoc(D('emp_'+st));
+          if(!es.exists())continue;
+          const list=es.data().list||[];
+          if(!list.some(e=>('rate' in e)||('rateType' in e)))continue;
+          const ps=await getDoc(D('pay_'+st));
+          const rates=(ps.exists()&&ps.data().rates)?{...ps.data().rates}:{};
+          for(const e of list){ if(('rate' in e||'rateType' in e)&&!(e.id in rates)) rates[e.id]={rate:Number(e.rate)||0,rateType:e.rateType||'hr'}; }
+          await setDoc(D('pay_'+st),{rates});
+          await setDoc(D('emp_'+st),{list:list.map(({rate,rateType,...rest})=>rest)});
+        }
+        localStorage.setItem('gc-pay-migrated','1');
+      }catch(e){/* retry next load */}
+    })();
+  },[authed]);
 
   async function saveDay(next){
     if(!dayLoaded){setErr('Still connecting — try again in a second.');return;}
@@ -462,7 +486,8 @@ function App(){
     try{ await setDoc(D(key),data); setErr(''); flash(okMsg||'Saved ✓'); }
     catch(e){ setErr('Save failed — check internet. ('+(e.message||e)+')'); }
   }
-  const saveEmp=(l)=>{if(emp===null){setErr('Still connecting — try again in a second.');return;}writeK('emp_'+store,{list:l});};
+  const saveRoster=(l)=>{if(emp===null){setErr('Still connecting — try again in a second.');return;}writeK('emp_'+store,{list:l.map(({rate,rateType,...rest})=>rest)});};
+  const savePay=(rates)=>{if(pay===null){setErr('Still connecting — try again in a second.');return;}writeK('pay_'+store,{rates});};
   const saveWeek=(w)=>{if(!weekLoaded){setErr('Still connecting — try again in a second.');return;}writeK(`week_${store}_${monday}`,w);};
 
   // ---- ⏱ HOURS CHECK: Toast actuals vs the schedule ----
@@ -530,7 +555,8 @@ function App(){
     return out;
   };
   const saveAvailM=(byEmp)=>{if(!availLoaded){setErr('Still connecting — try again in a second.');return;}writeK(`avail_${store}_${monday}`,{byEmp});};
-  const employees=emp||SEED_EMP;
+  const roster=emp||SEED_EMP;
+  const employees=roster.map(e=>{const p=(pay||{})[e.id];return {...e,rate:p?Number(p.rate)||0:Number(e.rate)||0,rateType:p?p.rateType:(e.rateType||'hr')};});
   const empById=(id)=>employees.find(e=>e.id===id)||{name:'?'};
   const dayShifts=(week.shifts||[]).filter(s=>s.day===day);
   const availFor=(empId,di)=>{const a=avail[empId];if(!a||!a.days||a.days[di]===null||a.days[di]===undefined)return 'none';return a.days[di]?'yes':'no';};
@@ -602,19 +628,23 @@ function App(){
   }
   function addEmployee(){
     if(!newEmp?.name?.trim())return;
-    saveEmp([...employees,{id:'e'+Date.now().toString(36),name:newEmp.name.trim(),role:newEmp.role||'cashier',rate:Number(newEmp.rate)||0,rateType:newEmp.rateType||'hr'}]);
+    if(emp===null||pay===null){setErr('Still connecting — try again in a second.');return;}
+    const id='e'+Date.now().toString(36);
+    saveRoster([...roster,{id,name:newEmp.name.trim(),role:newEmp.role||'cashier'}]);
+    savePay({...(pay||{}),[id]:{rate:Number(newEmp.rate)||0,rateType:newEmp.rateType||'hr'}});
     setNewEmp(null);
   }
   function saveRate(id){
     const d=rateEdit[id];if(!d)return;
-    saveEmp(employees.map(e=>e.id===id?{...e,rate:Number(d.rate)||0,rateType:d.rateType}:e));
+    savePay({...(pay||{}),[id]:{rate:Number(d.rate)||0,rateType:d.rateType}});
     setRateEdit({...rateEdit,[id]:undefined});
   }
   function removeEmployee(id){
     const who=employees.find(e=>e.id===id);
     if(rmArm!==id){setRmArm(id);setErr('Removing '+(who?who.name:'this person')+' from the '+store+' roster — past shifts and write-ups stay. Tap remove again to confirm.');return;}
     setRmArm(null);setErr('');
-    saveEmp(employees.filter(e=>e.id!==id));
+    saveRoster(roster.filter(e=>e.id!==id));
+    const np={...(pay||{})};delete np[id];savePay(np);
     setRateEdit({...rateEdit,[id]:undefined});
   }
 
@@ -630,7 +660,7 @@ function App(){
         const mon=mondayOf(0);
         const pmon=shiftMonday(mon,-1);
         const d7=[...Array(7)].map((_,i2)=>{const d2=new Date();d2.setDate(d2.getDate()-i2);return d2.toISOString().slice(0,10);});
-        const keys=['meta','writeups','emp_astoria','emp_macdougal','xfer_log','cash_astoria','cash_macdougal',
+        const keys=['meta','writeups','emp_astoria','emp_macdougal','pay_astoria','pay_macdougal','xfer_log','cash_astoria','cash_macdougal',
           `week_astoria_${mon}`,`week_macdougal_${mon}`,`avail_astoria_${mon}`,`avail_macdougal_${mon}`,
           `week_astoria_${pmon}`,`week_macdougal_${pmon}`,
           ...d7.flatMap(dd=>[`hrs_astoria_${dd}`,`hrs_macdougal_${dd}`])];
@@ -652,7 +682,7 @@ function App(){
     try{
       const mon=mondayOf(0);
       const out={exportedAt:new Date().toISOString(),app:'Gyro City Managers Book',docs:{}};
-      const keys=['meta','writeups','emp_astoria','emp_macdougal','xfer_log','cash_astoria','cash_macdougal'];
+      const keys=['meta','writeups','emp_astoria','emp_macdougal','pay_astoria','pay_macdougal','xfer_log','cash_astoria','cash_macdougal'];
       for(let w2=0;w2<8;w2++){const m2=shiftMonday(mon,-w2);keys.push(`week_astoria_${m2}`,`week_macdougal_${m2}`,`avail_astoria_${m2}`,`avail_macdougal_${m2}`);}
       for(let i2=0;i2<31;i2++){const d2=new Date();d2.setDate(d2.getDate()-i2);const dd=d2.toISOString().slice(0,10);keys.push(`hrs_astoria_${dd}`,`hrs_macdougal_${dd}`);}
       for(const k2 of keys){
