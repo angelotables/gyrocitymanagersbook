@@ -220,6 +220,7 @@ const firebaseConfig = {
 };
 const fb = initializeApp(firebaseConfig);
 const _auth=getAuth(fb);
+const STAFF_FN_URL='https://staff-583218261960.us-east4.run.app';
 const db = initializeFirestore(fb, { experimentalForceLongPolling: true }); // survives store wifi / strict routers with multiple devices
 const D = (key) => doc(db, 'gyrocity', key);
 const EMAIL_KEY = 'd6ec7d78-c114-427b-868d-b1bbb4f6d28f';
@@ -355,6 +356,9 @@ function App(){
   const [draft,setDraft]=useState({});
   const [newEmp,setNewEmp]=useState(null);
   const [rateEdit,setRateEdit]=useState({});
+  const [loginsWith,setLoginsWith]=useState(null); // empIds that have a staff login
+  const [loginsBusy,setLoginsBusy]=useState(false);
+  const [loginArm,setLoginArm]=useState(null);
 
   const srvSeen=useRef({});
   // Trust policy: cold-cache "doesn't exist" is never believed; cache echoes never replace server data.
@@ -646,7 +650,28 @@ function App(){
     saveRoster(roster.filter(e=>e.id!==id));
     const np={...(pay||{})};delete np[id];savePay(np);
     setRateEdit({...rateEdit,[id]:undefined});
+    callStaffFn('terminate',{empId:id}).catch(()=>{}); // also delete their staff login
   }
+  async function callStaffFn(action,extra){
+    const u=_auth.currentUser;
+    if(!u)throw new Error('Not signed in.');
+    const t=await u.getIdToken();
+    const r=await fetch(STAFF_FN_URL,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+t},body:JSON.stringify({action,...(extra||{})})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(j.error||('HTTP '+r.status));
+    return j;
+  }
+  async function resetLogin(empId){
+    setLoginsBusy(true);
+    try{ await callStaffFn('reset',{empId}); setLoginsWith(w=>(w||[]).filter(x=>x!==empId)); flash('PIN reset — they set a new one next login'); }
+    catch(e){ setErr('Reset failed — '+(e.message||e)); }
+    setLoginArm(null);setLoginsBusy(false);
+  }
+  useEffect(()=>{
+    if(schedTab!=='logins'||!authed)return;
+    setLoginsWith(null);setLoginArm(null);
+    callStaffFn('list',{}).then(j=>setLoginsWith(j.withLogin||[])).catch(e=>{setErr('Could not load staff logins — '+(e.message||e));setLoginsWith([]);});
+  },[schedTab,authed]);
 
   // ---- manager sign-in handled above via Firebase Auth ----
   // Daily auto-backup: mirror critical docs; a backup only ever accepts an equal-or-bigger copy.
@@ -1136,7 +1161,7 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
       <button class="arrow2" onClick=${()=>{setMonday(shiftMonday(monday,1));setEditor(null);}}>›</button>
     </div>
     <div class="subtabs">
-      ${[['schedule','Schedule'],['savail','Availability'],['hours','Hours'],['payroll','Payroll'],['staff','Staff']].map(([id,label])=>html`
+      ${[['schedule','Schedule'],['savail','Availability'],['hours','Hours'],['payroll','Payroll'],['staff','Staff'],['logins','Logins']].map(([id,label])=>html`
         <button class=${schedTab===id?'on':''} onClick=${()=>setSchedTab(id)}>${label}</button>`)}
     </div>`;
 
@@ -1501,10 +1526,35 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
       <iframe src="https://gyrocityordering.netlify.app" style="width:100%;height:calc(100vh - 210px);min-height:520px;border:none;border-radius:12px;background:#fff;box-shadow:0 1px 3px rgba(23,57,92,.08)" title="Gyro City Orders"></iframe>
     <//>`;
 
+  const mgrLogins=html`
+    <${Fragment}>
+      <div class="muted mb12" style="margin:0 2px 12px">Staff set their own 4-digit PIN the first time they open the Staff Book. Forgot a PIN? Reset it here — they'll create a new one next login. Removing someone from the roster (Staff tab) also deletes their login.</div>
+      ${loginsWith===null?html`<div class="empty">⏳ Checking who has a PIN…</div>`:html`
+        ${POSITIONS.map(pos=>html`
+          <div class="mb12" key=${pos.id}>
+            <div class="roledir" style=${{color:pos.edge}}>${pos.label.toUpperCase()}S</div>
+            ${employees.filter(e=>e.role===pos.id).map(e=>{
+              const has=loginsWith.includes(e.id);
+              return html`
+                <div class="empcard" style=${{borderLeftColor:pos.edge}} key=${e.id}>
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+                    <b>${e.name}</b>
+                    <span style="display:flex;gap:8px;align-items:center">
+                      <span class="mono" style=${{fontSize:'11px',color:has?'var(--green)':'var(--faint)'}}>${has?'PIN set ✓':'no PIN yet'}</span>
+                      ${has?(loginArm===e.id
+                        ?html`<button class="btn tomato" style="padding:7px 11px" disabled=${loginsBusy} onClick=${()=>resetLogin(e.id)}>${loginsBusy?'…':'Confirm reset'}</button><button class="ghost" onClick=${()=>setLoginArm(null)}>cancel</button>`
+                        :html`<button class="ghost" style="color:var(--tomato);font-weight:600" onClick=${()=>setLoginArm(e.id)}>Reset PIN</button>`):''}
+                    </span>
+                  </div>
+                </div>`;
+            })}
+          </div>`)}
+      `}
+    <//>`;
   const schedView=html`
     <${Fragment}>
       ${schedHeader}
-      ${schedTab==='schedule'?mgrSchedule:schedTab==='savail'?mgrAvail:schedTab==='hours'?mgrHours:schedTab==='payroll'?mgrPayroll:mgrStaff}
+      ${schedTab==='schedule'?mgrSchedule:schedTab==='savail'?mgrAvail:schedTab==='hours'?mgrHours:schedTab==='payroll'?mgrPayroll:schedTab==='logins'?mgrLogins:mgrStaff}
     <//>`;
 
   const wuForm=html`
