@@ -1,0 +1,1600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+<link rel="manifest" href="manifest.json" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#1E3A5C" />
+<title>Gyro City — Managers Book</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%2317395C'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'>G</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root { --navy:#0E2A47; --navy2:#17395C; --blue:#2E6FA3; --sky:#7FB2DC; --olive:#5C6670; --olive2:#7A8590;
+    --tomato:#B23A2A; --amber:#A66A00; --green:#1E7F4F; --ink:#131A22; --faint:#6B7683; --bg:#F5F6F8; --card:#FFFFFF; --line:#E3E6EB;
+    --r:12px; --shadow:0 1px 2px rgba(19,26,34,.05),0 8px 24px -12px rgba(19,26,34,.10);
+    --shadow-lg:0 2px 8px rgba(19,26,34,.06),0 18px 44px -16px rgba(19,26,34,.18);
+    --disp:'Inter',system-ui,sans-serif; }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;color:var(--ink);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;font-size:14.5px;background:var(--bg);
+    font-variant-numeric:tabular-nums}
+  .mono{font-family:ui-monospace,'SF Mono',Menlo,monospace}
+  .wrap{max-width:680px;margin:0 auto;padding:16px 16px calc(90px + env(safe-area-inset-bottom))}
+  .hdr{background:var(--navy);color:#F4F6F8;
+    padding:calc(18px + env(safe-area-inset-top)) 18px 0;position:relative;overflow:hidden;border-radius:0 0 14px 14px;box-shadow:var(--shadow-lg)}
+  .hdr::before{content:'';position:absolute;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(127,178,220,.28),transparent 65%);top:-160px;right:-90px;pointer-events:none}
+  .hdr::after{content:'';position:absolute;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(200,155,60,.22),transparent 65%);bottom:-120px;left:-70px;pointer-events:none}
+  .hdr-in{max-width:680px;margin:0 auto;position:relative;z-index:1}
+  .hrow{display:flex;justify-content:space-between;align-items:center}
+  h1{margin:0;font-size:24px;font-weight:700;letter-spacing:.05em;font-family:var(--disp)}
+  .tag{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.16em;color:#8FB0CC}
+  .hello{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.16);color:#F4F6F3;
+    border-radius:999px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;backdrop-filter:blur(8px);
+    font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em;transition:transform .15s,background .2s}
+  .hello:active{transform:scale(.95);background:rgba(255,255,255,.18)}
+  .stores{display:flex;gap:5px;margin:16px 0 12px;background:rgba(0,0,0,.22);border-radius:14px;padding:5px}
+  .stores button{flex:1;border:none;border-radius:10px;padding:10px 0;font-size:14px;font-weight:700;cursor:pointer;background:transparent;
+    color:#A9BDD2;font-family:var(--disp);letter-spacing:.02em;transition:all .25s cubic-bezier(.5,1.5,.5,1)}
+  .stores button.on{background:#F4F6F3;color:var(--navy);box-shadow:0 3px 10px rgba(0,0,0,.28);transform:scale(1.02)}
+  .tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:0 0 12px}
+  .tabs::-webkit-scrollbar{display:none}
+  .tabs button{background:transparent;color:#8FA6BC;border:none;border-bottom:2px solid transparent;border-radius:0;
+    padding:10px 12px 12px;font-size:11.5px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;
+    cursor:pointer;white-space:nowrap;transition:all .18s;font-family:'Inter',sans-serif}
+  .tabs button.on{background:transparent;color:#FFFFFF;border-bottom-color:#F4F6F8;box-shadow:none}
+  .meander{height:0}
+  .daysrow{display:flex;align-items:center;gap:6px;padding-bottom:12px}
+  .days{display:flex;gap:7px;overflow-x:auto;flex:1;scrollbar-width:none}
+  .days::-webkit-scrollbar{display:none}
+  .arrow{border:1px solid rgba(228,224,212,.8);border-radius:12px;background:var(--card);width:38px;height:54px;font-size:16px;cursor:pointer;
+    box-shadow:var(--shadow);color:var(--ink);transition:transform .15s}
+  .arrow:active{transform:scale(.9)}
+  .day{min-width:64px;border:1px solid var(--line);border-radius:10px;padding:9px 0 8px;background:var(--card);color:var(--ink);
+    font-weight:700;font-size:13.5px;cursor:pointer;box-shadow:var(--shadow);font-family:var(--disp);transition:all .15s}
+  .day:active{transform:scale(.97)}
+  .day.on{background:var(--navy);color:#fff;border-color:var(--navy);
+    box-shadow:0 6px 16px -6px rgba(14,42,71,.45)}
+  .day .sub{font-family:ui-monospace,Menlo,monospace;font-size:9.5px;font-weight:400;color:var(--faint);margin-top:3px}
+  .day.on .sub{color:#B9CCDE}
+  .card{background:var(--card);border:1px solid rgba(228,224,212,.8);border-radius:var(--r);padding:15px 16px;margin-bottom:14px;
+    box-shadow:var(--shadow);animation:rise .35s ease both}
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .lbl{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.14em;color:var(--faint);margin-bottom:9px}
+  .chips{display:flex;gap:7px;flex-wrap:wrap}
+  .chip{border:1.5px solid var(--line);background:#FBFAF6;border-radius:999px;padding:9px 15px;font-size:14px;cursor:pointer;
+    font-family:inherit;color:var(--ink);font-weight:500;transition:all .18s}
+  .chip:active{transform:scale(.94)}
+  .chip.on{background:linear-gradient(135deg,var(--navy) 0%,var(--blue) 100%);border-color:transparent;color:#fff;font-weight:700;
+    box-shadow:0 4px 12px rgba(23,57,92,.35)}
+  .chip.sev.on{background:linear-gradient(135deg,#A93A26,var(--tomato));box-shadow:0 4px 12px rgba(192,68,46,.4)}
+  input,textarea,select{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:12px 13px;font-size:16px;font-family:inherit;
+    background:#FBFAF6;outline:none;color:var(--ink);transition:border .2s,box-shadow .2s}
+  input:focus,textarea:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(46,111,163,.12)}
+  textarea{min-height:84px;line-height:1.5}
+  .btn{border:none;border-radius:10px;padding:12px 18px;font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    cursor:pointer;color:#fff;background:var(--navy);font-family:var(--disp);
+    box-shadow:0 4px 12px -4px rgba(14,42,71,.35);transition:transform .12s,filter .15s}
+  .btn:active{transform:scale(.965);filter:brightness(1.08)}
+  .btn.tomato{background:linear-gradient(135deg,#A93A26,var(--tomato));box-shadow:0 6px 16px -4px rgba(192,68,46,.45)}
+  .btn.blue{background:linear-gradient(135deg,var(--blue),#4a8cc0)}
+  .btn.olive{background:linear-gradient(135deg,#5E6C38,var(--olive2));box-shadow:0 6px 16px -4px rgba(111,122,69,.45)}
+  .btn.wide{width:100%}
+  .btn[disabled]{opacity:.55}
+  .ghost{background:none;border:none;color:var(--faint);font-size:14px;cursor:pointer;font-family:inherit}
+  .row{display:flex;gap:8px}.row>*{flex:1}
+  .tline{position:relative;margin:4px 0 0 8px;padding-left:22px;border-left:2px solid var(--line)}
+  .ev{position:relative;padding:0 0 18px}
+  .ev::before{content:'';position:absolute;left:-29px;top:4px;width:12px;height:12px;border-radius:50%;
+    background:linear-gradient(135deg,#5E6C38,var(--olive2));box-shadow:0 0 0 3px rgba(111,122,69,.18)}
+  .ev .t{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:var(--faint)}
+  .ev .w{font-size:15px;line-height:1.5;margin-top:2px}
+  .ev .by{font-weight:700;color:var(--navy2)}
+  .ev .x{background:none;border:none;color:var(--faint);font-size:12px;cursor:pointer;padding:2px 6px}
+  .banner{border-radius:13px;padding:11px 15px;font-size:14px;margin-bottom:14px;line-height:1.55}
+  .banner.err{background:#FBE9E4;color:var(--tomato);border:1px solid #F2CFC5}
+  .banner.info{font-size:12.5px;color:#6E5A1B;background:#F8F5EA;border:1px solid #EBE2C8;border-left:3px solid var(--amber)}
+  .empty{text-align:center;color:var(--faint);font-size:14.5px;padding:22px 0;line-height:1.6}
+  .cnt{font-size:13px;color:var(--faint);margin:2px 2px 12px}
+  .toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);
+    background:linear-gradient(135deg,#5E6C38,var(--olive2));color:#fff;border-radius:999px;padding:11px 24px;font-size:14px;
+    font-weight:700;box-shadow:0 10px 30px -6px rgba(0,0,0,.35);z-index:60;animation:pop .3s cubic-bezier(.5,1.6,.5,1)}
+  @keyframes pop{from{opacity:0;transform:translate(-50%,14px) scale(.9)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
+  .pill{font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.12em;color:#fff;border-radius:6px;padding:4px 8px;white-space:nowrap}
+  .wcard{background:var(--card);border:1px solid rgba(228,224,212,.8);border-radius:var(--r);margin-bottom:14px;box-shadow:var(--shadow);
+    overflow:hidden;border-left:5px solid var(--tomato);animation:rise .35s ease both}
+  .whead{width:100%;background:none;border:none;padding:14px 16px;text-align:left;cursor:pointer;font-family:inherit}
+  .wbody{padding:0 16px 16px;border-top:1px solid var(--bg)}
+  .field{margin-top:11px}
+  .field .fl{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.12em;color:var(--faint);margin-bottom:3px}
+  .field .fv{font-size:14.5px;line-height:1.55;white-space:pre-wrap}
+  .prior{background:#F8F5EA;border:1px solid #EBE2C8;border-left:3px solid var(--amber);border-radius:0 10px 10px 0;
+    padding:10px 13px;font-size:13.5px;line-height:1.6;margin-bottom:12px;color:#5A4A15}
+  .vrow{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .modal{position:fixed;inset:0;background:rgba(10,31,56,.55);backdrop-filter:blur(4px);z-index:100;display:flex;align-items:flex-end;justify-content:center}
+  .modal>div{background:var(--card);border-radius:24px 24px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));
+    width:100%;max-width:680px;max-height:82vh;overflow-y:auto;animation:pop .3s cubic-bezier(.5,1.5,.5,1)}
+  .wknav{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  .wknav .arrow2{background:var(--card);color:var(--ink);border:1px solid rgba(228,224,212,.8);border-radius:12px;width:42px;height:46px;
+    font-size:18px;cursor:pointer;box-shadow:var(--shadow);transition:transform .15s}
+  .wknav .arrow2:active{transform:scale(.9)}
+  .wkmid{flex:1;text-align:center}
+  .wkmid b{font-size:16px;font-family:var(--disp)}
+  .wkmid .sub{font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.12em;color:var(--faint);margin-top:3px}
+  .wkmid .sub.pub{color:var(--olive)}
+  .dayhdr{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.12em;color:var(--faint);margin:2px 2px 12px}
+  .pos{background:var(--card);border:1px solid rgba(228,224,212,.8);border-radius:var(--r);margin-bottom:14px;box-shadow:var(--shadow);
+    overflow:hidden;border-left:5px solid;animation:rise .35s ease both}
+  .pos-h{padding:9px 16px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.16em;font-weight:700}
+  .pos-b{padding:8px 14px 13px}
+  .shift{display:flex;width:100%;justify-content:space-between;align-items:center;background:#FBFAF6;border:1.5px solid var(--line);
+    border-radius:12px;padding:12px 13px;margin-top:8px;cursor:pointer;text-align:left;font-size:15.5px;gap:8px;font-family:inherit;transition:all .15s}
+  .shift:active{transform:scale(.98)}
+  .shift .t{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:var(--faint);white-space:nowrap}
+  .addshift{width:100%;margin-top:8px;border:1.5px dashed;background:transparent;border-radius:12px;padding:12px;font-size:14.5px;
+    font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
+  .addshift:active{transform:scale(.98)}
+  .editbox{margin-top:10px;border-top:1.5px dashed var(--line);padding-top:12px}
+  .note{font-size:13px;color:#6E5A1B;background:#F8F5EA;border:1px solid #EBE2C8;border-left:3px solid var(--amber);
+    padding:7px 11px;border-radius:0 8px 8px 0;margin-bottom:10px}
+  table{border-collapse:collapse;width:100%;font-size:13.5px}
+  th{text-align:left;padding:4px 6px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:var(--faint);font-weight:400}
+  th.c,td.c{text-align:center}
+  td{padding:9px 6px;border-top:1px solid var(--bg)}
+  .muted{color:var(--faint);font-size:13.5px;line-height:1.55}
+  .payrow{display:flex;justify-content:space-between;align-items:baseline}
+  .paysum{font-size:26px;font-weight:700;color:var(--navy);font-family:var(--disp)}
+  .empline{display:flex;width:100%;justify-content:space-between;background:none;border:none;padding:0;cursor:pointer;
+    align-items:baseline;font-size:15px;font-family:inherit}
+  .empcard{background:var(--card);border:1px solid rgba(228,224,212,.8);border-radius:14px;padding:13px 15px;margin-bottom:9px;
+    box-shadow:var(--shadow);border-left:4px solid}
+  .roledir{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.16em;margin:0 2px 7px;font-weight:700}
+  .hcg{display:grid;grid-template-columns:1fr 60px 64px 84px;gap:6px;align-items:baseline}
+  .hcg .num{text-align:right;font-variant-numeric:tabular-nums}
+  .hch{font-size:9.5px;letter-spacing:.14em;color:var(--dim,#8a8378);font-weight:700;text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid var(--edge)}
+  .storebar{position:fixed;top:0;left:0;right:0;height:3px;z-index:300;pointer-events:none}
+  .storepill{position:fixed;right:14px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:250;
+    border:none;border-radius:999px;padding:10px 16px;font-size:11px;font-weight:800;letter-spacing:.12em;
+    color:#fff;cursor:pointer;font-family:'Inter',sans-serif;box-shadow:0 6px 20px -6px rgba(19,26,34,.45);
+    display:flex;align-items:center;gap:7px;transition:transform .12s}
+  .storepill:active{transform:scale(.96)}
+  .subtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+  .subtabs button{border:1px solid var(--line);background:var(--card);color:var(--faint);border-radius:8px;padding:9px 15px;
+    font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;font-family:inherit;box-shadow:none;transition:all .15s}
+  .subtabs button:active{transform:scale(.97)}
+  .subtabs button.on{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:700;
+    box-shadow:0 4px 12px rgba(23,57,92,.35)}
+  .login{min-height:100vh;display:flex;flex-direction:column;align-items:center;
+    background:linear-gradient(160deg,#0A1F38 0%,#17395C 55%,#235285 100%);
+    padding:calc(40px + env(safe-area-inset-top)) 18px 44px;position:relative;overflow:hidden}
+  .login::before{content:'';position:absolute;width:520px;height:520px;border-radius:50%;
+    background:radial-gradient(circle,rgba(127,178,220,.22),transparent 62%);top:-220px;right:-160px;animation:drift 14s ease-in-out infinite alternate}
+  .login::after{content:'';position:absolute;width:440px;height:440px;border-radius:50%;
+    background:radial-gradient(circle,rgba(200,155,60,.2),transparent 62%);bottom:-190px;left:-140px;animation:drift 17s ease-in-out infinite alternate-reverse}
+  @keyframes drift{from{transform:translate(0,0)}to{transform:translate(36px,26px)}}
+  .login h1{color:#F4F6F3;margin:12px 0 2px;font-family:var(--disp);letter-spacing:.06em}
+  .login .tag{margin-bottom:26px}
+  .lcard{background:rgba(255,255,255,.94);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.6);border-radius:26px;
+    padding:24px 20px;width:100%;max-width:420px;box-shadow:0 30px 80px -20px rgba(0,0,0,.5);position:relative;z-index:1;animation:rise .4s ease both}
+  .whoami{text-align:center;font-size:20px;font-weight:700;color:var(--navy);margin-bottom:4px;font-family:var(--disp)}
+  .pinsub{text-align:center;font-size:13.5px;color:var(--faint);margin-bottom:16px;line-height:1.55}
+  .dots{display:flex;gap:15px;justify-content:center;margin:6px 0 20px}
+  .dot{width:15px;height:15px;border-radius:50%;border:2px solid var(--line);background:transparent;transition:all .15s cubic-bezier(.5,1.6,.5,1)}
+  .dot.f{background:linear-gradient(135deg,var(--navy),var(--blue));border-color:transparent;transform:scale(1.18);box-shadow:0 2px 8px rgba(23,57,92,.4)}
+  .dots.bad .dot{border-color:var(--tomato);background:#F7E5E1;animation:shake .32s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+  .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;max-width:282px;margin:0 auto}
+  .key{border:1px solid var(--line);border-radius:18px;background:#FBFAF6;color:var(--ink);font-size:23px;font-weight:600;padding:16px 0;
+    cursor:pointer;font-family:var(--disp);box-shadow:0 2px 5px rgba(14,42,71,.07);transition:all .12s}
+  .key:active{transform:scale(.9);background:#EFEBDF;box-shadow:none}
+  .key.ghostk{background:transparent;border-color:transparent;box-shadow:none;font-size:18px;color:var(--faint)}
+  .mt8{margin-top:8px}.mt10{margin-top:10px}.mt12{margin-top:12px}.mb8{margin-bottom:8px}.mb10{margin-bottom:10px}.mb12{margin-bottom:12px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script type="module">
+import { h, render, Fragment } from 'https://esm.sh/preact@10.22.0';
+import { useState, useEffect, useMemo, useRef } from 'https://esm.sh/preact@10.22.0/hooks';
+import htm from 'https://esm.sh/htm@3.1.1';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { initializeFirestore, doc, onSnapshot, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+
+const html = htm.bind(h);
+
+// ===== YOUR DATABASE =====
+const firebaseConfig = {
+  apiKey: "AIzaSyDzcydUg5xKt4G_5ECYkcW09eP80cOPIoA",
+  authDomain: "gyro-city.firebaseapp.com",
+  projectId: "gyro-city",
+  storageBucket: "gyro-city.firebasestorage.app",
+  messagingSenderId: "583218261960",
+  appId: "1:583218261960:web:60b444a894fc2c0be69afd"
+};
+const fb = initializeApp(firebaseConfig);
+const _auth=getAuth(fb);
+const db = initializeFirestore(fb, { experimentalForceLongPolling: true }); // survives store wifi / strict routers with multiple devices
+const D = (key) => doc(db, 'gyrocity', key);
+const EMAIL_KEY = 'd6ec7d78-c114-427b-868d-b1bbb4f6d28f';
+
+const STORES = [ { id: 'astoria', label: 'Astoria' }, { id: 'macdougal', label: 'MacDougal' } ];
+const QUICK = ['Inventory count','Opened store','Temp checks','Received delivery','Uploaded invoices','Prep list set','Placed orders','Staff schedule'];
+const POSITIONS = [
+  { id: 'cashier', label: 'Cashier', tint: '#DCEBDC', edge: '#5E8C5E' },
+  { id: 'expo', label: 'Expo', tint: '#FBE9B7', edge: '#B98A1E' },
+  { id: 'cook', label: 'Line Cook', tint: '#DCD3EC', edge: '#6B579B' },
+  { id: 'prep', label: 'Prep', tint: '#FBD9A0', edge: '#C77518' },
+];
+const DAYS7 = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const DAY_HOURS = ['11AM–10PM','11AM–10PM','11AM–10PM','11AM–10PM','11AM–12AM','12PM–12AM','12PM–9PM'];
+const SEED_EMP = [
+  ['Angelo','cashier',0,'hr'],['Kaiya','cashier',17,'hr'],['Irene','cashier',17,'hr'],['Despoina','cashier',17,'hr'],['Isabelle','cashier',17,'hr'],['Christina','cashier',17,'hr'],['Francesca','cashier',17,'hr'],['Chris G','cashier',17,'hr'],
+  ['Rafaela','expo',17,'hr'],['Daniel','expo',17,'hr'],['Michael','expo',17,'hr'],
+  ['George','cook',1300,'wk'],['Jimmy','cook',22,'hr'],['Sostis','cook',1200,'wk'],['Kosta','cook',1600,'wk'],['Theodoros','cook',22,'hr'],['Yianni','cook',22,'hr'],
+  ['Joshua','prep',19,'hr'],['Eduardo','prep',22,'hr'],['Maykol','prep',20,'hr'],
+  ['Alessandro','cashier',17,'hr'],['Mario','cashier',17,'hr'],['Ruben','cook',17,'hr'],  // appended — NEVER insert mid-list, IDs are positional
+].map((e,i)=>({ id:'e'+i, name:e[0], role:e[1], rate:e[2], rateType:e[3] }));
+const T_OPTS = (()=>{ const o=[]; for(let m=8*60;m<=24*60;m+=15)o.push(m); return o; })();
+const fmtTime=(m)=>{if(m===24*60)return '12AM';let h2=Math.floor(m/60),mi=m%60;const ap=h2>=12&&h2<24?'PM':'AM';h2=h2%12||12;return `${h2}${mi?':'+String(mi).padStart(2,'0'):''}${ap}`;};
+const shiftHours=(s)=>{let d=s.end-s.start;if(d<=0)d+=24*60;return d/60;};
+const mondayOf=(o=0)=>{const d=new Date();const day=(d.getDay()+6)%7;d.setDate(d.getDate()-day+o*7);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
+const weekLabel=(m)=>{const[y,mo,d]=m.split('-').map(Number);const a=new Date(y,mo-1,d),b=new Date(y,mo-1,d+6);const f=(x)=>x.toLocaleDateString(undefined,{month:'short',day:'numeric'});return `${f(a)} – ${f(b)}`;};
+const dayDate=(m,di)=>{const[y,mo,d]=m.split('-').map(Number);return new Date(y,mo-1,d+di).toLocaleDateString(undefined,{month:'numeric',day:'numeric'});};
+const shiftMonday=(m,dw)=>{const[y,mo,d]=m.split('-').map(Number);const n=new Date(y,mo-1,d+dw*7);return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;};
+const money=(n)=>'$'+Number(n||0).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2});
+const emptyWeek=()=>({shifts:[],published:false});
+const parseHours=(str)=>{ // '11AM–10PM' -> [660,1320]; 12AM close = 1440
+  const p=(t)=>{const m2=t.match(/(\d+)(?::(\d+))?(AM|PM)/i);let h2=+m2[1]%12;if(/PM/i.test(m2[3]))h2+=12;const v=h2*60+(+m2[2]||0);return v;};
+  const [a,b]=str.split('–');
+  let open=p(a),close=p(b);
+  if(close<=open)close=close===0?1440:close+1440;
+  if(close>1440)close=1440;
+  return [open,close];
+};
+const coverageGaps=(shifts,day,role)=>{ // uncovered spans of store hours for a role
+  const [open,close]=parseHours(DAY_HOURS[day]);
+  const iv=shifts.filter(s=>s.day===day&&s.position===role).map(s=>{
+    let a=s.start,b=s.end;if(b<=a)b+=1440;
+    return [Math.max(a,open),Math.min(b,close)];
+  }).filter(([a,b])=>b>a).sort((x,y)=>x[0]-y[0]);
+  const gaps=[];let cur=open;
+  for(const [a,b] of iv){
+    if(a>cur)gaps.push([cur,a]);
+    cur=Math.max(cur,b);
+  }
+  if(cur<close)gaps.push([cur,close]);
+  return gaps;
+};
+const FALLBACK_STAFF = ['Kaiya','Irene','Despoina','Isabelle','Christina','Chris G','Rafaela','Daniel','Michael','George','Jimmy','Sostis','Kosta','Theodoros','Yianni','Joshua','Eduardo','Maykol'];
+const CATEGORIES = ['No call / no show','Late to shift','Left early','Insubordination','Cash / register issue','Food safety','Uniform / hygiene','Phone use on shift','Customer complaint','Performance / quality','Safety violation','Conduct / harassment','Damage to property','Other'];
+const SEVERITIES = ['Verbal warning','Written warning','Final warning','Suspension','Termination'];
+const ACKS = ['Not presented yet','Employee acknowledged','Employee refused to sign'];
+const MGR_PINS = { '0104':'Alessandro' };  // personal manager codes — add more like '1234':'Name'
+
+const dkey=(d)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const todayKey=()=>dkey(new Date());
+const nowTime=()=>new Date().toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+const nowStamp=()=>{const d=new Date();return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})+' '+nowTime();};
+function dayInfo(offset){const d=new Date();d.setDate(d.getDate()-offset);return {key:dkey(d),dow:d.toLocaleDateString(undefined,{weekday:'short'}),md:(d.getMonth()+1)+'/'+d.getDate()};}
+function prettyDay(key){const [y,m,d]=key.split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'});}
+
+function App(){
+  const [store,setStore]=useState(localStorage.getItem('gc-store')||'astoria');
+  const [xfers,setXfers]=useState(null);
+  const [cashA,setCashA]=useState(null);
+  const [cashM,setCashM]=useState(null);
+  const [cd,setCd]=useState(null);   // envelope draft
+  const [cArm,setCArm]=useState(null);
+  const [bankEdit,setBankEdit]=useState(null);
+  const [xArm,setXArm]=useState(null);
+  const [xd,setXd]=useState(null); // transfer draft
+  const [tab,setTab]=useState('log');
+  const [myName,setMyName]=useState(localStorage.getItem('gc-name')||'');
+  const [connected,setConnected]=useState(null);
+  const [err,setErr]=useState('');
+  const [toast,setToast]=useState('');
+  const toastT=useRef(null);
+  const flash=(m)=>{setToast(m);clearTimeout(toastT.current);toastT.current=setTimeout(()=>setToast(''),1600);};
+
+  // daily log
+  const [win,setWin]=useState(0);
+  const [sel,setSel]=useState(todayKey());
+  const [list,setList]=useState([]);
+  const [txt,setTxt]=useState('');
+  const [arm,setArm]=useState(null);
+  const [dayLoaded,setDayLoaded]=useState(false);
+  const [wuLoaded,setWuLoaded]=useState(false);
+  const [weekLoaded,setWeekLoaded]=useState(false);
+  const [availLoaded,setAvailLoaded]=useState(false);
+
+  // write-ups
+  const [meta,setMeta]=useState(null);
+  const [authed,setAuthed]=useState(false);
+  const [pinBuf,setPinBuf]=useState('');
+  const [pinMode,setPinMode]=useState('enter'); // enter | create | confirm
+  const [firstPin,setFirstPin]=useState('');
+  const [pinBad,setPinBad]=useState(false);
+  const [writeups,setWriteups]=useState([]);
+  const [staffNames,setStaffNames]=useState(FALLBACK_STAFF);
+  const [wu,setWu]=useState({});
+  const [showForm,setShowForm]=useState(false);
+  const [openWu,setOpenWu]=useState(null);
+  const [filterEmp,setFilterEmp]=useState(null);
+  const [wuArm,setWuArm]=useState(null);
+  const [shareBox,setShareBox]=useState(null);
+  const [saving,setSaving]=useState(false);
+  // scheduling
+  const [schedTab,setSchedTab]=useState('schedule');
+  const [monday,setMonday]=useState(mondayOf(0));
+  const [pubArm,setPubArm]=useState(false);
+  const [rmArm,setRmArm]=useState(null);
+  useEffect(()=>{setPubArm(false);},[monday,store]);
+  const [day,setDay]=useState(0); // week always opens on Monday
+  const [emp,setEmp]=useState(null);
+  const [week,setWeek]=useState(emptyWeek());
+  const [avail,setAvail]=useState({});
+  const [oWeek,setOWeek]=useState(null);
+  const [payOpen,setPayOpen]=useState(null);
+  const [oEmp,setOEmp]=useState(null);
+  const [editor,setEditor]=useState(null);
+  const [draft,setDraft]=useState({});
+  const [newEmp,setNewEmp]=useState(null);
+  const [rateEdit,setRateEdit]=useState({});
+
+  const srvSeen=useRef({});
+  // Trust policy: cold-cache "doesn't exist" is never believed; cache echoes never replace server data.
+  const trustSnap=(key,s)=>{
+    const fromCache=!!(s.metadata&&s.metadata.fromCache);
+    if(fromCache&&srvSeen.current[key])return false;
+    if(fromCache&&!s.exists())return false;
+    if(!fromCache)srvSeen.current[key]=true;
+    return true;
+  };
+  useEffect(()=>{
+    const um=onSnapshot(D('meta'),(s)=>{if(!trustSnap('meta',s))return;setMeta(s.exists()?s.data():{});},()=>setConnected(false));
+    const ux=onSnapshot(D('xfer_log'),(s)=>{if(!trustSnap('xfer_log',s))return;setXfers(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
+    const uca=onSnapshot(D('cash_astoria'),(s)=>{if(!trustSnap('cash_astoria',s))return;setCashA(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
+    const ucm=onSnapshot(D('cash_macdougal'),(s)=>{if(!trustSnap('cash_macdougal',s))return;setCashM(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
+    const uw=onSnapshot(D('writeups'),(s)=>{if(!trustSnap('writeups',s))return;setWriteups(s.exists()?s.data().list:[]);setWuLoaded(true);},()=>setConnected(false));
+    // pull live rosters (both stores), merged with the built-in list
+    const rosterDocs={};
+    const rebuild=()=>{
+      const names=new Set(FALLBACK_STAFF);
+      for(const lst of Object.values(rosterDocs))for(const e of lst)if(e?.name)names.add(e.name);
+      setStaffNames([...names].sort());
+    };
+    const r1=onSnapshot(D('emp_astoria'),(s)=>{if(!trustSnap('r_a',s))return;if(s.exists()){rosterDocs.a=s.data().list||[];rebuild();}},()=>{});
+    const r2=onSnapshot(D('emp_macdougal'),(s)=>{if(!trustSnap('r_m',s))return;if(s.exists()){rosterDocs.m=s.data().list||[];rebuild();}},()=>{});
+    return ()=>{um();ux();uca();ucm();uw();r1();r2();};
+  },[]);
+
+  useEffect(()=>{
+    localStorage.setItem('gc-store',store);
+    setList([]);setDayLoaded(false);
+    const u=onSnapshot(D(`mlog_${store}_${sel}`),(s)=>{if(!trustSnap('mlog_'+store+'_'+sel,s))return;setConnected(true);setList(s.exists()?s.data().list:[]);setDayLoaded(true);},()=>setConnected(false));
+    return ()=>u();
+  },[store,sel]);
+
+  useEffect(()=>{
+    setEmp(null);setWeek(emptyWeek());setAvail({});setEditor(null);
+    setWeekLoaded(false);setAvailLoaded(false);
+    const u1=onSnapshot(D('emp_'+store),(s)=>{if(!trustSnap('emp_'+store,s))return;setEmp(s.exists()?s.data().list:SEED_EMP);},()=>setConnected(false));
+    const u2=onSnapshot(D(`week_${store}_${monday}`),(s)=>{if(!trustSnap('week_'+store+'_'+monday,s))return;setWeek(s.exists()?s.data():emptyWeek());setWeekLoaded(true);},()=>setConnected(false));
+    const u3=onSnapshot(D(`avail_${store}_${monday}`),(s)=>{if(!trustSnap('avail_'+store+'_'+monday,s))return;setAvail(s.exists()?(s.data().byEmp||{}):{});setAvailLoaded(true);},()=>setConnected(false));
+    const oStore=store==='astoria'?'macdougal':'astoria';
+    setOWeek(null);setOEmp(null);
+    const u4=onSnapshot(D(`week_${oStore}_${monday}`),(s)=>{if(!trustSnap('week_'+oStore+'_'+monday,s))return;setOWeek(s.exists()?s.data():{shifts:[]});},()=>{});
+    const u5=onSnapshot(D('emp_'+oStore),(s)=>{if(!trustSnap('emp_'+oStore,s))return;setOEmp(s.exists()?(s.data().list||[]):SEED_EMP);},()=>{});
+    return ()=>{u1();u2();u3();u4();u5();};
+  },[store,monday]);
+
+  async function saveDay(next){
+    if(!dayLoaded){setErr('Still connecting — try again in a second.');return;}
+    setList(next);
+    try{await setDoc(D(`mlog_${store}_${sel}`),{list:next});setErr('');flash('Logged ✓');}
+    catch(e){setErr('Save failed — check internet. ('+(e.message||e)+')');}
+  }
+  async function saveWriteups(next){
+    if(!wuLoaded){setErr('Still connecting — try again in a second.');return;}
+    setWriteups(next);
+    try{await setDoc(D('writeups'),{list:next});setErr('');}
+    catch(e){setErr('Save failed — check internet. ('+(e.message||e)+')');}
+  }
+  function requireName(){
+    if(!myName.trim()){setErr('Type your name first.');window.scrollTo({top:0,behavior:'smooth'});return false;}
+    return true;
+  }
+  const setName=(v)=>{setMyName(v);localStorage.setItem('gc-name',v);};
+
+  // ---- daily log actions ----
+  function log(w){if(!requireName())return;saveDay([...list,{id:Date.now().toString(36),t:nowTime(),by:myName.trim(),w}]);}
+  function logTyped(){const v=txt.trim();if(!v)return;setTxt('');log(v);}
+  function removeEntry(id){setArm(null);saveDay(list.filter(e=>e.id!==id));}
+
+  // ---- scheduling actions ----
+  async function writeK(key,data,okMsg){
+    try{ await setDoc(D(key),data); setErr(''); flash(okMsg||'Saved ✓'); }
+    catch(e){ setErr('Save failed — check internet. ('+(e.message||e)+')'); }
+  }
+  const saveEmp=(l)=>{if(emp===null){setErr('Still connecting — try again in a second.');return;}writeK('emp_'+store,{list:l});};
+  const saveWeek=(w)=>{if(!weekLoaded){setErr('Still connecting — try again in a second.');return;}writeK(`week_${store}_${monday}`,w);};
+
+  // ---- ⏱ HOURS CHECK: Toast actuals vs the schedule ----
+  const [hcDay,setHcDay]=useState((new Date().getDay()+6)%7);
+  const [hrsWeek,setHrsWeek]=useState({});   // iso -> {rows}
+  const [hcEdit,setHcEdit]=useState({});     // iso|empId -> {i1,o1,i2,o2,note}
+  const [hcSplit,setHcSplit]=useState({});   // iso|empId -> true (second pair shown)
+  const dayISO=(mon,di)=>{const[y,mo,d]=mon.split('-').map(Number);const n=new Date(y,mo-1,d+di);return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;};
+  useEffect(()=>{
+    setHrsWeek({});setHcEdit({});setHcSplit({});
+    const us=DAYS7.map((_,di)=>{
+      const iso=dayISO(monday,di);
+      return onSnapshot(D(`hrs_${store}_${iso}`),(s)=>{
+        if(!trustSnap(`hrs_${store}_${iso}`,s))return;
+        setHrsWeek(prev=>({...prev,[iso]:s.exists()?s.data():{rows:{}}}));
+      },()=>{});
+    });
+    return ()=>us.forEach(u=>u());
+  },[store,monday]);
+  const parseT=(t)=>{
+    if(!t)return null;
+    const m2=String(t).trim().match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm|a|p)?$/i);
+    if(!m2)return null;
+    let h2=+m2[1];const mi=+(m2[2]||0);const ap=(m2[3]||'').toLowerCase();
+    if(mi>59||h2>24)return null;
+    if(ap.startsWith('p')){h2=h2%12+12;}
+    else if(ap.startsWith('a')){h2=h2%12;}
+    return h2*60+mi;
+  };
+  const pairH=(i2,o2)=>{
+    const a=parseT(i2),b=parseT(o2);
+    if(a===null||b===null)return null;
+    let d=b-a;if(d<=0)d+=1440;
+    return d/60;
+  };
+  const hcRow=(iso,eid)=>{
+    const saved=((hrsWeek[iso]||{}).rows||{})[eid]||{};
+    const ed=hcEdit[iso+'|'+eid]||{};
+    return {i1:ed.i1??saved.i1??'',o1:ed.o1??saved.o1??'',i2:ed.i2??saved.i2??'',o2:ed.o2??saved.o2??'',note:ed.note??saved.note??''};
+  };
+  const hcActual=(r)=>{
+    const p1=pairH(r.i1,r.o1);const p2=pairH(r.i2,r.o2);
+    if(p1===null&&p2===null)return null;
+    return (p1||0)+(p2||0);
+  };
+  const hcSetField=(iso,eid,f,v)=>setHcEdit(prev=>({...prev,[iso+'|'+eid]:{...hcRow(iso,eid),[f]:v}}));
+  function hcSave(iso,eids){
+    const rows={...((hrsWeek[iso]||{}).rows||{})};
+    for(const eid of eids){
+      const r=hcRow(iso,eid);
+      if(r.i1||r.o1||r.i2||r.o2||r.note)rows[eid]={i1:r.i1,o1:r.o1,i2:r.i2,o2:r.o2,note:r.note};
+      else delete rows[eid];
+    }
+    writeK(`hrs_${store}_${iso}`,{rows,at:new Date().toISOString().slice(0,16).replace('T',' ')},'Hours saved ✓');
+    setHcEdit(prev=>{const n2={...prev};for(const k2 of Object.keys(n2))if(k2.startsWith(iso+'|'))delete n2[k2];return n2;});
+  }
+  const hcSchedFor=(di)=>{ // empId -> {sched, spans[]}
+    const out={};
+    for(const s of (week.shifts||[]).filter(s2=>s2.day===di)){
+      if(!out[s.empId])out[s.empId]={sched:0,spans:[]};
+      out[s.empId].sched+=shiftHours(s);
+      out[s.empId].spans.push(fmtTime(s.start)+'–'+fmtTime(s.end===0?1440:s.end));
+    }
+    return out;
+  };
+  const saveAvailM=(byEmp)=>{if(!availLoaded){setErr('Still connecting — try again in a second.');return;}writeK(`avail_${store}_${monday}`,{byEmp});};
+  const employees=emp||SEED_EMP;
+  const empById=(id)=>employees.find(e=>e.id===id)||{name:'?'};
+  const dayShifts=(week.shifts||[]).filter(s=>s.day===day);
+  const availFor=(empId,di)=>{const a=avail[empId];if(!a||!a.days||a.days[di]===null||a.days[di]===undefined)return 'none';return a.days[di]?'yes':'no';};
+  const dayHourTotals=DAYS7.map((_,di)=>(week.shifts||[]).filter(s=>s.day===di).reduce((t,s)=>t+shiftHours(s),0));
+  const cashierGaps=DAYS7.map((_,di)=>coverageGaps(week.shifts||[],di,'cashier'));
+  const gapDays=cashierGaps.map((g,di)=>g.length?di:null).filter(x=>x!==null);
+  const fmtGap=([a,b])=>fmtTime(a%1440)+'–'+fmtTime(b%1440===0&&b>=1440?1440:b%1440||b);
+  const payroll=useMemo(()=>{
+    const map={};for(const s of (week.shifts||[]))map[s.empId]=(map[s.empId]||0)+shiftHours(s);
+    const rows=employees.map(e=>{const hours=map[e.id]||0;const pay=e.rateType==='wk'?(hours>0?Number(e.rate):0):hours*Number(e.rate||0);return {...e,hours,pay};}).filter(r=>r.hours>0).sort((a,b)=>b.pay-a.pay);
+    return {rows,total:rows.reduce((s,r)=>s+r.pay,0),totalHours:rows.reduce((s,r)=>s+r.hours,0)};
+  },[week,employees]);
+  const crossRows=useMemo(()=>{
+    if(oWeek===null||oEmp===null)return null;
+    const nameHours={};
+    const addStore=(shifts,emps,key)=>{
+      const byId={};for(const e of emps)byId[e.id]=e.name;
+      for(const s of (shifts||[])){
+        const n2=byId[s.empId];if(!n2)continue;
+        if(!nameHours[n2])nameHours[n2]={a:0,m:0};
+        nameHours[n2][key]+=shiftHours(s);
+      }
+    };
+    addStore(week.shifts,employees,store==='astoria'?'a':'m');
+    addStore(oWeek.shifts,oEmp,store==='astoria'?'m':'a');
+    return Object.entries(nameHours)
+      .map(([name,h2])=>({name,a:h2.a,m:h2.m,total:h2.a+h2.m}))
+      .filter(r=>r.total>0)
+      .sort((x,y)=>y.total-x.total);
+  },[week,employees,oWeek,oEmp,store]);
+  const empWeekShifts=(name)=>{
+    const out=[];
+    const collect=(shifts,emps,storeKey)=>{
+      const byId={};for(const e of emps)byId[e.id]=e.name;
+      for(const s of (shifts||[]))if(byId[s.empId]===name)out.push({...s,storeKey});
+    };
+    collect(week.shifts,employees,store);
+    if(oWeek&&oEmp)collect(oWeek.shifts,oEmp,store==='astoria'?'macdougal':'astoria');
+    return out.sort((x,y)=>x.day-y.day||x.start-y.start);
+  };
+  function copyLastWeekFn(){
+    import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js').then(async ({getDoc})=>{
+      try{
+        const s=await getDoc(D(`week_${store}_${shiftMonday(monday,-1)}`));
+        if(s.exists()&&s.data().shifts?.length){saveWeek({shifts:s.data().shifts.map(x=>({...x,id:x.id+'c'})),published:false});}
+        else setErr('Last week has no schedule to copy.');
+      }catch(e){setErr('Could not load last week.');}
+    });
+  }
+  function openEditor(position,shift){
+    setEditor({position,shiftId:shift?.id||null});
+    setDraft(shift?{empId:shift.empId,start:shift.start,end:shift.end}:{empId:null,start:position==='prep'?9*60:10*60+30,end:22*60});
+  }
+  function saveShift(){
+    if(!draft.empId){setErr('Pick a person for the shift.');return;}
+    setErr('');
+    let shifts;
+    if(editor.shiftId)shifts=(week.shifts||[]).map(s=>s.id===editor.shiftId?{...s,empId:draft.empId,start:draft.start,end:draft.end}:s);
+    else shifts=[...(week.shifts||[]),{id:Date.now().toString(36),day,position:editor.position,empId:draft.empId,start:draft.start,end:draft.end}];
+    setEditor(null);
+    saveWeek({...week,shifts});
+  }
+  function deleteShift(){const shifts=(week.shifts||[]).filter(s=>s.id!==editor.shiftId);setEditor(null);saveWeek({...week,shifts});}
+  function togglePublish(){
+    if(!week.published&&gapDays.length>0){
+      if(!pubArm){setPubArm(true);setErr('Cashier coverage missing on: '+gapDays.map(di=>DAYS7[di]).join(', ')+'. Tap PUBLISH again to post anyway.');return;}
+    }
+    saveWeek({...week,published:!week.published});
+  }
+  function addEmployee(){
+    if(!newEmp?.name?.trim())return;
+    saveEmp([...employees,{id:'e'+Date.now().toString(36),name:newEmp.name.trim(),role:newEmp.role||'cashier',rate:Number(newEmp.rate)||0,rateType:newEmp.rateType||'hr'}]);
+    setNewEmp(null);
+  }
+  function saveRate(id){
+    const d=rateEdit[id];if(!d)return;
+    saveEmp(employees.map(e=>e.id===id?{...e,rate:Number(d.rate)||0,rateType:d.rateType}:e));
+    setRateEdit({...rateEdit,[id]:undefined});
+  }
+  function removeEmployee(id){
+    const who=employees.find(e=>e.id===id);
+    if(rmArm!==id){setRmArm(id);setErr('Removing '+(who?who.name:'this person')+' from the '+store+' roster — past shifts and write-ups stay. Tap remove again to confirm.');return;}
+    setRmArm(null);setErr('');
+    saveEmp(employees.filter(e=>e.id!==id));
+    setRateEdit({...rateEdit,[id]:undefined});
+  }
+
+  // ---- door lock (manager PIN keypad) ----
+  useEffect(()=>{if(meta!==null&&srvSeen.current['meta']&&!meta.pin&&pinMode==='enter'&&!authed)setPinMode('create');},[meta]);
+  // Daily auto-backup: mirror critical docs; a backup only ever accepts an equal-or-bigger copy.
+  useEffect(()=>{
+    if(!authed||meta===null)return;
+    const today=new Date().toISOString().slice(0,10);
+    if(localStorage.getItem('mgr-bak')===today)return;
+    localStorage.setItem('mgr-bak',today);
+    (async()=>{
+      try{
+        const mon=mondayOf(0);
+        const pmon=shiftMonday(mon,-1);
+        const d7=[...Array(7)].map((_,i2)=>{const d2=new Date();d2.setDate(d2.getDate()-i2);return d2.toISOString().slice(0,10);});
+        const keys=['meta','writeups','emp_astoria','emp_macdougal','xfer_log','cash_astoria','cash_macdougal',
+          `week_astoria_${mon}`,`week_macdougal_${mon}`,`avail_astoria_${mon}`,`avail_macdougal_${mon}`,
+          `week_astoria_${pmon}`,`week_macdougal_${pmon}`,
+          ...d7.flatMap(dd=>[`hrs_astoria_${dd}`,`hrs_macdougal_${dd}`])];
+        for(const k of keys){
+          let live=null;
+          try{const g=await getDoc(D(k));if(g.exists())live=g.data();}catch(e){}
+          if(!live)continue;
+          const n=(live.list?live.list.length:0)+(live.shifts?live.shifts.length:0)+(live.byEmp?Object.keys(live.byEmp).length:0)+(live.rows?Object.keys(live.rows).length:0)+Object.keys(live).length;
+          const bk=D('bak_mgr_'+k.replace(/-/g,''));
+          let prev=-1;
+          try{const g2=await getDoc(bk);if(g2.exists())prev=g2.data().n??-1;}catch(e){}
+          if(n>=prev)await setDoc(bk,{at:new Date().toISOString(),n,data:live});
+        }
+      }catch(e){/* silent; retries tomorrow */}
+    })();
+  },[authed,meta]);
+  async function exportAll(){
+    flash('Gathering the books…');
+    try{
+      const mon=mondayOf(0);
+      const out={exportedAt:new Date().toISOString(),app:'Gyro City Managers Book',docs:{}};
+      const keys=['meta','writeups','emp_astoria','emp_macdougal','xfer_log','cash_astoria','cash_macdougal'];
+      for(let w2=0;w2<8;w2++){const m2=shiftMonday(mon,-w2);keys.push(`week_astoria_${m2}`,`week_macdougal_${m2}`,`avail_astoria_${m2}`,`avail_macdougal_${m2}`);}
+      for(let i2=0;i2<31;i2++){const d2=new Date();d2.setDate(d2.getDate()-i2);const dd=d2.toISOString().slice(0,10);keys.push(`hrs_astoria_${dd}`,`hrs_macdougal_${dd}`);}
+      for(const k2 of keys){
+        try{const g=await getDoc(D(k2));if(g.exists())out.docs[k2]=g.data();}catch(e){}
+      }
+      const blob=new Blob([JSON.stringify(out,null,1)],{type:'application/json'});
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download='gyrocity-managers-backup-'+new Date().toISOString().slice(0,10)+'.json';
+      a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),30000);
+      flash('Backup downloaded — '+Object.keys(out.docs).length+' records');
+    }catch(e){setErr('Export failed — '+(e.message||e));}
+  }
+  useEffect(()=>{
+    if(authed)return;
+    const h=(e)=>{
+      if(/^[0-9]$/.test(e.key)){pressKey(e.key);e.preventDefault();}
+      else if(e.key==='Backspace'){pressKey('back');e.preventDefault();}
+    };
+    window.addEventListener('keydown',h);
+    return ()=>window.removeEventListener('keydown',h);
+  },[authed,pinBuf,pinMode,pinBad,firstPin,meta]);
+  function pressKey(k){
+    if(pinBad)setPinBad(false);
+    if(k==='back'){setPinBuf(pinBuf.slice(0,-1));return;}
+    if(pinBuf.length>=4)return;
+    const nb=pinBuf+k;
+    setPinBuf(nb);
+    if(nb.length===4)setTimeout(()=>submitPin(nb),120);
+  }
+  function submitPin(code){
+    if(pinMode==='enter'){
+      if(code===meta?.pin){setAuthed(true);setPinBuf('');}
+      else if(MGR_PINS[code]){setAuthed(true);setPinBuf('');if(!myName.trim())setName(MGR_PINS[code]);}
+      else{setPinBad(true);setPinBuf('');}
+    }else if(pinMode==='create'){
+      setFirstPin(code);setPinMode('confirm');setPinBuf('');
+    }else if(pinMode==='confirm'){
+      if(code===firstPin){
+        if(meta===null){setErr('Still connecting — try again.');setPinBuf('');return;}
+        setDoc(D('meta'),{...meta,pin:code}).catch(e=>setErr('Could not save PIN. '+(e.message||e)));
+        setAuthed(true);setPinBuf('');flash('Manager PIN set ✓');
+      }else{setPinBad(true);setPinMode('create');setFirstPin('');setPinBuf('');}
+    }
+  }
+
+  // ---- cash: the daily envelope close-out ----
+  const cashCur=store==='astoria'?cashA:cashM;
+  const cBank=Number((meta&&meta.cashBank&&meta.cashBank[store])??300);
+  const CSHIFTS=['AM','MID','PM'];
+  const cToday=()=>new Date().toISOString().slice(0,10);
+  const cBlank=()=>({date:cToday(),cashier:'',shift:'PM',register:'',counted:'',note:''});
+  const cNum=(v)=>{const n2=Number(String(v).replace(/[$,]/g,''));return isFinite(n2)?n2:null;};
+  const cDrop=(reg)=>{const r=cNum(reg);return r===null?null:Math.max(0,r-cBank);};
+  const cVerdict=(env)=>{
+    const drop=cDrop(env.register);const cnt=cNum(env.counted);
+    if(drop===null||cnt===null)return null;
+    const d2=+(cnt-drop).toFixed(2);
+    return {d2,ok:Math.abs(d2)<0.01,short:d2<-0.009,over:d2>0.009};
+  };
+  function cSave(){
+    if(cashCur===null){setErr('Still connecting — try again in a second.');return;}
+    if(!cd.cashier){setErr('Pick the cashier from the roster.');return;}
+    if(cNum(cd.register)===null){setErr('Enter the register total from the envelope.');return;}
+    if(cNum(cd.counted)===null){setErr('Count the envelope and enter what you found.');return;}
+    setErr('');
+    const entry={id:Date.now().toString(36),date:cd.date||cToday(),cashier:cd.cashier,shift:cd.shift,
+      register:cNum(cd.register),bank:cBank,drop:cDrop(cd.register),counted:cNum(cd.counted),
+      note:(cd.note||'').trim(),at:new Date().toISOString().slice(0,16).replace('T',' ')};
+    writeK('cash_'+store,{list:[entry,...cashCur].slice(0,300)},'Envelope logged ✓');
+    setCd(null);
+  }
+  function cDel(id){
+    if(cArm!==id){setCArm(id);return;}
+    setCArm(null);
+    writeK('cash_'+store,{list:cashCur.filter(t=>t.id!==id)},'Removed');
+  }
+  function cSaveBank(){
+    const v=cNum(bankEdit);
+    if(v===null){setErr('Enter the bank amount.');return;}
+    writeK('meta',{...(meta||{}),cashBank:{...((meta||{}).cashBank||{}),[store]:v}},'Bank updated ✓');
+    setBankEdit(null);
+  }
+  const cWeekISO=(()=>{const d=new Date();const dw=(d.getDay()+6)%7;d.setDate(d.getDate()-dw);return d.toISOString().slice(0,10);})();
+  const cStats=(()=>{
+    let wk=0,wkN=0,shorts=0,shortSum=0;
+    for(const e of (cashCur||[])){
+      if(e.date>=cWeekISO){wk+=Number(e.drop)||0;wkN++;}
+      const v=cVerdict(e);
+      if(v&&v.short){shorts++;shortSum+=v.d2;}
+    }
+    const mm=new Date().toISOString().slice(0,7);
+    const mtd=(l)=>(l||[]).filter(e=>String(e.date||'').slice(0,7)===mm).reduce((s2,e)=>s2+(Number(e.drop)||0),0);
+    return {wk,wkN,shorts,shortSum,mtdA:mtd(cashA),mtdM:mtd(cashM)};
+  })();
+  const cashierNames=(()=>{
+    const l=[...employees].sort((a,b)=>((a.role==='cashier')?0:1)-((b.role==='cashier')?0:1)||a.name.localeCompare(b.name));
+    return l.map(e=>e.name);
+  })();
+  const cashView=cashCur===null?html`<div class="card dim">Connecting…</div>`:html`
+    <${Fragment}>
+      <div class="card">
+        <div class="ttl" style="display:flex;justify-content:space-between;align-items:baseline">
+          <span>${STORES.find(s2=>s2.id===store)?.label?.toUpperCase()} — CASH CLOSE-OUT</span>
+          ${bankEdit===null
+            ?html`<button class="ghost" style="font-size:11px" onClick=${()=>setBankEdit(String(cBank))}>bank: ${money(cBank)} ✎</button>`
+            :html`<span style="display:flex;gap:6px;align-items:center">
+                <input style="width:70px" inputmode="decimal" value=${bankEdit} onInput=${e=>setBankEdit(e.target.value)} />
+                <button class="ghost" onClick=${cSaveBank}>save</button>
+                <button class="ghost dim" onClick=${()=>setBankEdit(null)}>✕</button>
+              </span>`}
+        </div>
+        <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:13px;margin-top:4px">
+          <span>This week: <b>${money(cStats.wk)}</b> dropped · ${cStats.wkN} envelope${cStats.wkN===1?'':'s'}</span>
+          ${cStats.shorts>0?html`<span style="color:var(--tomato);font-weight:800">${cStats.shorts} short (${money(cStats.shortSum)})</span>`:html`<span style="color:var(--green,#2f9e63)">no shortages ✓</span>`}
+        </div>
+        <div class="dim" style="font-size:10.5px;margin-top:6px">Month to date — Astoria: ${money(cStats.mtdA)} · MacDougal: ${money(cStats.mtdM)}</div>
+      </div>
+
+      ${cd===null?html`
+        <button class="btn" style="width:100%;margin-bottom:12px" onClick=${()=>setCd(cBlank())}>+ LOG AN ENVELOPE</button>
+      `:html`
+        <div class="card">
+          <div class="ttl">NEW ENVELOPE — VERIFY AS YOU COUNT</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+            <input type="date" value=${cd.date} onInput=${e=>setCd({...cd,date:e.target.value})} />
+            <select value=${cd.cashier} onChange=${e=>setCd({...cd,cashier:e.target.value})}>
+              <option value="">Cashier…</option>
+              ${cashierNames.map(n2=>html`<option value=${n2} key=${n2}>${n2}</option>`)}
+            </select>
+            <span style="display:flex;gap:4px">
+              ${CSHIFTS.map(s2=>html`<button key=${s2} class="ghost" style=${{border:'1px solid var(--edge)',borderRadius:'999px',padding:'4px 12px',fontSize:'11px',fontWeight:cd.shift===s2?'800':'400',background:cd.shift===s2?'var(--edge)':'transparent'}} onClick=${()=>setCd({...cd,shift:s2})}>${s2}</button>`)}
+            </span>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <span style="display:flex;flex-direction:column;gap:3px">
+              <span class="hch" style="border:none;padding:0">Register total</span>
+              <input style="width:100px" inputmode="decimal" placeholder="$" value=${cd.register} onInput=${e=>setCd({...cd,register:e.target.value})} />
+            </span>
+            <span style="display:flex;flex-direction:column;gap:3px">
+              <span class="hch" style="border:none;padding:0">− Bank</span>
+              <span style="padding:7px 0;font-weight:700">${money(cBank)}</span>
+            </span>
+            <span style="display:flex;flex-direction:column;gap:3px">
+              <span class="hch" style="border:none;padding:0">= Drop (envelope says)</span>
+              <span style="padding:7px 0;font-weight:800">${cDrop(cd.register)===null?'—':money(cDrop(cd.register))}</span>
+            </span>
+            <span style="display:flex;flex-direction:column;gap:3px">
+              <span class="hch" style="border:none;padding:0">You counted</span>
+              <input style="width:100px" inputmode="decimal" placeholder="$" value=${cd.counted} onInput=${e=>setCd({...cd,counted:e.target.value})} />
+            </span>
+          </div>
+          ${(()=>{const v=cVerdict(cd);if(!v)return '';
+            return html`<div style=${{marginTop:'8px',fontWeight:'800',fontSize:'13px',color:v.ok?'var(--green,#2f9e63)':v.short?'var(--tomato)':'#B8860B'}}>
+              ${v.ok?'✓ MATCHES the envelope':v.short?'SHORT '+money(Math.abs(v.d2)):'OVER '+money(v.d2)}
+            </div>`;})()}
+          ${(()=>{const v=cVerdict(cd);return (v&&!v.ok)||cd.note?html`
+            <input style="width:100%;margin-top:8px" placeholder="Note — why the difference? (kept with the record)"
+              value=${cd.note} onInput=${e=>setCd({...cd,note:e.target.value})} />`:'';})()}
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn" style="flex:1" onClick=${cSave}>LOG ENVELOPE ✓</button>
+            <button class="ghost" onClick=${()=>setCd(null)}>cancel</button>
+          </div>
+        </div>`}
+
+      <div class="card">
+        <div class="ttl">THE ENVELOPES — ${STORES.find(s2=>s2.id===store)?.label?.toUpperCase()}</div>
+        ${(cashCur||[]).length===0?html`<div class="dim" style="padding:8px 0">No envelopes logged yet.</div>`:html`
+          <div class="hcg hch" style="border:none;grid-template-columns:1fr 70px 70px 76px">
+            <span>Date · cashier · shift</span><span class="num">Drop</span><span class="num">Counted</span><span class="num"></span>
+          </div>`}
+        ${(cashCur||[]).slice(0,40).map(e=>{
+          const v=cVerdict(e);
+          return html`
+          <div key=${e.id} style="padding:8px 0;border-bottom:1px solid var(--edge)">
+            <div class="hcg" style="grid-template-columns:1fr 70px 70px 76px;font-size:13px">
+              <span><b>${e.date.slice(5)}</b> · ${e.cashier} · ${e.shift}
+                <button class="ghost" style=${{color:'var(--tomato)',fontSize:'10.5px',fontWeight:cArm===e.id?'800':'400',padding:'0 4px'}} onClick=${()=>cDel(e.id)}>${cArm===e.id?'sure?':'✕'}</button>
+              </span>
+              <span class="num">${money(e.drop)}</span>
+              <span class="num">${money(e.counted)}</span>
+              <span class="num" style=${{fontWeight:'800',color:v?(v.ok?'var(--green,#2f9e63)':v.short?'var(--tomato)':'#B8860B'):'var(--dim,#8a8378)'}}>
+                ${v?(v.ok?'✓':(v.short?'−':'+')+money(Math.abs(v.d2)).slice(1).replace(/^/,'$')):'—'}
+              </span>
+            </div>
+            ${e.note?html`<div class="dim" style="font-size:11px;margin-top:3px">${e.note}</div>`:''}
+            <div class="dim" style="font-size:10px;margin-top:2px">register ${money(e.register)} − bank ${money(e.bank)} · logged ${e.at}</div>
+          </div>`;})}
+      </div>
+    <//>`;
+
+  // ---- transfers: the inter-store ledger ----
+  const XUNITS=['pc','tray','batch','qt','kg','lb','case','bag'];
+  const XSEEDS=['Pitas','Tzatziki','Chicken souvlaki (marinated)','Pork souvlaki (marinated)','Gyro cone','Lemon potatoes','Sauce cups','Feta'];
+  const xToday=()=>new Date().toISOString().slice(0,10);
+  const xBlank=()=>({from:store,to:store==='astoria'?'macdougal':'astoria',date:xToday(),items:[{name:'',qty:'',unit:'pc',val:''}],note:''});
+  const xQuick=(()=>{ // most-used item names from history + seeds
+    const cnt={};
+    for(const t of (xfers||[]))for(const it of (t.items||[]))cnt[it.name]=(cnt[it.name]||0)+1;
+    const hist=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]);
+    const out=[];for(const n2 of [...hist,...XSEEDS])if(n2&&!out.includes(n2))out.push(n2);
+    return out.slice(0,8);
+  })();
+  const xTotal=(t)=>(t.items||[]).reduce((s,it)=>s+(Number(it.val)||0),0);
+  function xSave(){
+    if(xfers===null){setErr('Still connecting — try again in a second.');return;}
+    const items=(xd.items||[]).filter(it=>it.name.trim()).map(it=>({name:it.name.trim(),qty:String(it.qty||'').trim(),unit:it.unit||'pc',val:it.val===''?'':Number(it.val)||0}));
+    if(items.length===0){setErr('Add at least one item.');return;}
+    setErr('');
+    const entry={id:Date.now().toString(36),at:new Date().toISOString().slice(0,16).replace('T',' '),
+      date:xd.date||xToday(),from:xd.from,to:xd.to,items,note:(xd.note||'').trim()};
+    writeK('xfer_log',{list:[entry,...xfers].slice(0,400)},'Transfer logged ✓');
+    setXd(null);
+  }
+  function xDel(id){
+    if(xArm!==id){setXArm(id);return;}
+    setXArm(null);
+    writeK('xfer_log',{list:xfers.filter(t=>t.id!==id)},'Removed');
+  }
+  const xMonth=new Date().toISOString().slice(0,7);
+  const xStats=(()=>{ // owed = A→M minus M→A, this month + all time
+    let mAM=0,mMA=0,aAM=0,aMA=0,mN=0;
+    for(const t of (xfers||[])){
+      const v=xTotal(t);
+      const isAM=t.from==='astoria';
+      if((t.date||'').slice(0,7)===xMonth){if(isAM)mAM+=v;else mMA+=v;mN++;}
+      if(isAM)aAM+=v;else aMA+=v;
+    }
+    return {mAM,mMA,mNet:mAM-mMA,mN,aNet:aAM-aMA};
+  })();
+  const xferView=xfers===null?html`<div class="card dim">Connecting…</div>`:html`
+    <${Fragment}>
+      <div class="card">
+        <div class="ttl" style="display:flex;justify-content:space-between;align-items:baseline">
+          <span>MACDOUGAL ◂ ASTORIA — THIS MONTH</span>
+          <span class="dim" style="font-size:10.5px">${xStats.mN} transfer${xStats.mN===1?'':'s'}</span>
+        </div>
+        <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:13px;margin-top:4px">
+          <span>Astoria → MacDougal: <b>${money(xStats.mAM)}</b></span>
+          <span>MacDougal → Astoria: <b>${money(xStats.mMA)}</b></span>
+          <span style=${{fontWeight:'800',color:xStats.mNet>=0?'var(--ink,#26333D)':'var(--tomato)'}}>MacDougal owes: ${money(xStats.mNet)}</span>
+        </div>
+        <div class="dim" style="font-size:10.5px;margin-top:6px">All-time net: ${money(xStats.aNet)} · dollar values are optional per line — untallied items still show in the ledger.</div>
+      </div>
+
+      ${xd===null?html`
+        <button class="btn" style="width:100%;margin-bottom:12px" onClick=${()=>setXd(xBlank())}>+ LOG A TRANSFER</button>
+      `:html`
+        <div class="card">
+          <div class="ttl">NEW TRANSFER</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+            <b>${STORES.find(s2=>s2.id===xd.from)?.label}</b>
+            <button class="ghost" style="font-size:15px;padding:0 6px" onClick=${()=>setXd({...xd,from:xd.to,to:xd.from})}>⇄</button>
+            <b>${STORES.find(s2=>s2.id===xd.to)?.label}</b>
+            <input type="date" style="margin-left:auto" value=${xd.date} onInput=${e=>setXd({...xd,date:e.target.value})} />
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+            ${xQuick.map(n2=>html`<button class="ghost" key=${n2} style="font-size:11px;border:1px solid var(--edge);border-radius:999px;padding:4px 10px"
+              onClick=${()=>setXd({...xd,items:[...xd.items.filter(it=>it.name.trim()),{name:n2,qty:'',unit:n2.includes('souvlaki')?'tray':'pc',val:''}]})}>${n2}</button>`)}
+          </div>
+          ${xd.items.map((it,ii)=>html`
+            <div key=${ii} style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap">
+              <input style="flex:2;min-width:130px" placeholder="Item (e.g. marinated chicken souvlaki)" value=${it.name}
+                onInput=${e=>setXd({...xd,items:xd.items.map((x2,j2)=>j2===ii?{...x2,name:e.target.value}:x2)})} />
+              <input style="width:56px" placeholder="qty" inputmode="decimal" value=${it.qty}
+                onInput=${e=>setXd({...xd,items:xd.items.map((x2,j2)=>j2===ii?{...x2,qty:e.target.value}:x2)})} />
+              <select value=${it.unit} onChange=${e=>setXd({...xd,items:xd.items.map((x2,j2)=>j2===ii?{...x2,unit:e.target.value}:x2)})}>
+                ${XUNITS.map(u2=>html`<option value=${u2} key=${u2}>${u2}</option>`)}
+              </select>
+              <input style="width:64px" placeholder="$ val" inputmode="decimal" value=${it.val}
+                onInput=${e=>setXd({...xd,items:xd.items.map((x2,j2)=>j2===ii?{...x2,val:e.target.value}:x2)})} />
+              ${xd.items.length>1&&html`<button class="ghost" style="color:var(--tomato)" onClick=${()=>setXd({...xd,items:xd.items.filter((_,j2)=>j2!==ii)})}>✕</button>`}
+            </div>`)}
+          <button class="ghost" style="font-size:12px" onClick=${()=>setXd({...xd,items:[...xd.items,{name:'',qty:'',unit:'pc',val:''}]})}>+ another item</button>
+          <input style="width:100%;margin-top:8px" placeholder="Note (optional — e.g. marinated with Astoria chicken, batch of 60)"
+            value=${xd.note} onInput=${e=>setXd({...xd,note:e.target.value})} />
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn" style="flex:1" onClick=${xSave}>LOG IT ✓</button>
+            <button class="ghost" onClick=${()=>setXd(null)}>cancel</button>
+          </div>
+        </div>`}
+
+      <div class="card">
+        <div class="ttl">THE LEDGER</div>
+        ${(xfers||[]).length===0?html`<div class="dim" style="padding:8px 0">No transfers yet — log the first pita run.</div>`:''}
+        ${(xfers||[]).slice(0,60).map(t=>html`
+          <div key=${t.id} style="padding:10px 0;border-bottom:1px solid var(--edge)">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap">
+              <span style="font-size:12px;font-weight:800">${t.date} · ${STORES.find(s2=>s2.id===t.from)?.label} → ${STORES.find(s2=>s2.id===t.to)?.label}</span>
+              <span style="display:flex;gap:10px;align-items:baseline">
+                ${xTotal(t)>0?html`<b>${money(xTotal(t))}</b>`:''}
+                <button class="ghost" style=${{color:'var(--tomato)',fontSize:'11px',fontWeight:xArm===t.id?'800':'400'}} onClick=${()=>xDel(t.id)}>${xArm===t.id?'sure?':'✕'}</button>
+              </span>
+            </div>
+            <div style="font-size:13px;margin-top:4px">
+              ${(t.items||[]).map((it,j2)=>html`<span key=${j2}>${j2>0?' · ':''}${it.qty?it.qty+' '+it.unit+' ':''}${it.name}${it.val!==''&&it.val>0?html` <span class="dim">(${money(it.val)})</span>`:''}</span>`)}
+            </div>
+            ${t.note?html`<div class="dim" style="font-size:11.5px;margin-top:3px">${t.note}</div>`:''}
+          </div>`)}
+      </div>
+    <//>`;
+
+  // ---- write-up actions ----
+  const priorsFor=(name)=>writeups.filter(w=>w.emp===name).sort((a,b)=>(b.id>a.id?1:-1));
+  function wuText(w){
+    return `EMPLOYEE WRITE-UP — GYRO CITY ${STORES.find(s=>s.id===w.store)?.label?.toUpperCase()||''}
+================================
+Employee: ${w.emp}
+Date of incident: ${w.when}
+Category: ${w.cat}
+Action level: ${w.sev}
+Written up by: ${w.by} on ${w.at}
+${w.witnesses?`Witnesses: ${w.witnesses}\n`:''}
+WHAT HAPPENED:
+${w.desc}
+
+${w.action?`ACTION TAKEN / EXPECTATIONS GOING FORWARD:\n${w.action}\n\n`:''}${w.response?`EMPLOYEE'S RESPONSE:\n${w.response}\n\n`:''}Acknowledgment: ${w.ack}${w.followup?`\nFollow-up date: ${w.followup}`:''}
+Prior write-ups on file at time of this notice: ${w.priorCount}`;
+  }
+  async function submitWriteup(){
+    if(!requireName())return;
+    const d=wu;
+    if(!d.emp){setErr('Pick the employee.');return;}
+    if(!d.cat){setErr('Pick a category.');return;}
+    if(!d.sev){setErr('Pick the action level (verbal, written…).');return;}
+    if(!d.desc?.trim()){setErr('Describe what happened — this is the record.');return;}
+    setErr('');setSaving(true);
+    const rec={
+      id:Date.now().toString(36),
+      store,emp:d.emp,cat:d.cat,sev:d.sev,
+      when:(d.when||'').trim()||nowStamp(),
+      desc:d.desc.trim(),
+      witnesses:(d.witnesses||'').trim(),
+      action:(d.action||'').trim(),
+      response:(d.response||'').trim(),
+      ack:d.ack||ACKS[0],
+      followup:(d.followup||'').trim(),
+      by:myName.trim(),at:nowStamp(),
+      priorCount:priorsFor(d.emp).length
+    };
+    await saveWriteups([rec,...writeups]);
+    // email a copy to Angelo (best effort — the record saves either way)
+    let mailed=false;
+    try{
+      const r=await fetch('https://api.web3forms.com/submit',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},
+        body:JSON.stringify({access_key:meta?.emailKey||EMAIL_KEY,
+          subject:`Write-up: ${rec.emp} — ${rec.cat} (${rec.sev})`,
+          from_name:`Gyro City Log — ${rec.by}`,message:wuText(rec)})});
+      const j=await r.json();mailed=!!j.success;
+    }catch{}
+    setSaving(false);setShowForm(false);setWu({});
+    flash(mailed?'Write-up saved & emailed to Angelo ✓':'Write-up saved ✓ (email copy failed)');
+  }
+  function deleteWriteup(id){setWuArm(null);setOpenWu(null);saveWriteups(writeups.filter(w=>w.id!==id));}
+  const sevColor=(s)=>s==='Verbal warning'?'var(--amber)':s==='Written warning'?'#B85C1E':s==='Final warning'?'var(--tomato)':s==='Suspension'?'#8A2318':'#511110';
+
+  // ---- derived ----
+  const isToday=sel===todayKey();
+  const chipsDays=[...Array(7)].map((_,i)=>dayInfo(win*7+(6-i)));
+  const empCounts=useMemo(()=>{const m={};for(const w of writeups)m[w.emp]=(m[w.emp]||0)+1;return m;},[writeups]);
+  const shownWu=filterEmp?writeups.filter(w=>w.emp===filterEmp):writeups;
+
+  // ================= render =================
+  const STORE_COL={astoria:'#0E2A47',macdougal:'#1F5F52'};
+  const storeSignal=!authed?null:html`
+    <${Fragment}>
+      <div class="storebar" style=${{background:STORE_COL[store]}}></div>
+      <button class="storepill" style=${{background:STORE_COL[store]}}
+        onClick=${()=>{const n2=store==='astoria'?'macdougal':'astoria';setStore(n2);localStorage.setItem('gc-store',n2);}}>
+        ${store==='astoria'?'ASTORIA':'MACDOUGAL'}<span style="opacity:.7">⇄</span>
+      </button>
+    <//>`;
+  const header=html`
+    <div class="hdr"><div class="hdr-in">
+      <div class="hrow"><h1>GYRO CITY</h1>
+        <span style="display:flex;gap:8px;align-items:center">
+          <button class="hello" style="min-width:86px;justify-content:center" onClick=${exportAll}>EXPORT</button>
+          <button class="hello" style="min-width:86px;justify-content:center" onClick=${()=>{setAuthed(false);setPinBuf('');setPinMode(meta?.pin?'enter':'create');setTab('log');}}>LOCK</button>
+        </span>
+      </div>
+      <div class="stores">
+        ${STORES.map(s=>html`<button class=${store===s.id?'on':''} onClick=${()=>setStore(s.id)}>${s.label}</button>`)}
+      </div>
+      <div class="tabs">
+        ${[['log','Daily log'],['sched','Schedule'],['ord','Ordering'],['xfer','Transfers'],['cash','Cash'],['wu','Write-ups']].map(([id,label])=>html`
+          <button class=${tab===id?'on':''} key=${id} onClick=${()=>setTab(id)}>${label}</button>`)}
+      </div>
+    </div><div class="meander"></div></div>`;
+
+  const nameCard=html`
+    <div class="card" style="display:flex;gap:10px;align-items:center">
+      <span class="lbl" style="margin:0;white-space:nowrap">YOUR NAME</span>
+      <input style="flex:1" placeholder="Who's logging?" value=${myName} onInput=${e=>setName(e.target.value)} />
+    </div>`;
+
+  // ---- daily log tab ----
+  const logTab=html`
+    <${Fragment}>
+      <div class="daysrow">
+        <button class="arrow" onClick=${()=>setWin(win+1)}>‹</button>
+        <div class="days">
+          ${chipsDays.map(d=>html`
+            <button class=${'day'+(sel===d.key?' on':'')} key=${d.key} onClick=${()=>setSel(d.key)}>
+              ${d.dow}<div class="sub">${d.key===todayKey()?'today':d.md}</div>
+            </button>`)}
+        </div>
+        <button class="arrow" style=${{opacity:win===0?0.3:1}} disabled=${win===0} onClick=${()=>setWin(win-1)}>›</button>
+      </div>
+      ${isToday?html`
+        <div class="card">
+          <div class="lbl">TAP WHAT YOU JUST DID</div>
+          <div class="chips">
+            ${QUICK.map(q=>html`<button class="chip" key=${q} onClick=${()=>log(q)}>${q}</button>`)}
+          </div>
+        </div>
+        <div class="card" style="display:flex;gap:8px">
+          <input style="flex:1" placeholder="Or type it — 'fixed the soda fridge door'" value=${txt} onInput=${e=>setTxt(e.target.value)} onKeyDown=${e=>{if(e.key==='Enter')logTyped();}} />
+          <button class="btn" onClick=${logTyped}>Log it</button>
+        </div>`
+      :html`<div class="banner info">Viewing ${prettyDay(sel)} — read only. Every day is saved forever.</div>`}
+      <div class="cnt">${list.length} ${list.length===1?'entry':'entries'} · ${prettyDay(sel)}</div>
+      ${!dayLoaded&&html`<div class="empty">⏳ Syncing this day\u2019s log…</div>`}
+      ${dayLoaded&&list.length===0
+        ?html`<div class="empty">Nothing logged ${isToday?'yet today — tap a button above when you do something':'this day'}.</div>`
+        :html`<div class="tline">
+          ${list.map(e=>html`
+            <div class="ev" key=${e.id}>
+              <div class="t">${e.t} · <span class="by">${e.by}</span>
+                ${isToday&&(arm===e.id
+                  ?html` <button class="x" style="color:var(--tomato);font-weight:700" onClick=${()=>removeEntry(e.id)}>remove?</button><button class="x" onClick=${()=>setArm(null)}>keep</button>`
+                  :html` <button class="x" onClick=${()=>setArm(e.id)}>✕</button>`)}
+              </div>
+              <div class="w">${e.w}</div>
+            </div>`)}
+        </div>`}
+    <//>`;
+
+  // ---- write-ups tab ----
+  const priorList=(name)=>{
+    const p=priorsFor(name);
+    if(!p.length)return html`<div class="prior"><b>${name}</b> has no prior write-ups on file.</div>`;
+    return html`
+      <div class="prior">
+        <span style="color:var(--tomato);font-weight:800">!</span> <b>${name}</b> has <b>${p.length}</b> prior write-up${p.length===1?'':'s'}:
+        ${p.map(w=>html`<div>· ${w.at.split(' ').slice(0,3).join(' ')} — ${w.cat} <i>(${w.sev})</i></div>`)}
+      </div>`;
+  };
+
+  const schedHeader=html`
+    <div class="wknav">
+      <button class="arrow2" onClick=${()=>{setMonday(shiftMonday(monday,-1));setEditor(null);}}>‹</button>
+      <div class="wkmid">
+        <b>${weekLabel(monday)}</b>
+        <div class=${'sub'+(week.published?' pub':'')}>
+          ${monday===mondayOf(0)?'THIS WEEK':monday===mondayOf(1)?'NEXT WEEK':'WEEK OF '+monday} · ${week.published?'POSTED ✓':'NOT POSTED YET'}
+        </div>
+      </div>
+      <button class="arrow2" onClick=${()=>{setMonday(shiftMonday(monday,1));setEditor(null);}}>›</button>
+    </div>
+    <div class="subtabs">
+      ${[['schedule','Schedule'],['savail','Availability'],['hours','Hours'],['payroll','Payroll'],['staff','Staff']].map(([id,label])=>html`
+        <button class=${schedTab===id?'on':''} onClick=${()=>setSchedTab(id)}>${label}</button>`)}
+    </div>`;
+
+  const schedDayChips=html`
+    <div class="days">
+      ${DAYS7.map((d,di)=>html`
+        <button class=${'day'+(day===di?' on':'')} style=${cashierGaps[di].length?{boxShadow:'inset 0 -3px 0 var(--tomato)'}:{}} onClick=${()=>{setDay(di);setEditor(null);}}>
+          ${d}${cashierGaps[di].length?html` <span style="color:var(--tomato);font-weight:800">!</span>`:''}
+          <div class="sub">${dayHourTotals[di]>0?dayHourTotals[di].toFixed(0)+' hrs':dayDate(monday,di)}</div>
+        </button>`)}
+    </div>`;
+
+  const hcISO=dayISO(monday,hcDay);
+  const hcSched=hcSchedFor(hcDay);
+  const hcHourly=Object.keys(hcSched).map(eid=>({e:empById(eid),eid,...hcSched[eid]})).filter(r=>r.e.rateType!=='wk').sort((a,b)=>a.e.name.localeCompare(b.e.name));
+  const hcSalary=Object.keys(hcSched).map(eid=>({e:empById(eid),eid,...hcSched[eid]})).filter(r=>r.e.rateType==='wk').sort((a,b)=>a.e.name.localeCompare(b.e.name));
+  const hcWeekSummary=(()=>{
+    const schedMap={};for(const s of (week.shifts||[]))schedMap[s.empId]=(schedMap[s.empId]||0)+shiftHours(s);
+    return Object.keys(schedMap).map(eid=>{
+      const e=empById(eid);
+      if(e.rateType==='wk')return null;
+      let act=0,anyAct=false;const notes=[];
+      DAYS7.forEach((_,di)=>{
+        const iso=dayISO(monday,di);
+        const r=((hrsWeek[iso]||{}).rows||{})[eid];
+        if(!r)return;
+        const h2=hcActual(r);
+        if(h2!==null){act+=h2;anyAct=true;}
+        if(r.note)notes.push(DAYS7[di]+': '+r.note);
+      });
+      return {eid,name:e.name,sched:schedMap[eid],act,anyAct,notes,over:anyAct&&(act-schedMap[eid])>0.15};
+    }).filter(Boolean).sort((a,b)=>(b.over?1:0)-(a.over?1:0)||b.sched-a.sched);
+  })();
+  const mgrHours=html`
+    <${Fragment}>
+      <div class="days">
+        ${DAYS7.map((d,di)=>html`
+          <button class=${'day'+(hcDay===di?' on':'')} onClick=${()=>setHcDay(di)}>
+            ${d}<div class="sub">${dayDate(monday,di)}</div>
+          </button>`)}
+      </div>
+      <div class="card">
+        <div class="ttl" style="display:flex;justify-content:space-between;align-items:baseline">
+          <span>TOAST CHECK — ${DAYS7[hcDay]} ${dayDate(monday,hcDay)}</span>
+          <span class="dim" style="font-size:10.5px">enter clock in / out from Toast</span>
+        </div>
+        ${hcHourly.length===0?html`<div class="dim" style="padding:10px 0">No hourly staff scheduled this day.</div>`:html`
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:4px 0 5px;border-bottom:1px solid var(--edge)">
+            <span class="hch" style="border:none;padding:0">Employee · Toast clock in → out</span>
+            <span class="hch" style="border:none;padding:0">Actual vs sched</span>
+          </div>`}
+        ${hcHourly.map(r=>{
+          const row=hcRow(hcISO,r.eid);
+          const act=hcActual(row);
+          const delta=act===null?null:act-r.sched;
+          const over=delta!==null&&delta>0.15;
+          const under=delta!==null&&delta<-0.15;
+          const split=hcSplit[hcISO+'|'+r.eid]||row.i2||row.o2;
+          return html`
+            <div key=${r.eid} style="padding:10px 0;border-bottom:1px solid var(--edge)">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px">
+                <b>${r.e.name}</b>
+                <span class="dim" style="font-size:11px">sched ${r.sched.toFixed(2).replace(/\.00$/,'')}h · ${r.spans.join(' + ')}</span>
+              </div>
+              <div style="display:flex;gap:6px;align-items:center;margin-top:7px;flex-wrap:wrap">
+                <input style="width:74px" placeholder="in 10:58a" value=${row.i1} onInput=${e=>hcSetField(hcISO,r.eid,'i1',e.target.value)} />
+                <span class="dim">→</span>
+                <input style="width:74px" placeholder="out 5:04p" value=${row.o1} onInput=${e=>hcSetField(hcISO,r.eid,'o1',e.target.value)} />
+                ${split?html`
+                  <input style="width:74px" placeholder="in" value=${row.i2} onInput=${e=>hcSetField(hcISO,r.eid,'i2',e.target.value)} />
+                  <span class="dim">→</span>
+                  <input style="width:74px" placeholder="out" value=${row.o2} onInput=${e=>hcSetField(hcISO,r.eid,'o2',e.target.value)} />
+                `:html`
+                  <button class="ghost" style="font-size:11px" onClick=${()=>setHcSplit(p=>({...p,[hcISO+'|'+r.eid]:true}))}>+ split</button>
+                `}
+                ${act!==null?html`
+                  <span style=${{marginLeft:'auto',fontWeight:'800',fontSize:'12.5px',
+                    color:over?'var(--tomato)':under?'var(--dim,#8a8378)':'var(--green,#2f9e63)'}}>
+                    ${act.toFixed(2).replace(/\.00$/,'')}h ${over?'· OVER +'+delta.toFixed(2).replace(/\.00$/,'')+'h':under?'· under '+Math.abs(delta).toFixed(2).replace(/\.00$/,'')+'h':'· on plan ✓'}
+                  </span>`:''}
+              </div>
+              ${(over||row.note)?html`
+                <input style="width:100%;margin-top:7px" placeholder="Why the extra hours? (kept with the day)"
+                  value=${row.note} onInput=${e=>hcSetField(hcISO,r.eid,'note',e.target.value)} />`:''}
+            </div>`;})}
+        ${hcHourly.length>0?html`
+          <button class="btn mt10" style="width:100%" onClick=${()=>hcSave(hcISO,hcHourly.map(r=>r.eid))}>SAVE ${DAYS7[hcDay].toUpperCase()} ✓</button>`:''}
+      </div>
+      ${hcSalary.length>0&&html`
+        <div class="card">
+          <div class="ttl">SALARY — TRACKED AS USUAL</div>
+          ${hcSalary.map(r=>html`
+            <div key=${r.eid} style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--edge);font-size:13px">
+              <span>${r.e.name}</span><span class="dim">${r.sched.toFixed(2).replace(/\.00$/,'')}h scheduled</span>
+            </div>`)}
+          <div class="dim" style="font-size:10.5px;margin-top:6px">Salary staff aren't hour-checked — weekly totals live in Payroll.</div>
+        </div>`}
+      <div class="card">
+        <div class="ttl">THIS WEEK — HOURLY STAFF</div>
+        ${hcWeekSummary.length===0?html`<div class="dim" style="padding:8px 0">Nothing scheduled yet.</div>`:html`
+          <div class="hcg hch" style="border:none">
+            <span>Employee</span><span class="num">Sched</span><span class="num">Actual</span><span class="num"></span>
+          </div>`}
+        ${hcWeekSummary.map(r=>{
+          const d2=r.anyAct?r.act-r.sched:null;
+          const over=d2!==null&&d2>0.15;const under=d2!==null&&d2<-0.15;
+          return html`
+          <div key=${r.eid} style="padding:8px 0;border-bottom:1px solid var(--edge)">
+            <div class="hcg" style="font-size:13px">
+              <b>${r.name}</b>
+              <span class="num">${r.sched.toFixed(2).replace(/\.00$/,'')}h</span>
+              <span class="num" style=${over?{fontWeight:'800'}:{}}>${r.anyAct?r.act.toFixed(2).replace(/\.00$/,'')+'h':'—'}</span>
+              <span class="num" style=${{fontWeight:'800',color:over?'var(--tomato)':'var(--dim,#8a8378)'}}>
+                ${d2===null?'—':over?'+'+d2.toFixed(2).replace(/\.00$/,'')+'h':under?'−'+Math.abs(d2).toFixed(2).replace(/\.00$/,'')+'h':'—'}
+              </span>
+            </div>
+            ${r.notes.length>0?html`<div class="dim" style="font-size:11px;margin-top:3px">${r.notes.join(' · ')}</div>`:''}
+          </div>`;})}
+      </div>
+    <//>`;
+
+  const mgrSchedule=!weekLoaded?html`
+    <div class="card" style="text-align:center;padding:34px 16px">
+      <div style="font-size:26px">⏳</div>
+      <b style="font-size:14.5px">Syncing this week from the cloud…</b>
+      <div class="muted" style="font-size:12.5px;margin-top:6px">If this hangs more than a few seconds, tap reload below.</div>
+      <button class="btn blue" style="margin-top:12px" onClick=${()=>location.reload()}>↻ Reload</button>
+    </div>`:html`
+    <${Fragment}>
+      <div class="row mb12">
+        <button class=${'btn '+(week.published?'':'tomato')} style=${week.published?{background:'var(--faint)'}:{background:'var(--olive)'}} onClick=${togglePublish}>
+          ${week.published?'Unpublish (hide from staff)':'✓ Publish — staff can see it'}
+        </button>
+        ${(week.shifts||[]).length===0&&html`<button class="btn blue" onClick=${copyLastWeekFn}>⟳ Copy last week</button>`}
+      </div>
+      ${payroll.rows.length>0&&html`
+        <button class="card payrow" style="width:100%;border:none;cursor:pointer;text-align:left;font-family:inherit" onClick=${()=>setSchedTab('payroll')}>
+          <span class="muted" style="font-size:13.5px">This week: <b style="color:var(--ink)">${payroll.totalHours.toFixed(1)} hrs</b> · ${payroll.rows.length} people</span>
+          <span style="font-size:18px;font-weight:800;color:var(--navy)">${money(payroll.total)} →</span>
+        </button>`}
+      ${gapDays.length>0&&html`
+        <div class="card" style="border-color:var(--tomato);background:#FBEAE6;padding:12px 14px;margin-bottom:12px">
+          <b style="color:#A4442C;font-size:13.5px">CASHIER COVERAGE MISSING — ${gapDays.length} DAY${gapDays.length>1?'S':''}</b>
+          <div style="font-size:12.5px;color:#7A4A3C;margin-top:5px;line-height:1.7">
+            ${gapDays.map(di=>html`<div key=${di}><b>${DAYS7[di]}:</b> ${cashierGaps[di].map(fmtGap).join(' · ')}</div>`)}
+          </div>
+          ${week.published&&html`<div style="font-size:12px;font-weight:700;color:#A4442C;margin-top:6px">This schedule is LIVE with these holes.</div>`}
+        </div>`}
+      ${gapDays.length===0&&(week.shifts||[]).length>0&&html`
+        <div style="font-size:12px;font-weight:700;color:var(--olive);margin:0 2px 12px">✓ CASHIER COVERAGE COMPLETE — every store hour has someone on register</div>`}
+      ${schedDayChips}
+      <div class="dayhdr">${DAYS7[day].toUpperCase()} · STORE HOURS ${DAY_HOURS[day]}
+        ${cashierGaps[day].length?html` · <span style="color:var(--tomato);font-weight:800">REGISTER UNCOVERED ${cashierGaps[day].map(fmtGap).join(', ')}</span>`:''}
+      </div>
+      ${POSITIONS.map(pos=>{
+        const shifts=dayShifts.filter(s=>s.position===pos.id);
+        const editing=editor&&editor.position===pos.id;
+        return html`
+          <div class="pos" style=${{borderLeftColor:pos.edge}} key=${pos.id}>
+            <div class="pos-h" style=${{background:pos.tint}}>${pos.label.toUpperCase()}</div>
+            <div class="pos-b">
+              ${shifts.map(s=>html`
+                <button class="shift" key=${s.id} onClick=${()=>openEditor(pos.id,s)}>
+                  <b>${empById(s.empId).name}${availFor(s.empId,day)==='no'?html`<span style="color:var(--tomato);font-size:12.5px"> · said can't work</span>`:''}</b>
+                  <span class="t">${fmtTime(s.start)}–${fmtTime(s.end)} · ${shiftHours(s).toFixed(shiftHours(s)%1?2:0)}h</span>
+                </button>`)}
+              ${editing?html`
+                <div class="editbox">
+                  <div class="lbl">WHO · ✓ available · ✕ can't work</div>
+                  <div class="chips mb10">
+                    ${[...employees.filter(e=>e.role===pos.id),...employees.filter(e=>e.role!==pos.id)].map(e=>{
+                      const a=availFor(e.id,day);
+                      return html`
+                        <button class="chip" key=${e.id}
+                          style=${{
+                            borderColor:draft.empId===e.id?pos.edge:a==='yes'?'var(--olive)':'var(--line)',
+                            background:draft.empId===e.id?pos.tint:'#FAF9F5',
+                            color:a==='no'?'var(--tomato)':'var(--ink)',
+                            fontWeight:draft.empId===e.id?700:400,
+                            opacity:e.role===pos.id?1:0.55
+                          }}
+                          onClick=${()=>setDraft({...draft,empId:e.id})}>
+                          ${e.name}${a==='yes'?' ✓':a==='no'?' ✕':''}
+                        </button>`;
+                    })}
+                  </div>
+                  ${draft.empId&&(avail[draft.empId]?.notes?.[day]||avail[draft.empId]?.note)&&html`<div class="note">${empById(draft.empId).name}'s ${DAYS7[day]} note: "${avail[draft.empId]?.notes?.[day]||avail[draft.empId]?.note}"</div>`}
+                  <div class="row mb10">
+                    <div>
+                      <div class="lbl" style="margin-bottom:4px">START</div>
+                      <select value=${draft.start} onChange=${e=>setDraft({...draft,start:Number(e.target.value)})}>
+                        ${T_OPTS.map(m=>html`<option value=${m}>${fmtTime(m)}</option>`)}
+                      </select>
+                    </div>
+                    <div>
+                      <div class="lbl" style="margin-bottom:4px">END</div>
+                      <select value=${draft.end} onChange=${e=>setDraft({...draft,end:Number(e.target.value)})}>
+                        ${T_OPTS.map(m=>html`<option value=${m}>${fmtTime(m)}</option>`)}
+                      </select>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <button class="btn" onClick=${saveShift}>${editor.shiftId?'Save changes':'Add shift'}</button>
+                    ${editor.shiftId&&html`<button class="btn tomato" onClick=${deleteShift}>Remove</button>`}
+                    <button class="ghost" onClick=${()=>setEditor(null)}>Cancel</button>
+                  </div>
+                </div>
+              `:html`
+                <button class="addshift" style=${{borderColor:pos.edge,color:pos.edge}} onClick=${()=>openEditor(pos.id,null)}>
+                  + Add ${pos.label.toLowerCase()} shift
+                </button>
+              `}
+            </div>
+          </div>`;
+      })}
+    <//>`;
+
+  const mgrAvail=html`
+    <${Fragment}>
+      <div class="muted mb12" style="margin:0 2px 12px">
+        What staff submitted for ${weekLabel(monday)} — updates live as they tap. ✓ can work · ✕ can't · blank = no response yet.
+      </div>
+      <div class="card" style="overflow-x:auto;padding:12px 10px">
+        <table>
+          <thead><tr><th>NAME</th>${DAYS7.map(d=>html`<th class="c" key=${d}>${d[0]}</th>`)}</tr></thead>
+          <tbody>
+            ${employees.map(e=>{
+              const notes=avail[e.id]?.notes||{};
+              const legacy=avail[e.id]?.note;
+              const noteBits=DAYS7.map((d,di)=>notes[di]?`${d}: ${notes[di]}`:null).filter(Boolean);
+              if(legacy)noteBits.push(legacy);
+              return html`
+                <${Fragment} key=${e.id}>
+                  <tr>
+                    <td style="font-weight:600">${e.name}</td>
+                    ${DAYS7.map((_,di)=>{
+                      const a=availFor(e.id,di);
+                      return html`<td class="c" style=${{color:a==='yes'?'var(--olive)':a==='no'?'var(--tomato)':'#C9CFC9',fontWeight:700}}>${a==='yes'?'✓':a==='no'?'✕':'·'}</td>`;
+                    })}
+                  </tr>
+                  ${noteBits.length>0&&html`
+                    <tr>
+                      <td colspan="8" style="border-top:none;padding:0 6px 8px;font-size:12.5px;color:#6E5A1B">
+                        ✎ ${noteBits.join(' · ')}
+                      </td>
+                    </tr>`}
+                <//>`;
+            })}
+          </tbody>
+        </table>
+      </div>
+    <//>`;
+
+  const mgrPayroll=html`
+    <${Fragment}>
+      ${crossRows===null&&html`<div class="empty">⏳ Syncing the other store for combined totals…</div>`}
+      ${crossRows&&crossRows.length>0&&html`
+        <div class="card" style="padding:14px 16px">
+          <div class="lbl" style="margin-bottom:8px">BOTH STORES COMBINED — WEEK ${weekLabel(monday).toUpperCase()}</div>
+          ${crossRows.map(r=>html`
+            <div style="display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:1px solid #F3ECDF;font-size:14px" key=${r.name}>
+              <span><b>${r.name}</b>${r.a>0&&r.m>0?html`<span style="color:var(--faint);font-size:12px"> · both stores</span>`:''}</span>
+              <span style="text-align:right">
+                <b style=${{color:r.total>40?'var(--tomato)':'var(--navy)',fontSize:'15px'}}>${r.total.toFixed(r.total%1?1:0)}h</b>
+                <span style="color:var(--faint);font-size:11.5px"> — A ${r.a.toFixed(r.a%1?1:0)} · M ${r.m.toFixed(r.m%1?1:0)}${r.total>40?' · OVER 40':''}</span>
+              </span>
+            </div>`)}
+        </div>`}
+      <div class="card payrow">
+        <div>
+          <div class="lbl" style="margin-bottom:4px">WEEK ${weekLabel(monday).toUpperCase()}</div>
+          <div style="font-size:15px">${payroll.totalHours.toFixed(1)} scheduled hours</div>
+        </div>
+        <div class="paysum">${money(payroll.total)}</div>
+      </div>
+      ${payroll.rows.length===0&&html`<div class="empty">Nothing scheduled yet — payroll fills in as shifts are added.</div>`}
+      ${payroll.rows.map(r=>{
+        const isOpen=payOpen===r.id;
+        const det=isOpen?empWeekShifts(r.name):[];
+        return html`
+        <div class="card" style="padding:12px 16px;cursor:pointer" key=${r.id} onClick=${()=>setPayOpen(isOpen?null:r.id)}>
+          <div class="payrow"><b style="font-size:15.5px">${isOpen?'▾':'▸'} ${r.name}</b><span style="font-size:16px;font-weight:800;color:var(--navy)">${money(r.pay)}</span></div>
+          <div class="muted" style="font-size:13px;margin-top:3px">
+            ${r.hours.toFixed(2)} hrs · ${r.rateType==='wk'?money(r.rate)+'/week flat':money(r.rate)+'/hr'}
+            ${r.rateType==='hr'&&r.hours>40?html`<span style="color:var(--tomato)"> · over 40 hrs — check overtime</span>`:''}
+          </div>
+          ${isOpen&&html`
+            <div style="margin-top:10px;border-top:1px solid #F3ECDF;padding-top:8px" onClick=${e=>e.stopPropagation()}>
+              ${det.length===0&&html`<div class="muted" style="font-size:12.5px">No shifts found this week.</div>`}
+              ${det.map(s=>html`
+                <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13.5px" key=${s.id+s.storeKey}>
+                  <span><b>${DAYS7[s.day]}</b>
+                    <span class="muted" style="font-size:11px"> · ${dayDate(monday,s.day)}${s.storeKey!==store?html` · <b style="color:var(--cook, #6B579B)">${s.storeKey.toUpperCase()}</b>`:''}</span>
+                  </span>
+                  <span style="font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:var(--navy);font-weight:700">
+                    ${fmtTime(s.start)}–${fmtTime(s.end)} · ${shiftHours(s).toFixed(shiftHours(s)%1?1:0)}h
+                  </span>
+                </div>`)}
+              ${det.some(s=>s.storeKey!==store)&&html`<div class="muted" style="font-size:11px;margin-top:4px">Includes shifts at the other store · pay above is this store only</div>`}
+            </div>`}
+        </div>`;})}
+    <//>`;
+
+  const mgrStaff=emp===null?html`
+    <div class="card" style="text-align:center;padding:34px 16px">
+      <div style="font-size:26px">⏳</div>
+      <b style="font-size:14.5px">Syncing the roster…</b>
+    </div>`:html`
+    <${Fragment}>
+      <div class="muted mb12" style="margin:0 2px 12px">Tap a person to fix their rate or remove them. Staff pick their names from this roster in the schedule app.</div>
+      ${POSITIONS.map(pos=>html`
+        <div class="mb12" key=${pos.id}>
+          <div class="roledir" style=${{color:pos.edge}}>${pos.label.toUpperCase()}S</div>
+          ${employees.filter(e=>e.role===pos.id).map(e=>html`
+            <div class="empcard" style=${{borderLeftColor:pos.edge}} key=${e.id}>
+              ${rateEdit[e.id]?html`
+                <b style="font-size:15px">${e.name}</b>
+                <div class="row mt8">
+                  <input inputmode="decimal" value=${rateEdit[e.id].rate} onInput=${ev=>setRateEdit({...rateEdit,[e.id]:{...rateEdit[e.id],rate:ev.target.value}})} />
+                  <select value=${rateEdit[e.id].rateType} onChange=${ev=>setRateEdit({...rateEdit,[e.id]:{...rateEdit[e.id],rateType:ev.target.value}})}>
+                    <option value="hr">per hour</option><option value="wk">per week (flat)</option>
+                  </select>
+                </div>
+                <div class="row mt8">
+                  <button class="btn" onClick=${()=>saveRate(e.id)}>Save</button>
+                  <button class="btn tomato" onClick=${()=>removeEmployee(e.id)}>Remove</button>
+                  <button class="ghost" onClick=${()=>setRateEdit({...rateEdit,[e.id]:undefined})}>Cancel</button>
+                </div>
+              `:html`
+                <button class="empline" onClick=${()=>setRateEdit({...rateEdit,[e.id]:{rate:String(e.rate),rateType:e.rateType}})}>
+                  <b>${e.name}</b>
+                  <span class="mono" style="font-size:12.5px;color:var(--faint)">${e.rateType==='wk'?money(e.rate)+'/wk':money(e.rate)+'/hr'}</span>
+                </button>
+              `}
+            </div>`)}
+        </div>`)}
+      ${newEmp?html`
+        <div class="card">
+          <input class="mb8" placeholder="Name" value=${newEmp.name||''} onInput=${e=>setNewEmp({...newEmp,name:e.target.value})} />
+          <div class="row mb8">
+            <select value=${newEmp.role||'cashier'} onChange=${e=>setNewEmp({...newEmp,role:e.target.value})}>
+              ${POSITIONS.map(p=>html`<option value=${p.id}>${p.label}</option>`)}
+            </select>
+            <input inputmode="decimal" placeholder="Rate" value=${newEmp.rate||''} onInput=${e=>setNewEmp({...newEmp,rate:e.target.value})} />
+            <select value=${newEmp.rateType||'hr'} onChange=${e=>setNewEmp({...newEmp,rateType:e.target.value})}>
+              <option value="hr">/hr</option><option value="wk">/wk</option>
+            </select>
+          </div>
+          <div class="row">
+            <button class="btn" onClick=${addEmployee}>Add to roster</button>
+            <button class="ghost" onClick=${()=>setNewEmp(null)}>Cancel</button>
+          </div>
+        </div>
+      `:html`<button class="btn wide" style="background:var(--blue)" onClick=${()=>setNewEmp({})}>+ Add employee</button>`}
+    <//>`;
+
+  const ordView=html`
+    <${Fragment}>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+        <a href="https://gyrocityordering.netlify.app" target="_blank" rel="noopener" class="ghost" style="color:var(--blue);font-weight:600;text-decoration:none;font-size:13.5px">Open full screen ↗</a>
+      </div>
+      <iframe src="https://gyrocityordering.netlify.app" style="width:100%;height:calc(100vh - 210px);min-height:520px;border:none;border-radius:12px;background:#fff;box-shadow:0 1px 3px rgba(23,57,92,.08)" title="Gyro City Orders"></iframe>
+    <//>`;
+
+  const schedView=html`
+    <${Fragment}>
+      ${schedHeader}
+      ${schedTab==='schedule'?mgrSchedule:schedTab==='savail'?mgrAvail:schedTab==='hours'?mgrHours:schedTab==='payroll'?mgrPayroll:mgrStaff}
+    <//>`;
+
+  const wuForm=html`
+    <div class="card" style="border-left:5px solid var(--tomato)">
+      <div class="vrow"><b style="font-size:16.5px;color:var(--tomato)">New write-up</b>
+        <button class="ghost" onClick=${()=>{setShowForm(false);setWu({});}}>Cancel</button></div>
+
+      <div class="lbl mt12">EMPLOYEE *</div>
+      <div class="chips">
+        ${staffNames.map(n=>html`<button class=${'chip'+(wu.emp===n?' on':'')} key=${n} onClick=${()=>setWu({...wu,emp:n})}>${n}${empCounts[n]?` (${empCounts[n]})`:''}</button>`)}
+      </div>
+      <input class="mt8" placeholder="…or type a name not listed" onBlur=${e=>{if(e.target.value.trim())setWu({...wu,emp:e.target.value.trim()});}} />
+      ${wu.emp&&priorList(wu.emp)}
+
+      <div class="lbl">WHAT KIND OF ISSUE? *</div>
+      <div class="chips">
+        ${CATEGORIES.map(c=>html`<button class=${'chip'+(wu.cat===c?' on':'')} key=${c} onClick=${()=>setWu({...wu,cat:c})}>${c}</button>`)}
+      </div>
+
+      <div class="lbl mt12">ACTION LEVEL *</div>
+      <div class="chips">
+        ${SEVERITIES.map(s=>html`<button class=${'chip sev'+(wu.sev===s?' on':'')} key=${s} onClick=${()=>setWu({...wu,sev:s})}>${s}</button>`)}
+      </div>
+
+      <div class="lbl mt12">WHEN DID IT HAPPEN?</div>
+      <input placeholder=${'Leave blank for now ('+nowStamp()+')'} value=${wu.when||''} onInput=${e=>setWu({...wu,when:e.target.value})} />
+
+      <div class="lbl mt12">WHAT HAPPENED? * — be specific: times, amounts, what was said</div>
+      <textarea placeholder="e.g. Scheduled 11AM, arrived 12:40PM with no call. Line was down a cashier through lunch rush." value=${wu.desc||''} onInput=${e=>setWu({...wu,desc:e.target.value})}></textarea>
+
+      <div class="lbl mt12">WITNESSES (optional)</div>
+      <input placeholder="Who else saw it" value=${wu.witnesses||''} onInput=${e=>setWu({...wu,witnesses:e.target.value})} />
+
+      <div class="lbl mt12">ACTION TAKEN / EXPECTATIONS GOING FORWARD</div>
+      <textarea placeholder="What you told them, what changes, what happens next time" value=${wu.action||''} onInput=${e=>setWu({...wu,action:e.target.value})}></textarea>
+
+      <div class="lbl mt12">EMPLOYEE'S SIDE (their response, in their words)</div>
+      <textarea placeholder="What they said when you talked to them" value=${wu.response||''} onInput=${e=>setWu({...wu,response:e.target.value})}></textarea>
+
+      <div class="lbl mt12">ACKNOWLEDGMENT</div>
+      <select value=${wu.ack||ACKS[0]} onChange=${e=>setWu({...wu,ack:e.target.value})}>
+        ${ACKS.map(a=>html`<option value=${a}>${a}</option>`)}
+      </select>
+
+      <div class="lbl mt12">FOLLOW-UP DATE (optional)</div>
+      <input placeholder="e.g. re-check in 2 weeks — Aug 1" value=${wu.followup||''} onInput=${e=>setWu({...wu,followup:e.target.value})} />
+
+      <button class="btn tomato wide mt12" disabled=${saving} onClick=${submitWriteup}>${saving?'Saving…':'Save write-up — a copy emails Angelo'}</button>
+      <div style="font-size:12px;color:var(--faint);margin-top:8px;line-height:1.5">Saved permanently with your name and today's date. It counts toward ${wu.emp||'the employee'}'s record.</div>
+    </div>`;
+
+  const wuList=html`
+    <${Fragment}>
+      ${!showForm&&html`<button class="btn tomato wide mb12" onClick=${()=>{setShowForm(true);setWu({});}}>+ Write someone up</button>`}
+      ${showForm&&wuForm}
+      ${writeups.length>0&&html`
+        <div class="lbl">FILTER BY EMPLOYEE</div>
+        <div class="chips mb12">
+          <button class=${'chip'+(filterEmp===null?' on':'')} onClick=${()=>setFilterEmp(null)}>All (${writeups.length})</button>
+          ${Object.entries(empCounts).sort((a,b)=>b[1]-a[1]).map(([n,c])=>html`
+            <button class=${'chip'+(filterEmp===n?' on':'')} key=${n} onClick=${()=>setFilterEmp(filterEmp===n?null:n)}>${n} (${c})</button>`)}
+        </div>`}
+      ${!wuLoaded&&html`<div class="empty">⏳ Syncing write-ups…</div>`}
+      ${wuLoaded&&shownWu.length===0&&html`<div class="empty">${writeups.length===0?'No write-ups on file.':'None for this filter.'}</div>`}
+      ${shownWu.map(w=>{
+        const open=openWu===w.id;
+        return html`
+          <div class="wcard" key=${w.id} style=${{borderLeftColor:sevColor(w.sev)}}>
+            <button class="whead" onClick=${()=>setOpenWu(open?null:w.id)}>
+              <div class="vrow">
+                <b style="font-size:16px">${w.emp}</b>
+                <span class="pill" style=${{background:sevColor(w.sev)}}>${w.sev.toUpperCase()}</span>
+              </div>
+              <div style="font-size:13px;color:var(--faint);margin-top:3px">
+                ${w.cat} · ${STORES.find(s=>s.id===w.store)?.label||''} · ${w.at} · by ${w.by}
+              </div>
+            </button>
+            ${open&&html`
+              <div class="wbody">
+                <div class="field"><div class="fl">INCIDENT</div><div class="fv">${w.when}</div></div>
+                <div class="field"><div class="fl">WHAT HAPPENED</div><div class="fv">${w.desc}</div></div>
+                ${w.witnesses&&html`<div class="field"><div class="fl">WITNESSES</div><div class="fv">${w.witnesses}</div></div>`}
+                ${w.action&&html`<div class="field"><div class="fl">ACTION TAKEN / EXPECTATIONS</div><div class="fv">${w.action}</div></div>`}
+                ${w.response&&html`<div class="field"><div class="fl">EMPLOYEE'S SIDE</div><div class="fv">${w.response}</div></div>`}
+                <div class="field"><div class="fl">ACKNOWLEDGMENT</div><div class="fv">${w.ack}</div></div>
+                ${w.followup&&html`<div class="field"><div class="fl">FOLLOW-UP</div><div class="fv">${w.followup}</div></div>`}
+                <div class="field"><div class="fl">PRIORS AT TIME OF NOTICE</div><div class="fv">${w.priorCount}</div></div>
+                <div class="row mt12">
+                  <button class="btn blue" onClick=${()=>setShareBox({title:'Copy / print this write-up',text:wuText(w)})}>Copy as text</button>
+                  ${wuArm===w.id
+                    ?html`<button class="btn tomato" onClick=${()=>deleteWriteup(w.id)}>Really delete?</button>`
+                    :html`<button class="ghost" style="color:var(--tomato)" onClick=${()=>setWuArm(w.id)}>Delete</button>`}
+                </div>
+              </div>`}
+          </div>`;})}
+    <//>`;
+
+  if(!authed){
+    const dots=[0,1,2,3].map(i=>html`<div class=${'dot'+(pinBuf.length>i?' f':'')} key=${i}></div>`);
+    return html`
+      <div class="login">
+        <h1>GYRO CITY</h1>
+        <span class="tag">MANAGERS BOOK</span>
+        <div class="lcard">
+          <div class="whoami">${pinMode==='enter'?'Manager PIN':'Set the manager PIN'}</div>
+          <div class="pinsub">
+            ${pinMode==='enter'?'Punch in to open the book':
+              pinMode==='create'?'First time — create a 4-digit PIN. Managers only.':
+              'Type it once more to confirm'}
+            ${pinBad?html`<div style="color:var(--tomato);font-weight:700;margin-top:4px">${pinMode==='create'?"Didn't match — start again":'Wrong PIN — try again'}</div>`:''}
+          </div>
+          <div class=${'dots'+(pinBad?' bad':'')}>${dots}</div>
+          <div class="pad">
+            ${[1,2,3,4,5,6,7,8,9].map(k=>html`<button class="key" key=${k} onClick=${()=>pressKey(String(k))}>${k}</button>`)}
+            <span></span>
+            <button class="key" onClick=${()=>pressKey('0')}>0</button>
+            <button class="key ghostk" onClick=${()=>pressKey('back')}>⌫</button>
+          </div>
+        </div>
+        ${connected===false&&html`<div class="banner err" style="max-width:420px;margin-top:14px"><b>Can't reach the database.</b> Check internet.</div>`}
+      </div>`;
+  }
+
+  return html`
+    <${Fragment}>
+      ${header}
+      <div class="wrap">
+        ${connected===false&&html`<div class="banner err"><b>Can't reach the database.</b> Check your internet.</div>`}
+        ${err&&html`<div class="banner err">${err}</div>`}
+        ${nameCard}
+        ${storeSignal}
+        ${tab==='log'?logTab:tab==='sched'?schedView:tab==='ord'?ordView:tab==='xfer'?xferView:tab==='cash'?cashView:wuList}
+      </div>
+      ${shareBox&&html`
+        <div class="modal" onClick=${e=>{if(e.target.classList.contains('modal'))setShareBox(null);}}>
+          <div>
+            <b style="font-size:16px">${shareBox.title}</b>
+            <textarea readonly style="min-height:220px;margin:10px 0;font-family:ui-monospace,Menlo,monospace;font-size:12.5px" onFocus=${e=>e.target.select()}>${shareBox.text}</textarea>
+            <div class="row">
+              <button class="btn" onClick=${async()=>{try{await navigator.clipboard.writeText(shareBox.text);flash('Copied ✓');}catch{setErr('Tap the text, Select All, copy manually.');}}}>Copy</button>
+              <button class="ghost" onClick=${()=>setShareBox(null)}>Done</button>
+            </div>
+          </div>
+        </div>`}
+      ${toast&&html`<div class="toast">${toast}</div>`}
+    <//>`;
+}
+
+const _boot=()=>render(html`<${App} />`, document.getElementById('app'));
+let _booted=false;const _go=()=>{if(!_booted){_booted=true;_boot();}};
+onAuthStateChanged(_auth,(u)=>{if(u)_go();});
+signInAnonymously(_auth).catch((e)=>{console.warn('anon auth failed',e);});
+setTimeout(_go,2500); // fail-open: never brick the app if auth is unreachable
+</script>
+</body>
+</html>
