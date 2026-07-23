@@ -1,0 +1,9 @@
+{
+  "name": "gyro-staff-auth",
+  "version": "1.0.0",
+  "description": "Airtight staff PIN auth for Gyro City — self-service PIN creation + manager reset/terminate.",
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "^12.1.0"
+  }
+}
