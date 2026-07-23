@@ -9,6 +9,12 @@ const EMAIL_DOMAIN = 'staff.gyrocity.app';
 // A 4-digit PIN is the only secret; this just turns it into a valid (>=6 char) password.
 const pw = (pin) => 'gc-' + pin + '-staff';
 
+// Shared role accounts for the ordering app — not tied to any one person.
+// 'owner' implies 'orders' too (broader access), matching the app's UI tiers.
+const ROLE_UIDS = { orders: 'role_orders', owner: 'role_owner' };
+const ROLE_EMAIL_DOMAIN = 'ordering.gyrocity.app';
+const rolePw = (pin) => 'gc-' + pin + '-role';
+
 function setCors(res) {
   res.set('Access-Control-Allow-Origin', '*');
   res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -77,6 +83,44 @@ exports.staff = async (req, res) => {
       const empId = String(body.empId || '');
       if (!empId) return res.status(400).json({ error: 'Missing empId.' });
       try { await auth.deleteUser(empId); } catch (e) { /* already gone */ }
+      return res.json({ ok: true });
+    }
+
+    // Manager-only: set or replace the Orders / Owner code for the ordering app.
+    if (action === 'role-set') {
+      if (!(await callerIsManager(req))) return res.status(403).json({ error: 'Managers only.' });
+      const role = String(body.role || '');
+      const pin = String(body.pin || '');
+      if (!ROLE_UIDS[role]) return res.status(400).json({ error: 'Unknown role.' });
+      if (!/^\d{4,}$/.test(pin)) return res.status(400).json({ error: 'Code must be at least 4 digits.' });
+      const uid = ROLE_UIDS[role];
+      const email = role + '@' + ROLE_EMAIL_DOMAIN;
+      const password = rolePw(pin);
+      try {
+        await auth.updateUser(uid, { password });
+      } catch (e) {
+        await auth.createUser({ uid, email, password });
+      }
+      await auth.setCustomUserClaims(uid, { orders: true, owner: role === 'owner' });
+      return res.json({ ok: true });
+    }
+
+    // Manager-only: which role codes are currently set.
+    if (action === 'role-list') {
+      if (!(await callerIsManager(req))) return res.status(403).json({ error: 'Managers only.' });
+      const set = [];
+      for (const role of Object.keys(ROLE_UIDS)) {
+        try { await auth.getUser(ROLE_UIDS[role]); set.push(role); } catch (e) { /* not set */ }
+      }
+      return res.json({ ok: true, set });
+    }
+
+    // Manager-only: remove a role code (ordering app locks again until reset).
+    if (action === 'role-clear') {
+      if (!(await callerIsManager(req))) return res.status(403).json({ error: 'Managers only.' });
+      const role = String(body.role || '');
+      if (!ROLE_UIDS[role]) return res.status(400).json({ error: 'Unknown role.' });
+      try { await auth.deleteUser(ROLE_UIDS[role]); } catch (e) { /* already gone */ }
       return res.json({ ok: true });
     }
 

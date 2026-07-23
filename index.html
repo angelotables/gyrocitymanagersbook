@@ -357,6 +357,10 @@ function App(){
   const [newEmp,setNewEmp]=useState(null);
   const [rateEdit,setRateEdit]=useState({});
   const [loginsWith,setLoginsWith]=useState(null); // empIds that have a staff login
+  const [roleCodesSet,setRoleCodesSet]=useState(null); // ['orders','owner'] — which are configured
+  const [roleCodeDraft,setRoleCodeDraft]=useState({});
+  const [roleBusy,setRoleBusy]=useState(null);
+  const [roleClearArm,setRoleClearArm]=useState(null);
   const [loginsBusy,setLoginsBusy]=useState(false);
   const [loginArm,setLoginArm]=useState(null);
 
@@ -667,9 +671,24 @@ function App(){
     catch(e){ setErr('Reset failed — '+(e.message||e)); }
     setLoginArm(null);setLoginsBusy(false);
   }
+  async function setRoleCode(role){
+    const pin=(roleCodeDraft[role]||'').trim();
+    if(!/^\d{4,}$/.test(pin)){setErr('Code must be at least 4 digits.');return;}
+    setRoleBusy(role);
+    try{ await callStaffFn('role-set',{role,pin}); setRoleCodesSet(s=>[...new Set([...(s||[]),role])]); setRoleCodeDraft({...roleCodeDraft,[role]:''}); flash((role==='owner'?'Owner':'Ordering')+' code saved ✓'); }
+    catch(e){ setErr('Could not save code — '+(e.message||e)); }
+    setRoleBusy(null);
+  }
+  async function clearRoleCode(role){
+    setRoleBusy(role);
+    try{ await callStaffFn('role-clear',{role}); setRoleCodesSet(s=>(s||[]).filter(x=>x!==role)); flash((role==='owner'?'Owner':'Ordering')+' code removed'); }
+    catch(e){ setErr('Could not remove code — '+(e.message||e)); }
+    setRoleClearArm(null);setRoleBusy(null);
+  }
   useEffect(()=>{
     if(schedTab!=='logins'||!authed)return;
-    setLoginsWith(null);setLoginArm(null);
+    setLoginsWith(null);setLoginArm(null);setRoleCodesSet(null);
+    callStaffFn('role-list',{}).then(j=>setRoleCodesSet(j.set||[])).catch(()=>setRoleCodesSet([]));
     callStaffFn('list',{}).then(j=>setLoginsWith(j.withLogin||[])).catch(e=>{setErr('Could not load staff logins — '+(e.message||e));setLoginsWith([]);});
   },[schedTab,authed]);
 
@@ -1528,6 +1547,28 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
 
   const mgrLogins=html`
     <${Fragment}>
+      <div class="card">
+        <div class="ttl">ORDERING APP — ORDERS &amp; OWNER CODES</div>
+        <div class="muted mb10">These two shared codes control the Ordering app. Set or replace either anytime; removing one locks that access until you set a new code.</div>
+        ${roleCodesSet===null?html`<div class="empty" style="padding:10px 0">⏳ Checking…</div>`:[['orders','Ordering code'],['owner','Owner code']].map(([role,label])=>{
+          const has=roleCodesSet.includes(role);
+          return html`
+            <div key=${role} style="padding:9px 0;border-top:1px solid var(--bg)">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:${has?'0':'7px'}">
+                <b style="font-size:14px">${label}</b>
+                <span style="display:flex;gap:8px;align-items:center">
+                  <span class="mono" style=${{fontSize:'11px',color:has?'var(--green)':'var(--faint)'}}>${has?'set ✓':'not set'}</span>
+                  ${has&&(roleClearArm===role
+                    ?html`<button class="ghost" style="color:var(--tomato);font-weight:700" disabled=${roleBusy===role} onClick=${()=>clearRoleCode(role)}>${roleBusy===role?'…':'confirm remove'}</button><button class="ghost" onClick=${()=>setRoleClearArm(null)}>cancel</button>`
+                    :html`<button class="ghost" style="color:var(--tomato)" onClick=${()=>setRoleClearArm(role)}>Remove</button>`)}
+                </span>
+              </div>
+              <div style="display:flex;gap:8px">
+                <input style="flex:1" inputmode="numeric" placeholder=${has?'New code — replaces the current one':'Set a code (4+ digits)'} value=${roleCodeDraft[role]||''} onInput=${e=>setRoleCodeDraft({...roleCodeDraft,[role]:e.target.value})} />
+                <button class="btn" style="white-space:nowrap" disabled=${roleBusy===role} onClick=${()=>setRoleCode(role)}>${roleBusy===role?'…':has?'Replace':'Set'}</button>
+              </div>
+            </div>`;})}
+      </div>
       <div class="muted mb12" style="margin:0 2px 12px">Staff set their own 4-digit PIN the first time they open the Staff Book. Forgot a PIN? Reset it here — they'll create a new one next login. Removing someone from the roster (Staff tab) also deletes their login.</div>
       ${loginsWith===null?html`<div class="empty">⏳ Checking who has a PIN…</div>`:html`
         ${POSITIONS.map(pos=>html`
