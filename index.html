@@ -205,7 +205,7 @@ import { useState, useEffect, useMemo, useRef } from 'https://esm.sh/preact@10.2
 import htm from 'https://esm.sh/htm@3.1.1';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { initializeFirestore, doc, onSnapshot, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
 const html = htm.bind(h);
 
@@ -317,6 +317,13 @@ function App(){
   // write-ups
   const [meta,setMeta]=useState(null);
   const [authed,setAuthed]=useState(false);
+  const [user,setUser]=useState(null);
+  const [authReady,setAuthReady]=useState(false);
+  const [loginEmail,setLoginEmail]=useState('');
+  const [loginPw,setLoginPw]=useState('');
+  const [loginErr,setLoginErr]=useState('');
+  const [loginNote,setLoginNote]=useState('');
+  const [loginBusy,setLoginBusy]=useState(false);
   const [pinBuf,setPinBuf]=useState('');
   const [pinMode,setPinMode]=useState('enter'); // enter | create | confirm
   const [firstPin,setFirstPin]=useState('');
@@ -357,7 +364,37 @@ function App(){
     if(!fromCache)srvSeen.current[key]=true;
     return true;
   };
+  // ---- manager sign-in (Firebase email/password) ----
   useEffect(()=>{
+    const unsub=onAuthStateChanged(_auth,(u)=>{ setUser(u); setAuthed(!!u&&!u.isAnonymous); setAuthReady(true); });
+    return unsub;
+  },[]);
+  const authMsg=(err)=>{
+    const c=(err&&err.code)||'';
+    if(c.includes('invalid-cred')||c.includes('wrong-password')||c.includes('user-not-found'))return 'Wrong email or password.';
+    if(c.includes('invalid-email'))return 'That does not look like a valid email.';
+    if(c.includes('too-many-requests'))return 'Too many attempts — wait a minute and try again.';
+    if(c.includes('network'))return 'Network problem — check your internet.';
+    return (err&&err.message)||'Sign-in failed.';
+  };
+  async function doLogin(e){
+    if(e&&e.preventDefault)e.preventDefault();
+    const email=loginEmail.trim();
+    if(!email||!loginPw){setLoginErr('Enter your email and password.');return;}
+    setLoginErr('');setLoginNote('');setLoginBusy(true);
+    try{ await signInWithEmailAndPassword(_auth,email,loginPw); setLoginPw(''); }
+    catch(err){ setLoginErr(authMsg(err)); }
+    setLoginBusy(false);
+  }
+  async function doReset(){
+    const email=loginEmail.trim();
+    if(!email){setLoginErr('Type your email above first, then tap Forgot password.');return;}
+    setLoginErr('');
+    try{ await sendPasswordResetEmail(_auth,email); setLoginNote('Reset email sent — check your inbox.'); }
+    catch(err){ setLoginErr(authMsg(err)); }
+  }
+  useEffect(()=>{
+    if(!authed)return;
     const um=onSnapshot(D('meta'),(s)=>{if(!trustSnap('meta',s))return;setMeta(s.exists()?s.data():{});},()=>setConnected(false));
     const ux=onSnapshot(D('xfer_log'),(s)=>{if(!trustSnap('xfer_log',s))return;setXfers(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
     const uca=onSnapshot(D('cash_astoria'),(s)=>{if(!trustSnap('cash_astoria',s))return;setCashA(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
@@ -373,16 +410,18 @@ function App(){
     const r1=onSnapshot(D('emp_astoria'),(s)=>{if(!trustSnap('r_a',s))return;if(s.exists()){rosterDocs.a=s.data().list||[];rebuild();}},()=>{});
     const r2=onSnapshot(D('emp_macdougal'),(s)=>{if(!trustSnap('r_m',s))return;if(s.exists()){rosterDocs.m=s.data().list||[];rebuild();}},()=>{});
     return ()=>{um();ux();uca();ucm();uw();r1();r2();};
-  },[]);
+  },[authed]);
 
   useEffect(()=>{
     localStorage.setItem('gc-store',store);
+    if(!authed)return;
     setList([]);setDayLoaded(false);
     const u=onSnapshot(D(`mlog_${store}_${sel}`),(s)=>{if(!trustSnap('mlog_'+store+'_'+sel,s))return;setConnected(true);setList(s.exists()?s.data().list:[]);setDayLoaded(true);},()=>setConnected(false));
     return ()=>u();
-  },[store,sel]);
+  },[store,sel,authed]);
 
   useEffect(()=>{
+    if(!authed)return;
     setEmp(null);setWeek(emptyWeek());setAvail({});setEditor(null);
     setWeekLoaded(false);setAvailLoaded(false);
     const u1=onSnapshot(D('emp_'+store),(s)=>{if(!trustSnap('emp_'+store,s))return;setEmp(s.exists()?s.data().list:SEED_EMP);},()=>setConnected(false));
@@ -393,7 +432,7 @@ function App(){
     const u4=onSnapshot(D(`week_${oStore}_${monday}`),(s)=>{if(!trustSnap('week_'+oStore+'_'+monday,s))return;setOWeek(s.exists()?s.data():{shifts:[]});},()=>{});
     const u5=onSnapshot(D('emp_'+oStore),(s)=>{if(!trustSnap('emp_'+oStore,s))return;setOEmp(s.exists()?(s.data().list||[]):SEED_EMP);},()=>{});
     return ()=>{u1();u2();u3();u4();u5();};
-  },[store,monday]);
+  },[store,monday,authed]);
 
   async function saveDay(next){
     if(!dayLoaded){setErr('Still connecting — try again in a second.');return;}
@@ -433,6 +472,7 @@ function App(){
   const [hcSplit,setHcSplit]=useState({});   // iso|empId -> true (second pair shown)
   const dayISO=(mon,di)=>{const[y,mo,d]=mon.split('-').map(Number);const n=new Date(y,mo-1,d+di);return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;};
   useEffect(()=>{
+    if(!authed)return;
     setHrsWeek({});setHcEdit({});setHcSplit({});
     const us=DAYS7.map((_,di)=>{
       const iso=dayISO(monday,di);
@@ -442,7 +482,7 @@ function App(){
       },()=>{});
     });
     return ()=>us.forEach(u=>u());
-  },[store,monday]);
+  },[store,monday,authed]);
   const parseT=(t)=>{
     if(!t)return null;
     const m2=String(t).trim().match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm|a|p)?$/i);
@@ -578,8 +618,7 @@ function App(){
     setRateEdit({...rateEdit,[id]:undefined});
   }
 
-  // ---- door lock (manager PIN keypad) ----
-  useEffect(()=>{if(meta!==null&&srvSeen.current['meta']&&!meta.pin&&pinMode==='enter'&&!authed)setPinMode('create');},[meta]);
+  // ---- manager sign-in handled above via Firebase Auth ----
   // Daily auto-backup: mirror critical docs; a backup only ever accepts an equal-or-bigger copy.
   useEffect(()=>{
     if(!authed||meta===null)return;
@@ -628,15 +667,7 @@ function App(){
       flash('Backup downloaded — '+Object.keys(out.docs).length+' records');
     }catch(e){setErr('Export failed — '+(e.message||e));}
   }
-  useEffect(()=>{
-    if(authed)return;
-    const h=(e)=>{
-      if(/^[0-9]$/.test(e.key)){pressKey(e.key);e.preventDefault();}
-      else if(e.key==='Backspace'){pressKey('back');e.preventDefault();}
-    };
-    window.addEventListener('keydown',h);
-    return ()=>window.removeEventListener('keydown',h);
-  },[authed,pinBuf,pinMode,pinBad,firstPin,meta]);
+  // (keypad keydown handler removed — email/password sign-in now)
   function pressKey(k){
     if(pinBad)setPinBad(false);
     if(k==='back'){setPinBuf(pinBuf.slice(0,-1));return;}
@@ -992,7 +1023,7 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
       <div class="hrow"><h1>GYRO CITY</h1>
         <span style="display:flex;gap:8px;align-items:center">
           <button class="hello" style="min-width:86px;justify-content:center" onClick=${exportAll}>EXPORT</button>
-          <button class="hello" style="min-width:86px;justify-content:center" onClick=${()=>{setAuthed(false);setPinBuf('');setPinMode(meta?.pin?'enter':'create');setTab('log');}}>LOCK</button>
+          <button class="hello" style="min-width:86px;justify-content:center" onClick=${()=>{signOut(_auth);setTab('log');}}>LOCK</button>
         </span>
       </div>
       <div class="stores">
@@ -1541,29 +1572,31 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
           </div>`;})}
     <//>`;
 
-  if(!authed){
-    const dots=[0,1,2,3].map(i=>html`<div class=${'dot'+(pinBuf.length>i?' f':'')} key=${i}></div>`);
+  if(!authReady){
     return html`
       <div class="login">
         <h1>GYRO CITY</h1>
         <span class="tag">MANAGERS BOOK</span>
-        <div class="lcard">
-          <div class="whoami">${pinMode==='enter'?'Manager PIN':'Set the manager PIN'}</div>
-          <div class="pinsub">
-            ${pinMode==='enter'?'Punch in to open the book':
-              pinMode==='create'?'First time — create a 4-digit PIN. Managers only.':
-              'Type it once more to confirm'}
-            ${pinBad?html`<div style="color:var(--tomato);font-weight:700;margin-top:4px">${pinMode==='create'?"Didn't match — start again":'Wrong PIN — try again'}</div>`:''}
-          </div>
-          <div class=${'dots'+(pinBad?' bad':'')}>${dots}</div>
-          <div class="pad">
-            ${[1,2,3,4,5,6,7,8,9].map(k=>html`<button class="key" key=${k} onClick=${()=>pressKey(String(k))}>${k}</button>`)}
-            <span></span>
-            <button class="key" onClick=${()=>pressKey('0')}>0</button>
-            <button class="key ghostk" onClick=${()=>pressKey('back')}>⌫</button>
-          </div>
-        </div>
-        ${connected===false&&html`<div class="banner err" style="max-width:420px;margin-top:14px"><b>Can't reach the database.</b> Check internet.</div>`}
+        <div class="tag" style="margin-top:22px">Loading…</div>
+      </div>`;
+  }
+  if(!authed){
+    return html`
+      <div class="login">
+        <h1>GYRO CITY</h1>
+        <span class="tag">MANAGERS BOOK</span>
+        <form class="lcard" onSubmit=${doLogin}>
+          <div class="whoami">Manager sign-in</div>
+          <div class="pinsub">Sign in with your manager email and password.</div>
+          <div class="lbl mt8">EMAIL</div>
+          <input type="email" autocomplete="username" inputmode="email" placeholder="you@example.com" value=${loginEmail} onInput=${e=>{setLoginEmail(e.target.value);setLoginErr('');}} />
+          <div class="lbl mt12">PASSWORD</div>
+          <input type="password" autocomplete="current-password" placeholder="Your password" value=${loginPw} onInput=${e=>{setLoginPw(e.target.value);setLoginErr('');}} />
+          ${loginErr&&html`<div style="color:var(--tomato);font-weight:700;font-size:13px;margin-top:10px">${loginErr}</div>`}
+          ${loginNote&&html`<div style="color:var(--green);font-weight:700;font-size:13px;margin-top:10px">${loginNote}</div>`}
+          <button class="btn wide mt12" type="submit" disabled=${loginBusy}>${loginBusy?'Signing in…':'Sign in'}</button>
+          <button type="button" class="ghost mt12" style="width:100%" onClick=${doReset}>Forgot password?</button>
+        </form>
       </div>`;
   }
 
@@ -1592,11 +1625,7 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
     <//>`;
 }
 
-const _boot=()=>render(html`<${App} />`, document.getElementById('app'));
-let _booted=false;const _go=()=>{if(!_booted){_booted=true;_boot();}};
-onAuthStateChanged(_auth,(u)=>{if(u)_go();});
-signInAnonymously(_auth).catch((e)=>{console.warn('anon auth failed',e);});
-setTimeout(_go,2500); // fail-open: never brick the app if auth is unreachable
+render(html`<${App} />`, document.getElementById('app'));
 </script>
 </body>
 </html>
