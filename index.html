@@ -15,7 +15,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
   :root { --navy:#0E2A47; --navy2:#17395C; --blue:#2E6FA3; --sky:#7FB2DC; --olive:#5C6670; --olive2:#7A8590;
-    --tomato:#B23A2A; --amber:#A66A00; --green:#1E7F4F; --ink:#131A22; --faint:#6B7683; --bg:#F5F6F8; --card:#FFFFFF; --line:#E3E6EB;
+    --tomato:#B23A2A; --amber:#A66A00; --green:#1E7F4F; --ink:#131A22; --faint:#6B7683; --bg:#F5F6F8; --card:#FFFFFF; --line:#E3E6EB; --edge:#E3E6EB; --dim:#8A8378;
     --r:12px; --shadow:0 1px 2px rgba(19,26,34,.05),0 8px 24px -12px rgba(19,26,34,.10);
     --shadow-lg:0 2px 8px rgba(19,26,34,.06),0 18px 44px -16px rgba(19,26,34,.18);
     --disp:'Inter',system-ui,sans-serif; }
@@ -64,6 +64,8 @@
     box-shadow:var(--shadow);animation:rise .35s ease both}
   @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   .lbl{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.14em;color:var(--faint);margin-bottom:9px}
+  .ttl{font-family:var(--disp);font-weight:700;font-size:12.5px;letter-spacing:.06em;color:var(--navy2);margin-bottom:9px}
+  .dim{color:var(--dim)}
   .chips{display:flex;gap:7px;flex-wrap:wrap}
   .chip{border:1.5px solid var(--line);background:#FBFAF6;border-radius:999px;padding:9px 15px;font-size:14px;cursor:pointer;
     font-family:inherit;color:var(--ink);font-weight:500;transition:all .18s}
@@ -274,7 +276,7 @@ const FALLBACK_STAFF = ['Kaiya','Irene','Despoina','Isabelle','Christina','Chris
 const CATEGORIES = ['No call / no show','Late to shift','Left early','Insubordination','Cash / register issue','Food safety','Uniform / hygiene','Phone use on shift','Customer complaint','Performance / quality','Safety violation','Conduct / harassment','Damage to property','Other'];
 const SEVERITIES = ['Verbal warning','Written warning','Final warning','Suspension','Termination'];
 const ACKS = ['Not presented yet','Employee acknowledged','Employee refused to sign'];
-const MGR_PINS = { '0104':'Alessandro' };  // personal manager codes — add more like '1234':'Name'
+const MGR_PINS = {};  // SECURITY: any PIN hardcoded here is readable in the page source. Do NOT add real codes. Managers use the shared PIN set on first launch.
 
 const dkey=(d)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const todayKey=()=>dkey(new Date());
@@ -953,7 +955,7 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
       by:myName.trim(),at:nowStamp(),
       priorCount:priorsFor(d.emp).length
     };
-    await saveWriteups([rec,...writeups]);
+    await saveWriteups([rec,...writeups].slice(0,600)); // cap to stay under Firestore's 1MB/doc limit
     // email a copy to Angelo (best effort — the record saves either way)
     let mailed=false;
     try{
