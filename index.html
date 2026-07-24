@@ -338,6 +338,13 @@ function App(){
   const [wuArm,setWuArm]=useState(null);
   const [shareBox,setShareBox]=useState(null);
   const [saving,setSaving]=useState(false);
+  // catering
+  const [catering,setCatering]=useState(null);
+  const [cateringLoaded,setCateringLoaded]=useState(false);
+  const [catForm,setCatForm]=useState(null);   // null = closed; object = new/edit draft
+  const [catTab,setCatTab]=useState('active');  // active | past
+  const [catOpen,setCatOpen]=useState(null);    // expanded card id
+  const [catArm,setCatArm]=useState(null);      // delete-confirm id
   // scheduling
   const [schedTab,setSchedTab]=useState('schedule');
   const [monday,setMonday]=useState(mondayOf(0));
@@ -409,6 +416,7 @@ function App(){
     const uca=onSnapshot(D('cash_astoria'),(s)=>{if(!trustSnap('cash_astoria',s))return;setCashA(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
     const ucm=onSnapshot(D('cash_macdougal'),(s)=>{if(!trustSnap('cash_macdougal',s))return;setCashM(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
     const uw=onSnapshot(D('writeups'),(s)=>{if(!trustSnap('writeups',s))return;setWriteups(s.exists()?s.data().list:[]);setWuLoaded(true);},()=>setConnected(false));
+    const ucat=onSnapshot(D('catering'),(s)=>{if(!trustSnap('catering',s))return;setCatering(s.exists()?(s.data().list||[]):[]);setCateringLoaded(true);},()=>setConnected(false));
     // pull live rosters (both stores), merged with the built-in list
     const rosterDocs={};
     const rebuild=()=>{
@@ -418,7 +426,7 @@ function App(){
     };
     const r1=onSnapshot(D('emp_astoria'),(s)=>{if(!trustSnap('r_a',s))return;if(s.exists()){rosterDocs.a=s.data().list||[];rebuild();}},()=>{});
     const r2=onSnapshot(D('emp_macdougal'),(s)=>{if(!trustSnap('r_m',s))return;if(s.exists()){rosterDocs.m=s.data().list||[];rebuild();}},()=>{});
-    return ()=>{um();ux();uca();ucm();uw();r1();r2();};
+    return ()=>{um();ux();uca();ucm();uw();ucat();r1();r2();};
   },[authed]);
 
   useEffect(()=>{
@@ -478,6 +486,28 @@ function App(){
     try{await setDoc(D('writeups'),{list:next});setErr('');}
     catch(e){setErr('Save failed — check internet. ('+(e.message||e)+')');}
   }
+  // ---- catering actions ----
+  async function saveCatering(next){
+    if(!cateringLoaded){setErr('Still connecting — try again in a second.');return;}
+    setCatering(next);
+    try{await setDoc(D('catering'),{list:next.slice(0,500)});setErr('');}
+    catch(e){setErr('Save failed — check internet. ('+(e.message||e)+')');}
+  }
+  const catBlank=()=>({id:'c'+Date.now().toString(36),name:'',date:'',arrive:'',address:'',people:'',food:'',utensils:false,sterno:false,price:'',notes:''});
+  function submitCatering(){
+    const d=catForm;
+    if(!d.name?.trim()){setErr('Give the catering a name (customer or event).');return;}
+    if(!d.date){setErr('Pick the date the catering is for.');return;}
+    setErr('');
+    const rec={...d,name:d.name.trim(),address:(d.address||'').trim(),food:(d.food||'').trim(),notes:(d.notes||'').trim(),
+      price:d.price===''?'':Number(String(d.price).replace(/[$,]/g,''))||0,
+      people:d.people===''?'':Number(d.people)||0,
+      by:myName.trim()||d.by||'',at:d.at||nowStamp()};
+    const exists=(catering||[]).some(c=>c.id===rec.id);
+    saveCatering(exists?(catering||[]).map(c=>c.id===rec.id?rec:c):[rec,...(catering||[])]);
+    setCatForm(null);flash('Catering saved ✓');
+  }
+  function deleteCatering(id){setCatArm(null);setCatOpen(null);saveCatering((catering||[]).filter(c=>c.id!==id));}
   function requireName(){
     if(!myName.trim()){setErr('Type your name first.');window.scrollTo({top:0,behavior:'smooth'});return false;}
     return true;
@@ -1104,7 +1134,7 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
         ${STORES.map(s=>html`<button class=${store===s.id?'on':''} onClick=${()=>setStore(s.id)}>${s.label}</button>`)}
       </div>
       <div class="tabs">
-        ${[['log','Daily log'],['sched','Schedule'],['ord','Ordering'],['xfer','Transfers'],['cash','Cash'],['wu','Write-ups']].map(([id,label])=>html`
+        ${[['log','Daily log'],['sched','Schedule'],['ord','Ordering'],['cat','Catering'],['xfer','Transfers'],['cash','Cash'],['wu','Write-ups']].map(([id,label])=>html`
           <button class=${tab===id?'on':''} key=${id} onClick=${()=>setTab(id)}>${label}</button>`)}
       </div>
     </div><div class="meander"></div></div>`;
@@ -1537,6 +1567,96 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
       `:html`<button class="btn wide" style="background:var(--blue)" onClick=${()=>setNewEmp({})}>+ Add employee</button>`}
     <//>`;
 
+  // ---- catering ----
+  const catList=catering||[];
+  const catToday=new Date().toISOString().slice(0,10);
+  const catActive=catList.filter(c=>!c.date||c.date>=catToday).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const catPast=catList.filter(c=>c.date&&c.date<catToday).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const fmtCatTime=(t)=>{if(!t)return '';const p=String(t).split(':');if(p.length<2)return t;let h=+p[0];const ap=h>=12?'PM':'AM';h=h%12||12;return h+':'+p[1]+' '+ap;};
+  const catHas=(v)=>v!==''&&v!==null&&v!==undefined;
+  const catCard=(c)=>{
+    const open=catOpen===c.id;
+    return html`
+      <div class="wcard" key=${c.id} style=${{borderLeftColor:'var(--blue)'}}>
+        <button class="whead" onClick=${()=>setCatOpen(open?null:c.id)}>
+          <div class="vrow">
+            <b style="font-size:16px">${c.name||'Catering'}</b>
+            <span class="pill" style="background:var(--blue)">${c.date?prettyDay(c.date):'NO DATE'}</span>
+          </div>
+          <div style="font-size:13px;color:var(--faint);margin-top:3px">
+            ${c.arrive?'Arrive '+fmtCatTime(c.arrive):''}${c.arrive&&(catHas(c.people)||catHas(c.price))?' · ':''}${catHas(c.people)?c.people+' ppl':''}${catHas(c.people)&&catHas(c.price)?' · ':''}${catHas(c.price)?money(c.price):''}
+          </div>
+        </button>
+        ${open&&html`
+          <div class="wbody">
+            <div class="field"><div class="fl">WHEN</div><div class="fv">${c.date?prettyDay(c.date):'—'}${c.arrive?' · food arrives by '+fmtCatTime(c.arrive):''}</div></div>
+            ${c.address&&html`<div class="field"><div class="fl">ADDRESS</div><div class="fv">${c.address}</div></div>`}
+            ${catHas(c.people)&&html`<div class="field"><div class="fl">PEOPLE</div><div class="fv">${c.people}</div></div>`}
+            ${c.food&&html`<div class="field"><div class="fl">FOOD / MENU</div><div class="fv">${c.food}</div></div>`}
+            <div class="field"><div class="fl">SET-UP</div><div class="fv">Utensils: <b>${c.utensils?'Yes':'No'}</b> · Sterno: <b>${c.sterno?'Yes':'No'}</b></div></div>
+            ${catHas(c.price)&&html`<div class="field"><div class="fl">PRICE</div><div class="fv" style="font-weight:700">${money(c.price)}</div></div>`}
+            ${c.notes&&html`<div class="field"><div class="fl">NOTES</div><div class="fv">${c.notes}</div></div>`}
+            ${c.by&&html`<div class="field"><div class="fl">ADDED BY</div><div class="fv">${c.by}${c.at?' · '+c.at:''}</div></div>`}
+            <div class="row mt12">
+              <button class="btn blue" onClick=${()=>{setCatForm({...c});setCatOpen(null);window.scrollTo({top:0,behavior:'smooth'});}}>Edit</button>
+              ${catArm===c.id
+                ?html`<button class="btn tomato" onClick=${()=>deleteCatering(c.id)}>Really delete?</button>`
+                :html`<button class="ghost" style="color:var(--tomato)" onClick=${()=>setCatArm(c.id)}>Delete</button>`}
+            </div>
+          </div>`}
+      </div>`;
+  };
+  const catFormCard=html`
+    <div class="card" style="border-left:5px solid var(--blue)">
+      <div class="vrow"><b style="font-size:16.5px;color:var(--navy)">${catList.some(c=>c.id===(catForm||{}).id)?'Edit catering':'New catering'}</b>
+        <button class="ghost" onClick=${()=>{setCatForm(null);setErr('');}}>Cancel</button></div>
+
+      <div class="lbl mt12">CUSTOMER / EVENT NAME *</div>
+      <input placeholder="e.g. Smith wedding · Office lunch — ABC Corp" value=${(catForm||{}).name||''} onInput=${e=>setCatForm({...catForm,name:e.target.value})} />
+
+      <div class="row mt12">
+        <div><div class="lbl" style="margin-bottom:4px">DATE *</div>
+          <input type="date" value=${(catForm||{}).date||''} onInput=${e=>setCatForm({...catForm,date:e.target.value})} /></div>
+        <div><div class="lbl" style="margin-bottom:4px">FOOD ARRIVES BY</div>
+          <input type="time" value=${(catForm||{}).arrive||''} onInput=${e=>setCatForm({...catForm,arrive:e.target.value})} /></div>
+      </div>
+
+      <div class="lbl mt12">DELIVERY ADDRESS</div>
+      <input placeholder="Street, city" value=${(catForm||{}).address||''} onInput=${e=>setCatForm({...catForm,address:e.target.value})} />
+
+      <div class="row mt12">
+        <div><div class="lbl" style="margin-bottom:4px"># OF PEOPLE</div>
+          <input inputmode="numeric" placeholder="e.g. 40" value=${(catForm||{}).people??''} onInput=${e=>setCatForm({...catForm,people:e.target.value})} /></div>
+        <div><div class="lbl" style="margin-bottom:4px">PRICE</div>
+          <input inputmode="decimal" placeholder="$" value=${(catForm||{}).price??''} onInput=${e=>setCatForm({...catForm,price:e.target.value})} /></div>
+      </div>
+
+      <div class="lbl mt12">FOOD / MENU</div>
+      <textarea placeholder="What's being made — gyros, salad trays, pita, sides…" value=${(catForm||{}).food||''} onInput=${e=>setCatForm({...catForm,food:e.target.value})}></textarea>
+
+      <div class="lbl mt12">SET-UP INCLUDED</div>
+      <div class="chips">
+        <button class=${'chip'+((catForm||{}).utensils?' on':'')} onClick=${()=>setCatForm({...catForm,utensils:!(catForm||{}).utensils})}>Utensils ${(catForm||{}).utensils?'✓':''}</button>
+        <button class=${'chip'+((catForm||{}).sterno?' on':'')} onClick=${()=>setCatForm({...catForm,sterno:!(catForm||{}).sterno})}>Sterno set-up ${(catForm||{}).sterno?'✓':''}</button>
+      </div>
+
+      <div class="lbl mt12">NOTES</div>
+      <textarea placeholder="Allergies, on-site contact, drop-off instructions, deposit paid…" value=${(catForm||{}).notes||''} onInput=${e=>setCatForm({...catForm,notes:e.target.value})}></textarea>
+
+      <button class="btn wide mt12" onClick=${submitCatering}>Save catering</button>
+    </div>`;
+  const cateringView=!cateringLoaded?html`<div class="empty">⏳ Syncing catering…</div>`:html`
+    <${Fragment}>
+      ${catForm?catFormCard:html`<button class="btn wide mb12" style=${{background:'linear-gradient(135deg,var(--navy),var(--blue))'}} onClick=${()=>{setCatForm(catBlank());setErr('');}}>+ New catering</button>`}
+      <div class="subtabs">
+        ${[['active','Active ('+catActive.length+')'],['past','Past ('+catPast.length+')']].map(([id,label])=>html`
+          <button class=${catTab===id?'on':''} key=${id} onClick=${()=>setCatTab(id)}>${label}</button>`)}
+      </div>
+      ${catTab==='active'
+        ?(catActive.length===0?html`<div class="empty">No upcoming catering scheduled.${catForm?'':' Tap “+ New catering” above to add one.'}</div>`:catActive.map(catCard))
+        :(catPast.length===0?html`<div class="empty">No past catering on record yet.</div>`:catPast.map(catCard))}
+    <//>`;
+
   const ordView=html`
     <${Fragment}>
       <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
@@ -1729,7 +1849,7 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
         ${err&&html`<div class="banner err">${err}</div>`}
         ${nameCard}
         ${storeSignal}
-        ${tab==='log'?logTab:tab==='sched'?schedView:tab==='ord'?ordView:tab==='xfer'?xferView:tab==='cash'?cashView:wuList}
+        ${tab==='log'?logTab:tab==='sched'?schedView:tab==='ord'?ordView:tab==='cat'?cateringView:tab==='xfer'?xferView:tab==='cash'?cashView:wuList}
       </div>
       ${shareBox&&html`
         <div class="modal" onClick=${e=>{if(e.target.classList.contains('modal'))setShareBox(null);}}>
