@@ -205,7 +205,7 @@ import { h, render, Fragment } from 'https://esm.sh/preact@10.22.0';
 import { useState, useEffect, useMemo, useRef } from 'https://esm.sh/preact@10.22.0/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { initializeFirestore, doc, onSnapshot, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { initializeFirestore, doc, collection, onSnapshot, setDoc, getDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
 const html = htm.bind(h);
@@ -224,6 +224,8 @@ const _auth=getAuth(fb);
 const STAFF_FN_URL='https://staff-583218261960.us-east4.run.app';
 const db = initializeFirestore(fb, { experimentalForceLongPolling: true }); // survives store wifi / strict routers with multiple devices
 const D = (key) => doc(db, 'gyrocity', key);
+const inqCol = () => collection(db, 'gyrocity', 'catering_inquiries', 'items');
+const inqItemDoc = (id) => doc(db, 'gyrocity', 'catering_inquiries', 'items', id);
 const EMAIL_KEY = 'd6ec7d78-c114-427b-868d-b1bbb4f6d28f';
 
 const STORES = [ { id: 'astoria', label: 'Astoria' }, { id: 'macdougal', label: 'MacDougal' } ];
@@ -347,6 +349,9 @@ function App(){
   const [catOpen,setCatOpen]=useState(null);    // expanded card id
   const [catArm,setCatArm]=useState(null);      // delete-confirm id
   const [catPay,setCatPay]=useState(null);      // {id, amount, method, note} — recording a payment
+  const [inquiries,setInquiries]=useState([]);  // leads from the public inquiry form
+  const [inqArm,setInqArm]=useState(null);      // dismiss-confirm id
+  const [convertingInq,setConvertingInq]=useState(null); // inquiry id being turned into a booking
   // scheduling
   const [schedTab,setSchedTab]=useState('schedule');
   const [monday,setMonday]=useState(mondayOf(0));
@@ -419,6 +424,7 @@ function App(){
     const ucm=onSnapshot(D('cash_macdougal'),(s)=>{if(!trustSnap('cash_macdougal',s))return;setCashM(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
     const uw=onSnapshot(D('writeups'),(s)=>{if(!trustSnap('writeups',s))return;setWriteups(s.exists()?s.data().list:[]);setWuLoaded(true);},()=>setConnected(false));
     const ucat=onSnapshot(D('catering'),(s)=>{if(!trustSnap('catering',s))return;setCatering(s.exists()?(s.data().list||[]):[]);setCateringLoaded(true);},()=>setConnected(false));
+    const uinq=onSnapshot(inqCol(),(snap)=>{setInquiries(snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.at||'').localeCompare(a.at||'')));},()=>{});
     // pull live rosters (both stores), merged with the built-in list
     const rosterDocs={};
     const rebuild=()=>{
@@ -428,7 +434,7 @@ function App(){
     };
     const r1=onSnapshot(D('emp_astoria'),(s)=>{if(!trustSnap('r_a',s))return;if(s.exists()){rosterDocs.a=s.data().list||[];rebuild();}},()=>{});
     const r2=onSnapshot(D('emp_macdougal'),(s)=>{if(!trustSnap('r_m',s))return;if(s.exists()){rosterDocs.m=s.data().list||[];rebuild();}},()=>{});
-    return ()=>{um();ux();uca();ucm();uw();ucat();r1();r2();};
+    return ()=>{um();ux();uca();ucm();uw();ucat();uinq();r1();r2();};
   },[authed]);
 
   useEffect(()=>{
@@ -520,6 +526,7 @@ function App(){
     }
     delete rec.deposit;delete rec.depositMethod;
     saveCatering(exists?(catering||[]).map(c=>c.id===rec.id?rec:c):[rec,...(catering||[])]);
+    if(convertingInq){deleteDoc(inqItemDoc(convertingInq)).catch(()=>{});setConvertingInq(null);}
     setCatForm(null);flash('Catering saved ✓');
   }
   function deleteCatering(id){setCatArm(null);setCatOpen(null);saveCatering((catering||[]).filter(c=>c.id!==id));}
@@ -531,6 +538,15 @@ function App(){
     setCatPay(null);flash('Payment recorded ✓');
   }
   function delCatPayment(id,pid){saveCatering((catering||[]).map(c=>c.id===id?{...c,payments:(c.payments||[]).filter(p=>p.id!==pid)}:c));}
+  // ---- catering inquiries (public form leads) ----
+  function convertInquiry(inq){
+    const contact=[inq.phone,inq.email].filter(Boolean).join(' · ');
+    const notes=[contact?('Contact: '+(inq.name||'')+(contact?' · '+contact:'')):'',inq.notes||''].filter(Boolean).join('\n');
+    setCatForm({...catBlank(),name:inq.name||'',date:inq.date||'',arrive:inq.arrive||'',address:inq.address||'',people:inq.people??'',food:inq.food||'',notes});
+    setConvertingInq(inq.id);setCatTab('active');setInqArm(null);
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  function dismissInquiry(id){setInqArm(null);deleteDoc(inqItemDoc(id)).catch(e=>setErr('Could not dismiss — '+(e.message||e)));}
   function requireName(){
     if(!myName.trim()){setErr('Type your name first.');window.scrollTo({top:0,behavior:'smooth'});return false;}
     return true;
@@ -1672,16 +1688,18 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
   };
   const catFormCard=html`
     <div class="card" style="border-left:5px solid var(--blue)">
-      <div class="vrow"><b style="font-size:16.5px;color:var(--navy)">${catList.some(c=>c.id===(catForm||{}).id)?'Edit catering':'New catering'}</b>
-        <button class="ghost" onClick=${()=>{setCatForm(null);setErr('');}}>Cancel</button></div>
+      <div class="vrow"><b style="font-size:16.5px;color:var(--navy)">${catList.some(c=>c.id===(catForm||{}).id)?'Edit catering':convertingInq?'New catering (from inquiry)':'New catering'}</b>
+        <button class="ghost" onClick=${()=>{setCatForm(null);setErr('');setConvertingInq(null);}}>Cancel</button></div>
 
       <div class="lbl mt12">CUSTOMER / EVENT NAME *</div>
       <input placeholder="e.g. Smith wedding · Office lunch — ABC Corp" value=${(catForm||{}).name||''} onInput=${e=>setCatForm({...catForm,name:e.target.value})} />
 
-      <div class="lbl mt12">DATE *</div>
-      <input type="date" value=${(catForm||{}).date||''} onInput=${e=>setCatForm({...catForm,date:e.target.value})} />
-      <div class="lbl mt12">FOOD ARRIVES BY</div>
-      <input type="time" value=${(catForm||{}).arrive||''} onInput=${e=>setCatForm({...catForm,arrive:e.target.value})} />
+      <div class="row mt12">
+        <div style="min-width:0"><div class="lbl" style="margin-bottom:4px">DATE *</div>
+          <input type="date" style="width:100%;min-width:0" value=${(catForm||{}).date||''} onInput=${e=>setCatForm({...catForm,date:e.target.value})} /></div>
+        <div style="min-width:0"><div class="lbl" style="margin-bottom:4px">FOOD ARRIVES BY</div>
+          <input type="time" style="width:100%;min-width:0" value=${(catForm||{}).arrive||''} onInput=${e=>setCatForm({...catForm,arrive:e.target.value})} /></div>
+      </div>
 
       <div class="lbl mt12">DELIVERY ADDRESS</div>
       <input placeholder="Street, city" value=${(catForm||{}).address||''} onInput=${e=>setCatForm({...catForm,address:e.target.value})} />
@@ -1724,11 +1742,34 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
   const catPastRevenue=catPast.reduce((s,c)=>s+catMoney(c.price),0);
   const catPastCollected=catPast.reduce((s,c)=>s+catPaid(c),0);
   const catPastDue=catPast.reduce((s,c)=>s+Math.max(0,catBalance(c)),0);
+  const inqCard=(q)=>html`
+    <div class="wcard" key=${q.id} style=${{borderLeftColor:'var(--amber)'}}>
+      <div style="padding:14px 15px">
+        <div class="vrow">
+          <b style="font-size:16px">${q.name||'New inquiry'}</b>
+          <span class="pill" style="background:var(--amber)">📩 FROM FORM</span>
+        </div>
+        <div style="font-size:13px;color:var(--faint);margin-top:3px">
+          ${q.date?prettyDay(q.date):'no date given'}${q.arrive?' · arrive '+fmtCatTime(q.arrive):''}${catHas(q.people)?' · '+q.people+' ppl':''}
+        </div>
+        ${(q.phone||q.email)&&html`<div style="font-size:14px;margin-top:8px;font-weight:600">${q.phone?'📞 '+q.phone:''}${q.phone&&q.email?'   ':''}${q.email?'✉️ '+q.email:''}</div>`}
+        ${q.address&&html`<div class="field"><div class="fl">ADDRESS</div><div class="fv">${q.address}</div></div>`}
+        ${q.food&&html`<div class="field"><div class="fl">WHAT THEY WANT</div><div class="fv">${q.food}</div></div>`}
+        ${q.notes&&html`<div class="field"><div class="fl">NOTES</div><div class="fv">${q.notes}</div></div>`}
+        <div class="dim" style="font-size:11px;margin-top:8px">Submitted ${q.at?new Date(q.at).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'—'}</div>
+        <div class="row mt12">
+          <button class="btn" onClick=${()=>convertInquiry(q)}>Add to catering</button>
+          ${inqArm===q.id
+            ?html`<button class="btn tomato" onClick=${()=>dismissInquiry(q.id)}>Dismiss it?</button>`
+            :html`<button class="ghost" style="color:var(--tomato)" onClick=${()=>setInqArm(q.id)}>Dismiss</button>`}
+        </div>
+      </div>
+    </div>`;
   const cateringView=!cateringLoaded?html`<div class="empty">⏳ Syncing catering…</div>`:html`
     <${Fragment}>
-      ${catForm?catFormCard:html`<button class="btn wide mb12" style=${{background:'linear-gradient(135deg,var(--navy),var(--blue))'}} onClick=${()=>{setCatForm(catBlank());setErr('');}}>+ New catering</button>`}
+      ${catForm?catFormCard:html`<button class="btn wide mb12" style=${{background:'linear-gradient(135deg,var(--navy),var(--blue))'}} onClick=${()=>{setCatForm(catBlank());setErr('');setConvertingInq(null);}}>+ New catering</button>`}
       <div class="subtabs">
-        ${[['active','Active ('+catActive.length+')'],['past','Past ('+catPast.length+')']].map(([id,label])=>html`
+        ${[['active','Active ('+catActive.length+')'],['past','Past ('+catPast.length+')'],['inq','Inquiries'+(inquiries.length?' ('+inquiries.length+')':'')]].map(([id,label])=>html`
           <button class=${catTab===id?'on':''} key=${id} onClick=${()=>setCatTab(id)}>${label}</button>`)}
       </div>
       ${catTab==='active'&&catActive.length>0&&html`
@@ -1749,7 +1790,9 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
             ${catPastDue>0?html`<span>Still owed <b style="color:var(--tomato)">${money(catPastDue)}</b></span>`:''}
           </div>
         </div>`}
-      ${catTab==='active'
+      ${catTab==='inq'
+        ?(inquiries.length===0?html`<div class="empty">No new inquiries.<br/>Leads from your public catering form land here.</div>`:inquiries.map(inqCard))
+        :catTab==='active'
         ?(catActive.length===0?html`<div class="empty">No upcoming catering scheduled.${catForm?'':' Tap “+ New catering” above to add one.'}</div>`:catActive.map(catCard))
         :(catPast.length===0?html`<div class="empty">No past catering on record yet.</div>`:catPast.map(catCard))}
     <//>`;
