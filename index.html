@@ -978,6 +978,20 @@ function App(){
     if(!y||!m||!d)return fallback||iso2;
     return new Date(y,m-1,d).toLocaleDateString(undefined,{month:'short',day:'numeric'});
   };
+  // Cash logs always read newest-date-first, so a backdated entry slots into place.
+  const MONTH_NUM={january:'01',february:'02',march:'03',april:'04',may:'05',june:'06',
+    july:'07',august:'08',september:'09',october:'10',november:'11',december:'12'};
+  const dateKey=(e)=>{
+    if(e.date)return String(e.date);
+    const m=String(e.dateLabel||'').toLowerCase().match(/january|february|march|april|may|june|july|august|september|october|november|december/);
+    return m?('2026-'+MONTH_NUM[m[0]]+'-15'):''; // month-only backlog rows land mid-month
+  };
+  const byDateDesc=(a,b)=>{
+    const ka=dateKey(a),kb=dateKey(b);
+    if(ka!==kb){ if(!ka)return 1; if(!kb)return -1; return kb.localeCompare(ka); }
+    return String(b.id||'').localeCompare(String(a.id||'')); // same date -> most recently entered first
+  };
+  const sortByDate=(l)=>[...(l||[])].sort(byDateDesc);
   const expView=expCur===null?html`<div class="card dim">Connecting…</div>`:html`
     <${Fragment}>
       <div class="card">
@@ -1021,7 +1035,7 @@ function App(){
       <div class="card">
         <div class="ttl">THE LOG</div>
         ${(expCur||[]).length===0?html`<div class="dim" style="padding:8px 0">No cash expenses logged yet.</div>`:''}
-        ${(expCur||[]).slice(0,120).map(e=>html`
+        ${sortByDate(expCur).slice(0,120).map(e=>html`
           <div key=${e.id} style="padding:9px 0;border-bottom:1px solid var(--edge)">
             <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
               <span style="font-size:14px"><b>${e.what}</b></span>
@@ -1067,7 +1081,7 @@ function App(){
       <div class="card">
         <div class="ttl">DEPOSIT HISTORY</div>
         ${(depCur||[]).length===0?html`<div class="dim" style="padding:8px 0">No deposits logged yet.</div>`:''}
-        ${(depCur||[]).slice(0,120).map(d=>html`
+        ${sortByDate(depCur).slice(0,120).map(d=>html`
           <div key=${d.id} style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:9px 0;border-bottom:1px solid var(--edge)">
             <span style="font-size:13.5px">
               <b>${prettyShort(d.date)}</b>
@@ -1161,7 +1175,7 @@ function App(){
           <div class="hcg hch" style="border:none;grid-template-columns:1fr 70px 70px 76px">
             <span>Date · cashier · shift</span><span class="num">Drop</span><span class="num">Counted</span><span class="num"></span>
           </div>`}
-        ${(cashCur||[]).slice(0,40).map(e=>{
+        ${sortByDate(cashCur).slice(0,40).map(e=>{
           const v=cVerdict(e);
           return html`
           <div key=${e.id} style="padding:8px 0;border-bottom:1px solid var(--edge)">
