@@ -1678,12 +1678,10 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
       <div class="lbl mt12">CUSTOMER / EVENT NAME *</div>
       <input placeholder="e.g. Smith wedding · Office lunch — ABC Corp" value=${(catForm||{}).name||''} onInput=${e=>setCatForm({...catForm,name:e.target.value})} />
 
-      <div class="row mt12">
-        <div><div class="lbl" style="margin-bottom:4px">DATE *</div>
-          <input type="date" value=${(catForm||{}).date||''} onInput=${e=>setCatForm({...catForm,date:e.target.value})} /></div>
-        <div><div class="lbl" style="margin-bottom:4px">FOOD ARRIVES BY</div>
-          <input type="time" value=${(catForm||{}).arrive||''} onInput=${e=>setCatForm({...catForm,arrive:e.target.value})} /></div>
-      </div>
+      <div class="lbl mt12">DATE *</div>
+      <input type="date" value=${(catForm||{}).date||''} onInput=${e=>setCatForm({...catForm,date:e.target.value})} />
+      <div class="lbl mt12">FOOD ARRIVES BY</div>
+      <input type="time" value=${(catForm||{}).arrive||''} onInput=${e=>setCatForm({...catForm,arrive:e.target.value})} />
 
       <div class="lbl mt12">DELIVERY ADDRESS</div>
       <input placeholder="Street, city" value=${(catForm||{}).address||''} onInput=${e=>setCatForm({...catForm,address:e.target.value})} />
@@ -1697,14 +1695,14 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
 
       ${!catList.some(c=>c.id===(catForm||{}).id)&&html`
         <div class="row mt12">
-          <div><div class="lbl" style="margin-bottom:4px">DEPOSIT TAKEN NOW (optional)</div>
+          <div><div class="lbl" style="margin-bottom:4px">DEPOSIT TAKEN NOW</div>
             <input inputmode="decimal" placeholder="$" value=${(catForm||{}).deposit||''} onInput=${e=>setCatForm({...catForm,deposit:e.target.value})} /></div>
           <div><div class="lbl" style="margin-bottom:4px">METHOD</div>
             <select value=${(catForm||{}).depositMethod||'Cash'} onChange=${e=>setCatForm({...catForm,depositMethod:e.target.value})}>
               ${CAT_METHODS.map(m=>html`<option value=${m} key=${m}>${m}</option>`)}
             </select></div>
         </div>
-        <div class="muted" style="font-size:11.5px;margin:5px 2px 0">More payments are added on the catering's card after saving.</div>`}
+        `}
 
       <div class="lbl mt12">FOOD / MENU</div>
       <textarea placeholder="What's being made — gyros, salad trays, pita, sides…" value=${(catForm||{}).food||''} onInput=${e=>setCatForm({...catForm,food:e.target.value})}></textarea>
