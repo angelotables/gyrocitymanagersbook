@@ -1808,7 +1808,7 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
   const mgrLogins=html`
     <${Fragment}>
       <div class="card">
-        <div class="ttl">ORDERING APP — ORDERS &amp; OWNER CODES</div>
+        <div class="ttl">ORDERING APP — ORDERS & OWNER CODES</div>
         <div class="muted mb10">These two shared codes control the Ordering app. Set or replace either anytime; removing one locks that access until you set a new code.</div>
         ${roleCodesSet===null?html`<div class="empty" style="padding:10px 0">⏳ Checking…</div>`:[['orders','Ordering code'],['owner','Owner code']].map(([role,label])=>{
           const has=roleCodesSet.includes(role);
