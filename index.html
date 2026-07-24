@@ -280,6 +280,8 @@ const FALLBACK_STAFF = ['Kaiya','Irene','Despoina','Isabelle','Christina','Chris
 const CATEGORIES = ['No call / no show','Late to shift','Left early','Insubordination','Cash / register issue','Food safety','Uniform / hygiene','Phone use on shift','Customer complaint','Performance / quality','Safety violation','Conduct / harassment','Damage to property','Other'];
 const SEVERITIES = ['Verbal warning','Written warning','Final warning','Suspension','Termination'];
 const ACKS = ['Not presented yet','Employee acknowledged','Employee refused to sign'];
+const BACKLOG_EXP=[{"d":"","w":"approx 1000 unaccounted for in beginning","a":1000.0,"c":"Other"},{"d":"2026-04-20","w":"Kosta payroll","a":750.0,"c":"Payroll"},{"d":"","w":"Antonis pay roll balance","a":500.0,"c":"Payroll","lbl":"April"},{"d":"","w":"Omar cash advance","a":200.0,"c":"Payroll","lbl":"April"},{"d":"","w":"Diego payroll","a":200.0,"c":"Payroll","lbl":"April"},{"d":"","w":"Kosta lettuce","a":30.0,"c":"Food & product","lbl":"April"},{"d":"","w":"Antonis pay roll balance","a":400.0,"c":"Payroll","lbl":"April"},{"d":"2026-04-27","w":"Kosta payroll","a":750.0,"c":"Payroll"},{"d":"2026-04-13","w":"Ruben payroll","a":600.0,"c":"Payroll"},{"d":"2026-04-18","w":"Catering Staff","a":175.0,"c":"Catering"},{"d":"2026-04-18","w":"Catering Suplies","a":70.0,"c":"Catering"},{"d":"","w":"Bacon Keyfood","a":30.0,"c":"Food & product","lbl":"April"},{"d":"","w":"Flowers for Pots","a":80.0,"c":"Marketing","lbl":"April"},{"d":"2026-05-04","w":"Kosta Payroll","a":750.0,"c":"Payroll"},{"d":"","w":"Antonis pay roll balance","a":400.0,"c":"Payroll","lbl":"April"},{"d":"","w":"Sostis Payroll Macdougal Loan","a":20.0,"c":"Payroll"},{"d":"2026-04-26","w":"KEY FOOD","a":24.01,"c":"Food & product"},{"d":"","w":"Astoria Tri Fold Menus","a":250.0,"c":"Marketing","lbl":"April"},{"d":"2026-04-25","w":"Dj Grand Opening","a":450.0,"c":"Marketing"},{"d":"2026-04-13","w":"Mario Note Took","a":100.0,"c":"Other"},{"d":"2026-04-13","w":"Mario Note Took","a":76.0,"c":"Other"},{"d":"2026-04-13","w":"Food Kosta","a":115.0,"c":"Food & product"},{"d":"","w":"Cleaners","a":1000.0,"c":"Cleaning","lbl":"April"},{"d":"","w":"PowerWash","a":1000.0,"c":"Cleaning","lbl":"April"},{"d":"","w":"Garbage Removal","a":400.0,"c":"Other","lbl":"April"},{"d":"","w":"Jimmy Payroll","a":100.0,"c":"Payroll","lbl":"April"},{"d":"","w":"Uber Pieces","a":56.0,"c":"Supplies","lbl":"April"},{"d":"","w":"Missing Cash","a":299.12,"c":"Other","lbl":"April"},{"d":"","w":"Garbage Tip Mario","a":20.0,"c":"Other","lbl":"April"},{"d":"","w":"Butcher","a":2000.0,"c":"Food & product","lbl":"April"},{"d":"2026-04-27","w":"Kosta Helper Pay Roll","a":100.0,"c":"Payroll"},{"d":"2026-04-27","w":"Cleaning Supplies","a":16.0,"c":"Cleaning"},{"d":"","w":"Mario Has","a":111.0,"c":"Other"},{"d":"","w":"Cleaning Crew","a":1000.0,"c":"Cleaning","lbl":"April"},{"d":"","w":"Antonis Payroll Balance","a":500.0,"c":"Payroll","lbl":"April"},{"d":"2026-04-06","w":"George payroll","a":500.0,"c":"Payroll"},{"d":"","w":"Chris partial payroll","a":300.0,"c":"Payroll","lbl":"April"},{"d":"","w":"Hand soap","a":8.0,"c":"Supplies","lbl":"April"},{"d":"2026-05-11","w":"Kosta Payroll","a":750.0,"c":"Payroll"},{"d":"2026-05-06","w":"Sostis payroll","a":750.0,"c":"Payroll"},{"d":"","w":"Benny partial payroll","a":60.0,"c":"Payroll","lbl":"April"},{"d":"","w":"Home Depot","a":210.0,"c":"Repairs & maintenance","lbl":"April"},{"d":"2026-04-30","w":"George payroll","a":500.0,"c":"Payroll"},{"d":"2026-05-06","w":"George payroll","a":1300.0,"c":"Payroll"},{"d":"2026-05-06","w":"Sostis Payroll Macdougal Loan","a":214.0,"c":"Payroll"},{"d":"","w":"Sostis payroll","a":75.0,"c":"Payroll","lbl":"May"},{"d":"","w":"Kosta Reimbursement (Mario)","a":100.0,"c":"Other","lbl":"May"},{"d":"","w":"Cleaning Supplies (Mario)","a":16.0,"c":"Cleaning","lbl":"May"},{"d":"2026-05-07","w":"Fridge Tech (Angelo)","a":200.0,"c":"Repairs & maintenance"},{"d":"2026-05-07","w":"Fridge Tech (Ale)","a":200.0,"c":"Repairs & maintenance"},{"d":"2026-05-06","w":"Ed (ale)","a":500.0,"c":"Other"},{"d":"","w":"Butcher","a":2000.0,"c":"Food & product","lbl":"May"},{"d":"","w":"Butcher","a":3000.0,"c":"Food & product","lbl":"May"},{"d":"2026-05-13","w":"Sostis Payroll","a":1000.0,"c":"Payroll"},{"d":"2026-05-13","w":"George Payroll","a":1300.0,"c":"Payroll"},{"d":"2026-05-18","w":"Kosta Payroll","a":750.0,"c":"Payroll"},{"d":"","w":"Tape","a":5.0,"c":"Supplies","lbl":"May"},{"d":"","w":"Counterfeit bills","a":40.0,"c":"Other","lbl":"June"},{"d":"","w":"Jimmy payroll (bounced check)","a":1400.0,"c":"Payroll","lbl":"July"},{"d":"","w":"Catering staff Zion + gas","a":220.0,"c":"Catering","lbl":"August"},{"d":"2026-05-13","w":"Key food","a":30.8,"c":"Food & product"},{"d":"2026-05-13","w":"Cleaning crew","a":1000.0,"c":"Cleaning"},{"d":"2026-05-13","w":"Cleaning crew macdougal","a":400.0,"c":"Cleaning"},{"d":"2026-05-25","w":"4x6 review fliers","a":185.0,"c":"Marketing"},{"d":"2026-05-20","w":"Cleaners","a":1100.0,"c":"Cleaning"},{"d":"","w":"Will FDNY Switch Fix","a":85.0,"c":"Repairs & maintenance","lbl":"May"},{"d":"","w":"Menu Print Pt2","a":275.0,"c":"Marketing","lbl":"May"},{"d":"","w":"Hardware","a":7.5,"c":"Repairs & maintenance","lbl":"May"},{"d":"2026-05-27","w":"Cleaners","a":1100.0,"c":"Cleaning"},{"d":"","w":"TJ Interest","a":3750.0,"c":"Other","lbl":"April & May"},{"d":"2026-05-25","w":"Kosta Pay Roll","a":750.0,"c":"Payroll"},{"d":"2026-06-01","w":"Kosta payroll","a":750.0,"c":"Payroll"},{"d":"2026-06-03","w":"Cleaners","a":1100.0,"c":"Cleaning"},{"d":"2026-06-06","w":"Felix hood guy","a":320.0,"c":"Repairs & maintenance"},{"d":"2026-06-06","w":"Hood fix supplies","a":250.0,"c":"Repairs & maintenance"},{"d":"2026-06-06","w":"Loukaniko order","a":129.92,"c":"Food & product"},{"d":"","w":"Ubers","a":80.0,"c":"Supplies","lbl":"June"},{"d":"2026-06-08","w":"Kosta payroll","a":750.0,"c":"Payroll"},{"d":"2026-06-10","w":"Cleaners","a":1100.0,"c":"Cleaning"},{"d":"2026-06-10","w":"Hood tag","a":150.0,"c":"Repairs & maintenance"},{"d":"2026-06-12","w":"6 outlet yellow jacket","a":41.0,"c":"Repairs & maintenance"},{"d":"2026-06-12","w":"Home Depot","a":83.13,"c":"Repairs & maintenance"},{"d":"2026-06-12","w":"Home Depot","a":97.87,"c":"Repairs & maintenance"},{"d":"2026-06-13","w":"Miguel + guy","a":500.0,"c":"Other"},{"d":"2026-06-13","w":"Angelo","a":450.0,"c":"Other"},{"d":"2026-06-12","w":"Citiwide","a":140.0,"c":"Repairs & maintenance"},{"d":"2026-06-10","w":"Sostis Payroll","a":50.0,"c":"Payroll"},{"d":"2026-06-11","w":"Trifon - Catering Staff","a":150.0,"c":"Catering"},{"d":"2026-06-05","w":"Envelope Despina Discrepancy","a":180.0,"c":"Other"},{"d":"2026-06-15","w":"Kosta payroll","a":750.0,"c":"Payroll"},{"d":"2026-06-17","w":"Cleaners","a":1100.0,"c":"Cleaning"},{"d":"2026-06-16","w":"Uber to macdougal","a":30.0,"c":"Supplies"},{"d":"2026-06-15","w":"Plumber + material","a":500.0,"c":"Repairs & maintenance"},{"d":"2026-06-17","w":"International Meat Market - Sausage","a":116.0,"c":"Food & product"},{"d":"2026-06-18","w":"3 guys 2 days labor","a":540.0,"c":"Repairs & maintenance"},{"d":"2026-06-18","w":"Home Depot - Corner Guards, screws","a":68.0,"c":"Repairs & maintenance"},{"d":"2026-06-18","w":"cash enevlope discrpenacy","a":34.0,"c":"Other"},{"d":"2026-06-19","w":"The Bridge Catering Staff","a":150.0,"c":"Catering"},{"d":"2026-06-19","w":"Mini souvlaki sticks","a":3.24,"c":"Food & product"},{"d":"2026-06-20","w":"Plates & Staples","a":39.68,"c":"Supplies"},{"d":"2026-06-20","w":"George K - Alex","a":50.0,"c":"Other"},{"d":"2026-06-24","w":"Cleaners","a":1100.0,"c":"Cleaning"},{"d":"2026-06-22","w":"Kosta payroll","a":750.0,"c":"Payroll"},{"d":"2026-06-28","w":"Sausage","a":108.0,"c":"Food & product"},{"d":"2026-06-29","w":"30th Avenue Deli","a":20.8,"c":"Food & product"},{"d":"2026-06-29","w":"Order Here Sign","a":70.0,"c":"Marketing"},{"d":"2026-06-29","w":"Cleaners","a":1100.0,"c":"Cleaning"},{"d":"2026-06-29","w":"Kosta payroll","a":750.0,"c":"Payroll"},{"d":"2026-07-05","w":"Walgreens Forks","a":14.67,"c":"Supplies"},{"d":"2026-07-06","w":"Cleaners","a":1100.0,"c":"Cleaning"},{"d":"2026-07-06","w":"Kosta payroll","a":750.0,"c":"Payroll"},{"d":"2026-07-08","w":"Medical supplies","a":37.77,"c":"Supplies"},{"d":"2026-07-09","w":"Lucas labor","a":200.0,"c":"Repairs & maintenance"},{"d":"2026-07-09","w":"Chris g labor","a":100.0,"c":"Repairs & maintenance"},{"d":"2026-07-09","w":"Trifon labor","a":120.0,"c":"Repairs & maintenance"},{"d":"2026-07-09","w":"Mega Contracting catering LABOR","a":50.0,"c":"Repairs & maintenance"},{"d":"2026-07-10","w":"Souvlaki Sticks","a":6.28,"c":"Food & product"},{"d":"2026-07-11","w":"Dill","a":5.97,"c":"Other"},{"d":"2026-07-13","w":"Kosta payroll","a":750.0,"c":"Payroll"},{"d":"2026-07-10","w":"Plumber Basement Flooding","a":180.0,"c":"Repairs & maintenance"},{"d":"2026-07-13","w":"Plumber Basement Flooding","a":400.0,"c":"Repairs & maintenance"},{"d":"2026-07-15","w":"Amazon Purchases - First Aid, Grill Press, Bathroom Signs, staples, plates","a":83.02,"c":"Supplies"},{"d":"2026-07-15","w":"Lucas labor","a":200.0,"c":"Repairs & maintenance"},{"d":"2026-07-15","w":"Christopher labor","a":200.0,"c":"Repairs & maintenance"},{"d":"2026-07-15","w":"Michael catering drop off","a":100.0,"c":"Catering"},{"d":"2026-07-13","w":"Cleaners","a":1180.0,"c":"Cleaning"},{"d":"2026-07-20","w":"Google Review Cards","a":40.0,"c":"Marketing"},{"d":"2026-07-20","w":"Cleaners","a":1140.0,"c":"Cleaning"},{"d":"2026-07-20","w":"Kosta payroll","a":750.0,"c":"Payroll"},{"d":"2026-07-24","w":"Hardware store extension cords","a":20.0,"c":"Repairs & maintenance"},{"d":"2026-07-24","w":"Wire hider white Amazon","a":20.0,"c":"Repairs & maintenance"}];
+const BACKLOG_DEP=[{"d":"2026-06-02","a":7140},{"d":"2026-06-08","a":2513},{"d":"2026-06-15","a":1310},{"d":"2026-06-16","a":1089},{"d":"2026-06-17","a":1174},{"d":"2026-06-25","a":3618},{"d":"2026-07-01","a":2400},{"d":"2026-07-02","a":540},{"d":"2026-07-04","a":1520},{"d":"2026-07-08","a":810},{"d":"2026-07-14","a":940},{"d":"2026-07-16","a":505},{"d":"2026-07-17","a":654},{"d":"2026-07-19","a":645},{"d":"2026-07-20","a":885}];
 const MGR_PINS = {};  // SECURITY: any PIN hardcoded here is readable in the page source. Do NOT add real codes. Managers use the shared PIN set on first launch.
 
 const dkey=(d)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -296,6 +298,16 @@ function App(){
   const [cashM,setCashM]=useState(null);
   const [cd,setCd]=useState(null);   // envelope draft
   const [cArm,setCArm]=useState(null);
+  // cash expenses + bank deposits
+  const [expA,setExpA]=useState(null);
+  const [expM,setExpM]=useState(null);
+  const [depA,setDepA]=useState(null);
+  const [depM,setDepM]=useState(null);
+  const [cashTab,setCashTab]=useState('env'); // env | exp | dep
+  const [ed,setEd]=useState(null);   // expense draft
+  const [eArm,setEArm]=useState(null);
+  const [dd,setDd]=useState(null);   // deposit draft
+  const [dArm,setDArm]=useState(null);
   const [bankEdit,setBankEdit]=useState(null);
   const [xArm,setXArm]=useState(null);
   const [xd,setXd]=useState(null); // transfer draft
@@ -424,6 +436,10 @@ function App(){
     const ucm=onSnapshot(D('cash_macdougal'),(s)=>{if(!trustSnap('cash_macdougal',s))return;setCashM(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
     const uw=onSnapshot(D('writeups'),(s)=>{if(!trustSnap('writeups',s))return;setWriteups(s.exists()?s.data().list:[]);setWuLoaded(true);},()=>setConnected(false));
     const ucat=onSnapshot(D('catering'),(s)=>{if(!trustSnap('catering',s))return;setCatering(s.exists()?(s.data().list||[]):[]);setCateringLoaded(true);},()=>setConnected(false));
+    const uea=onSnapshot(D('cashexp_astoria'),(s)=>{if(!trustSnap('cashexp_astoria',s))return;setExpA(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
+    const uem=onSnapshot(D('cashexp_macdougal'),(s)=>{if(!trustSnap('cashexp_macdougal',s))return;setExpM(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
+    const uda=onSnapshot(D('bankdep_astoria'),(s)=>{if(!trustSnap('bankdep_astoria',s))return;setDepA(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
+    const udm=onSnapshot(D('bankdep_macdougal'),(s)=>{if(!trustSnap('bankdep_macdougal',s))return;setDepM(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
     const uinq=onSnapshot(inqCol(),(snap)=>{setInquiries(snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.at||'').localeCompare(a.at||'')));},()=>{});
     // pull live rosters (both stores), merged with the built-in list
     const rosterDocs={};
@@ -434,7 +450,7 @@ function App(){
     };
     const r1=onSnapshot(D('emp_astoria'),(s)=>{if(!trustSnap('r_a',s))return;if(s.exists()){rosterDocs.a=s.data().list||[];rebuild();}},()=>{});
     const r2=onSnapshot(D('emp_macdougal'),(s)=>{if(!trustSnap('r_m',s))return;if(s.exists()){rosterDocs.m=s.data().list||[];rebuild();}},()=>{});
-    return ()=>{um();ux();uca();ucm();uw();ucat();uinq();r1();r2();};
+    return ()=>{um();ux();uca();ucm();uw();ucat();uinq();uea();uem();uda();udm();r1();r2();};
   },[authed]);
 
   useEffect(()=>{
@@ -773,7 +789,7 @@ function App(){
         const mon=mondayOf(0);
         const pmon=shiftMonday(mon,-1);
         const d7=[...Array(7)].map((_,i2)=>{const d2=new Date();d2.setDate(d2.getDate()-i2);return d2.toISOString().slice(0,10);});
-        const keys=['meta','writeups','emp_astoria','emp_macdougal','pay_astoria','pay_macdougal','xfer_log','cash_astoria','cash_macdougal',
+        const keys=['meta','writeups','catering','emp_astoria','emp_macdougal','pay_astoria','pay_macdougal','xfer_log','cash_astoria','cash_macdougal','cashexp_astoria','cashexp_macdougal','bankdep_astoria','bankdep_macdougal',
           `week_astoria_${mon}`,`week_macdougal_${mon}`,`avail_astoria_${mon}`,`avail_macdougal_${mon}`,
           `week_astoria_${pmon}`,`week_macdougal_${pmon}`,
           ...d7.flatMap(dd=>[`hrs_astoria_${dd}`,`hrs_macdougal_${dd}`])];
@@ -795,7 +811,7 @@ function App(){
     try{
       const mon=mondayOf(0);
       const out={exportedAt:new Date().toISOString(),app:'Gyro City Managers Book',docs:{}};
-      const keys=['meta','writeups','emp_astoria','emp_macdougal','pay_astoria','pay_macdougal','xfer_log','cash_astoria','cash_macdougal'];
+      const keys=['meta','writeups','catering','emp_astoria','emp_macdougal','pay_astoria','pay_macdougal','xfer_log','cash_astoria','cash_macdougal','cashexp_astoria','cashexp_macdougal','bankdep_astoria','bankdep_macdougal'];
       for(let w2=0;w2<8;w2++){const m2=shiftMonday(mon,-w2);keys.push(`week_astoria_${m2}`,`week_macdougal_${m2}`,`avail_astoria_${m2}`,`avail_macdougal_${m2}`);}
       for(let i2=0;i2<31;i2++){const d2=new Date();d2.setDate(d2.getDate()-i2);const dd=d2.toISOString().slice(0,10);keys.push(`hrs_astoria_${dd}`,`hrs_macdougal_${dd}`);}
       for(const k2 of keys){
@@ -872,6 +888,56 @@ function App(){
     writeK('meta',{...(meta||{}),cashBank:{...((meta||{}).cashBank||{}),[store]:v}},'Bank updated ✓');
     setBankEdit(null);
   }
+
+  // ---- cash expenses (money paid out of the cash drawer) ----
+  const expCur=store==='astoria'?expA:expM;
+  const depCur=store==='astoria'?depA:depM;
+  const EXP_CATS=['Payroll','Cleaning','Repairs & maintenance','Supplies','Food & product','Catering','Marketing','Other'];
+  const eBlank=()=>({date:cToday(),what:'',amount:'',cat:'Other',note:''});
+  function eSave(){
+    if(expCur===null){setErr('Still connecting — try again in a second.');return;}
+    if(!ed.what.trim()){setErr('What was the money spent on?');return;}
+    const amt=cNum(ed.amount);
+    if(amt===null||amt<=0){setErr('Enter the amount spent.');return;}
+    setErr('');
+    const entry={id:Date.now().toString(36),date:ed.date||cToday(),what:ed.what.trim(),amount:amt,
+      cat:ed.cat||'Other',note:(ed.note||'').trim(),by:myName.trim(),at:new Date().toISOString().slice(0,16).replace('T',' ')};
+    writeK('cashexp_'+store,{list:[entry,...expCur].slice(0,600)},'Expense logged ✓');
+    setEd(null);
+  }
+  function eDel(id){
+    if(eArm!==id){setEArm(id);return;}
+    setEArm(null);
+    writeK('cashexp_'+store,{list:expCur.filter(t=>t.id!==id)},'Removed');
+  }
+  // ---- bank deposits (cash taken to the bank) ----
+  const dBlank=()=>({date:cToday(),amount:'',note:''});
+  function dSave(){
+    if(depCur===null){setErr('Still connecting — try again in a second.');return;}
+    const amt=cNum(dd.amount);
+    if(amt===null||amt<=0){setErr('Enter the deposit amount.');return;}
+    setErr('');
+    const entry={id:Date.now().toString(36),date:dd.date||cToday(),amount:amt,note:(dd.note||'').trim(),
+      by:myName.trim(),at:new Date().toISOString().slice(0,16).replace('T',' ')};
+    writeK('bankdep_'+store,{list:[entry,...depCur].slice(0,400)},'Deposit logged ✓');
+    setDd(null);
+  }
+  function dDel(id){
+    if(dArm!==id){setDArm(id);return;}
+    setDArm(null);
+    writeK('bankdep_'+store,{list:depCur.filter(t=>t.id!==id)},'Removed');
+  }
+  // one-time import of the Astoria paper backlog (Apr–Jul 2026)
+  function importBacklog(){
+    if(store!=='astoria'){setErr('The backlog on file is Astoria only.');return;}
+    if(expCur===null||depCur===null){setErr('Still connecting — try again in a second.');return;}
+    if(expCur.some(e=>e.src==='backlog')||depCur.some(d=>d.src==='backlog')){setErr('The backlog is already imported.');return;}
+    const mk=(i)=>'bk'+i.toString(36);
+    const exps=BACKLOG_EXP.map((e,i)=>({id:mk(i),date:e.d,dateLabel:e.lbl||'',what:e.w,amount:e.a,cat:e.c||'Other',note:'',by:'',at:'',src:'backlog'}));
+    const deps=BACKLOG_DEP.map((d,i)=>({id:mk(1000+i),date:d.d,amount:d.a,note:'',by:'',at:'',src:'backlog'}));
+    writeK('cashexp_astoria',{list:[...exps,...expCur].slice(0,600)});
+    writeK('bankdep_astoria',{list:[...deps,...depCur].slice(0,400)},'Backlog imported ✓');
+  }
   const cWeekISO=(()=>{const d=new Date();const dw=(d.getDay()+6)%7;d.setDate(d.getDate()-dw);return d.toISOString().slice(0,10);})();
   const cStats=(()=>{
     let wk=0,wkN=0,shorts=0,shortSum=0;
@@ -888,7 +954,142 @@ function App(){
     const l=[...employees].sort((a,b)=>((a.role==='cashier')?0:1)-((b.role==='cashier')?0:1)||a.name.localeCompare(b.name));
     return l.map(e=>e.name);
   })();
-  const cashView=cashCur===null?html`<div class="card dim">Connecting…</div>`:html`
+  // ---- expenses + deposits derived ----
+  const expMonth=new Date().toISOString().slice(0,7);
+  const expStats=(()=>{
+    const l=expCur||[];
+    let mtd=0,all=0;const byCat={};
+    for(const e of l){
+      const a=Number(e.amount)||0;all+=a;
+      if(String(e.date||'').slice(0,7)===expMonth)mtd+=a;
+      byCat[e.cat||'Other']=(byCat[e.cat||'Other']||0)+a;
+    }
+    return {mtd,all,n:l.length,byCat};
+  })();
+  const depStats=(()=>{
+    const l=depCur||[];
+    let mtd=0,all=0;
+    for(const d of l){const a=Number(d.amount)||0;all+=a;if(String(d.date||'').slice(0,7)===expMonth)mtd+=a;}
+    return {mtd,all,n:l.length};
+  })();
+  const prettyShort=(iso2,fallback)=>{
+    if(!iso2)return fallback||'—';
+    const [y,m,d]=iso2.split('-').map(Number);
+    if(!y||!m||!d)return fallback||iso2;
+    return new Date(y,m-1,d).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+  };
+  const expView=expCur===null?html`<div class="card dim">Connecting…</div>`:html`
+    <${Fragment}>
+      <div class="card">
+        <div class="ttl">${STORES.find(s2=>s2.id===store)?.label?.toUpperCase()} — CASH OUT</div>
+        <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:13px;margin-top:4px">
+          <span>This month: <b>${money(expStats.mtd)}</b></span>
+          <span>All time: <b>${money(expStats.all)}</b></span>
+          <span class="dim">${expStats.n} entr${expStats.n===1?'y':'ies'}</span>
+        </div>
+        ${expStats.n>0&&html`
+          <div class="dim" style="font-size:10.5px;margin-top:6px">
+            ${Object.entries(expStats.byCat).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([c,a],i)=>html`<span key=${c}>${i>0?' · ':''}${c} ${money(a)}</span>`)}
+          </div>`}
+      </div>
+
+      ${ed===null?html`
+        <button class="btn" style="width:100%;margin-bottom:12px" onClick=${()=>setEd(eBlank())}>+ LOG A CASH EXPENSE</button>
+      `:html`
+        <div class="card">
+          <div class="ttl">NEW CASH EXPENSE</div>
+          <div class="lbl mt8">DATE</div>
+          <input type="date" value=${ed.date} onInput=${e=>setEd({...ed,date:e.target.value})} />
+          <div class="lbl mt12">WHAT WAS IT FOR *</div>
+          <input placeholder="e.g. Kosta payroll · Cleaners · Home Depot" value=${ed.what} onInput=${e=>setEd({...ed,what:e.target.value})} />
+          <div class="row mt12">
+            <div><div class="lbl" style="margin-bottom:4px">AMOUNT *</div>
+              <input inputmode="decimal" placeholder="$" value=${ed.amount} onInput=${e=>setEd({...ed,amount:e.target.value})} /></div>
+            <div><div class="lbl" style="margin-bottom:4px">CATEGORY</div>
+              <select value=${ed.cat} onChange=${e=>setEd({...ed,cat:e.target.value})}>
+                ${EXP_CATS.map(c=>html`<option value=${c} key=${c}>${c}</option>`)}
+              </select></div>
+          </div>
+          <div class="lbl mt12">NOTE</div>
+          <input placeholder="Optional — who took it, what for" value=${ed.note} onInput=${e=>setEd({...ed,note:e.target.value})} />
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="btn" style="flex:1" onClick=${eSave}>LOG EXPENSE ✓</button>
+            <button class="ghost" onClick=${()=>setEd(null)}>cancel</button>
+          </div>
+        </div>`}
+
+      <div class="card">
+        <div class="ttl">THE LOG</div>
+        ${(expCur||[]).length===0?html`<div class="dim" style="padding:8px 0">No cash expenses logged yet.</div>`:''}
+        ${(expCur||[]).slice(0,120).map(e=>html`
+          <div key=${e.id} style="padding:9px 0;border-bottom:1px solid var(--edge)">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+              <span style="font-size:14px"><b>${e.what}</b></span>
+              <span style="display:flex;gap:8px;align-items:baseline;white-space:nowrap">
+                <b>${money(e.amount)}</b>
+                <button class="ghost" style=${{color:'var(--tomato)',fontSize:'10.5px',fontWeight:eArm===e.id?'800':'400',padding:'0 4px'}} onClick=${()=>eDel(e.id)}>${eArm===e.id?'sure?':'✕'}</button>
+              </span>
+            </div>
+            <div class="dim" style="font-size:11px;margin-top:2px">
+              ${prettyShort(e.date,e.dateLabel)} · ${e.cat||'Other'}${e.note?' · '+e.note:''}${e.by?' · '+e.by:''}${e.src==='backlog'?' · from backlog':''}
+            </div>
+          </div>`)}
+      </div>
+    <//>`;
+  const depView=depCur===null?html`<div class="card dim">Connecting…</div>`:html`
+    <${Fragment}>
+      <div class="card">
+        <div class="ttl">${STORES.find(s2=>s2.id===store)?.label?.toUpperCase()} — BANK DEPOSITS</div>
+        <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:13px;margin-top:4px">
+          <span>This month: <b>${money(depStats.mtd)}</b></span>
+          <span>All time: <b style="color:var(--green)">${money(depStats.all)}</b></span>
+          <span class="dim">${depStats.n} deposit${depStats.n===1?'':'s'}</span>
+        </div>
+      </div>
+
+      ${dd===null?html`
+        <button class="btn" style="width:100%;margin-bottom:12px" onClick=${()=>setDd(dBlank())}>+ LOG A BANK DEPOSIT</button>
+      `:html`
+        <div class="card">
+          <div class="ttl">NEW BANK DEPOSIT</div>
+          <div class="lbl mt8">DATE</div>
+          <input type="date" value=${dd.date} onInput=${e=>setDd({...dd,date:e.target.value})} />
+          <div class="lbl mt12">AMOUNT *</div>
+          <input inputmode="decimal" placeholder="$" value=${dd.amount} onInput=${e=>setDd({...dd,amount:e.target.value})} />
+          <div class="lbl mt12">NOTE</div>
+          <input placeholder="Optional — which account, who deposited" value=${dd.note} onInput=${e=>setDd({...dd,note:e.target.value})} />
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="btn" style="flex:1" onClick=${dSave}>LOG DEPOSIT ✓</button>
+            <button class="ghost" onClick=${()=>setDd(null)}>cancel</button>
+          </div>
+        </div>`}
+
+      <div class="card">
+        <div class="ttl">DEPOSIT HISTORY</div>
+        ${(depCur||[]).length===0?html`<div class="dim" style="padding:8px 0">No deposits logged yet.</div>`:''}
+        ${(depCur||[]).slice(0,120).map(d=>html`
+          <div key=${d.id} style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:9px 0;border-bottom:1px solid var(--edge)">
+            <span style="font-size:13.5px">
+              <b>${prettyShort(d.date)}</b>
+              ${d.note?html`<span class="dim"> · ${d.note}</span>`:''}
+              ${d.by?html`<span class="dim"> · ${d.by}</span>`:''}
+              ${d.src==='backlog'?html`<span class="dim"> · from backlog</span>`:''}
+            </span>
+            <span style="display:flex;gap:8px;align-items:baseline;white-space:nowrap">
+              <b style="color:var(--green)">${money(d.amount)}</b>
+              <button class="ghost" style=${{color:'var(--tomato)',fontSize:'10.5px',fontWeight:dArm===d.id?'800':'400',padding:'0 4px'}} onClick=${()=>dDel(d.id)}>${dArm===d.id?'sure?':'✕'}</button>
+            </span>
+          </div>`)}
+      </div>
+
+      ${store==='astoria'&&(expCur||[]).length>=0&&!(expCur||[]).some(e=>e.src==='backlog')&&html`
+        <div class="card" style="border-left:4px solid var(--amber)">
+          <div class="ttl">IMPORT THE PAPER BACKLOG</div>
+          <div class="muted" style="font-size:12.5px;line-height:1.6">Loads the Astoria cash sheet (Apr–Jul 2026): <b>131 expenses</b> (${money(58702.78)}) and <b>15 deposits</b> (${money(25743)}). One time only.</div>
+          <button class="btn olive mt10" style="width:100%" onClick=${importBacklog}>Import backlog</button>
+        </div>`}
+    <//>`;
+  const envView=cashCur===null?html`<div class="card dim">Connecting…</div>`:html`
     <${Fragment}>
       <div class="card">
         <div class="ttl" style="display:flex;justify-content:space-between;align-items:baseline">
@@ -978,6 +1179,14 @@ function App(){
             <div class="dim" style="font-size:10px;margin-top:2px">register ${money(e.register)} − bank ${money(e.bank)} · logged ${e.at}</div>
           </div>`;})}
       </div>
+    <//>`;
+  const cashView=html`
+    <${Fragment}>
+      <div class="subtabs">
+        ${[['env','Envelopes'],['exp','Expenses'],['dep','Deposits']].map(([id,label])=>html`
+          <button class=${cashTab===id?'on':''} key=${id} onClick=${()=>{setCashTab(id);setErr('');}}>${label}</button>`)}
+      </div>
+      ${cashTab==='env'?envView:cashTab==='exp'?expView:depView}
     <//>`;
 
   // ---- transfers: the inter-store ledger ----
