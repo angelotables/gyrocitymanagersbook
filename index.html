@@ -360,6 +360,11 @@ function App(){
   const [catTab,setCatTab]=useState('active');  // active | past
   const [catOpen,setCatOpen]=useState(null);    // expanded card id
   const [catArm,setCatArm]=useState(null);      // delete-confirm id
+  // backyard (read-only view + approve staff add/remove requests)
+  const [byData,setByData]=useState(null);
+  const [byLoaded,setByLoaded]=useState(false);
+  const [byBusy,setByBusy]=useState('');
+  const [byDenyArm,setByDenyArm]=useState('');
   const [catPay,setCatPay]=useState(null);      // {id, amount, method, note} — recording a payment
   const [inquiries,setInquiries]=useState([]);  // leads from the public inquiry form
   const [inqArm,setInqArm]=useState(null);      // dismiss-confirm id
@@ -436,6 +441,7 @@ function App(){
     const ucm=onSnapshot(D('cash_macdougal'),(s)=>{if(!trustSnap('cash_macdougal',s))return;setCashM(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
     const uw=onSnapshot(D('writeups'),(s)=>{if(!trustSnap('writeups',s))return;setWriteups(s.exists()?s.data().list:[]);setWuLoaded(true);},()=>setConnected(false));
     const ucat=onSnapshot(D('catering'),(s)=>{if(!trustSnap('catering',s))return;setCatering(s.exists()?(s.data().list||[]):[]);setCateringLoaded(true);},()=>setConnected(false));
+    const uby=onSnapshot(D('backyard_inventory'),(s)=>{if(!trustSnap('backyard_inventory',s))return;setByData(s.exists()?s.data():null);setByLoaded(true);},()=>setConnected(false));
     const uea=onSnapshot(D('cashexp_astoria'),(s)=>{if(!trustSnap('cashexp_astoria',s))return;setExpA(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
     const uem=onSnapshot(D('cashexp_macdougal'),(s)=>{if(!trustSnap('cashexp_macdougal',s))return;setExpM(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
     const uda=onSnapshot(D('bankdep_astoria'),(s)=>{if(!trustSnap('bankdep_astoria',s))return;setDepA(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
@@ -450,7 +456,7 @@ function App(){
     };
     const r1=onSnapshot(D('emp_astoria'),(s)=>{if(!trustSnap('r_a',s))return;if(s.exists()){rosterDocs.a=s.data().list||[];rebuild();}},()=>{});
     const r2=onSnapshot(D('emp_macdougal'),(s)=>{if(!trustSnap('r_m',s))return;if(s.exists()){rosterDocs.m=s.data().list||[];rebuild();}},()=>{});
-    return ()=>{um();ux();uca();ucm();uw();ucat();uinq();uea();uem();uda();udm();r1();r2();};
+    return ()=>{um();ux();uca();ucm();uw();ucat();uinq();uby();uea();uem();uda();udm();r1();r2();};
   },[authed]);
 
   useEffect(()=>{
@@ -546,6 +552,42 @@ function App(){
     setCatForm(null);flash('Catering saved ✓');
   }
   function deleteCatering(id){setCatArm(null);setCatOpen(null);saveCatering((catering||[]).filter(c=>c.id!==id));}
+
+  // ---- backyard: approve / deny staff item requests ----
+  const BY_CATS=[
+    {id:'branded',label:'GYRO CITY BRANDED'},{id:'nonbranded',label:'NON-BRANDED'},
+    {id:'pos',label:'POS / REGISTER'},{id:'janitorial',label:'JANITORIAL'},
+    {id:'cintas',label:'CINTAS (WEEKLY ROUTE)'},{id:'drinks',label:'DRINKS'},
+    {id:'catering',label:'CATERING SUPPLIES'},
+  ];
+  const byCatLabel=(id)=>(BY_CATS.find(c=>c.id===id)||{}).label||id;
+  const bySlug=(s)=>s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+  const byRel=(t)=>{if(!t)return '';const d=Date.now()-t;
+    if(d<60e3)return 'just now';if(d<3600e3)return Math.floor(d/60e3)+'m ago';
+    if(d<86400e3)return Math.floor(d/3600e3)+'h ago';return Math.floor(d/86400e3)+'d ago';};
+  async function byResolve(req,approve){
+    if(!byData)return;
+    setByBusy(req.id);
+    const who=myName.trim()||'Manager';
+    let items=byData.items||[];
+    if(approve){
+      if(req.type==='add'){
+        const maxOrd=Math.max(0,...items.map(i=>i.ord||0));
+        items=[...items,{id:`${req.cat}-${bySlug(req.name)}-${Date.now()%1e5}`,name:req.name,cat:req.cat,
+          status:'good',ts:Date.now(),by:who,ord:maxOrd+1,count:null,cts:0,cby:'',unit:req.unit||''}];
+      }else{
+        items=items.filter(i=>i.id!==req.itemId);
+      }
+    }
+    const verb=approve?'approved':'denied';
+    const log=[{t:Date.now(),txt:`${who} ${verb} ${req.type==='add'?'adding':'removing'} ${req.name} (asked by ${req.by||'—'})`},
+      ...(byData.log||[])].slice(0,40);
+    const requests=(byData.requests||[]).filter(r=>r.id!==req.id);
+    setByData({...byData,items,requests,log});
+    try{await setDoc(D('backyard_inventory'),{items,requests,log},{merge:true});setErr('');flash(approve?'Approved ✓':'Denied');}
+    catch(e){setErr('Save failed — check internet. ('+(e.message||e)+')');}
+    setByDenyArm('');setByBusy('');
+  }
   function addCatPayment(id){
     const amt=catMoney((catPay||{}).amount);
     if(amt<=0){setErr('Enter a payment amount.');return;}
@@ -1396,7 +1438,7 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
         ${STORES.map(s=>html`<button class=${store===s.id?'on':''} onClick=${()=>setStore(s.id)}>${s.label}</button>`)}
       </div>
       <div class="tabs">
-        ${[['log','Daily log'],['sched','Schedule'],['ord','Ordering'],['cat','Catering'],['xfer','Transfers'],['cash','Cash'],['wu','Write-ups']].map(([id,label])=>html`
+        ${[['log','Daily log'],['sched','Schedule'],['ord','Ordering'],['cat','Catering'],['by','Backyard'],['xfer','Transfers'],['cash','Cash'],['wu','Write-ups']].map(([id,label])=>html`
           <button class=${tab===id?'on':''} key=${id} onClick=${()=>setTab(id)}>${label}</button>`)}
       </div>
     </div><div class="meander"></div></div>`;
@@ -2020,6 +2062,69 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
         :(catPast.length===0?html`<div class="empty">No past catering on record yet.</div>`:catPast.map(catCard))}
     <//>`;
 
+  // ---- backyard view (approvals + read-only stock) ----
+  const byItems=(byData&&byData.items)||[];
+  const byReqs=(byData&&byData.requests)||[];
+  const byOut=byItems.filter(i=>i.status==='out');
+  const byLow=byItems.filter(i=>i.status==='low');
+  const backyardView=!byLoaded?html`<div class="empty">⏳ Syncing the backyard…</div>`
+    :byData===null?html`<div class="empty">The backyard list hasn't been set up yet.<br/>It's created the first time a staff member opens the Backyard tab.</div>`
+    :html`
+    <${Fragment}>
+      <div class="card">
+        <div class="ttl">BACKYARD — ASTORIA</div>
+        <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:13px;margin-top:4px">
+          <span>${byItems.length} items tracked</span>
+          <span style=${{color:byOut.length?'var(--tomato)':'var(--faint)',fontWeight:byOut.length?'800':'400'}}>${byOut.length} out</span>
+          <span style=${{color:byLow.length?'var(--amber)':'var(--faint)',fontWeight:byLow.length?'800':'400'}}>${byLow.length} low</span>
+        </div>
+        <div class="dim" style="font-size:10.5px;margin-top:6px">Staff count this in the Staff Book. Adds and removals come here for your approval.</div>
+      </div>
+
+      ${byReqs.length>0?html`
+        <div class="card" style="border-left:5px solid var(--amber)">
+          <div class="ttl" style="color:var(--amber)">WAITING FOR APPROVAL (${byReqs.length})</div>
+          ${byReqs.map(r=>html`
+            <div key=${r.id} style="padding:10px 0;border-top:1px solid var(--bg)">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap">
+                <b style="font-size:15px">${r.type==='add'?'Add':'Remove'} — ${r.name}</b>
+                <span class="pill" style=${{background:r.type==='add'?'var(--green)':'var(--tomato)'}}>${r.type.toUpperCase()}</span>
+              </div>
+              <div class="dim" style="font-size:12px;margin-top:3px">
+                ${byCatLabel(r.cat)}${r.unit?' · '+r.unit:''} · asked by ${r.byName||r.by||'—'} · ${byRel(r.at)}
+              </div>
+              <div class="row mt8">
+                <button class="btn" style="background:var(--green)" disabled=${byBusy===r.id} onClick=${()=>byResolve(r,true)}>
+                  ${byBusy===r.id?'…':'Approve'}
+                </button>
+                ${byDenyArm===r.id
+                  ?html`<button class="btn tomato" disabled=${byBusy===r.id} onClick=${()=>byResolve(r,false)}>Really deny?</button>`
+                  :html`<button class="ghost" style="color:var(--tomato)" onClick=${()=>setByDenyArm(r.id)}>Deny</button>`}
+              </div>
+            </div>`)}
+        </div>`
+        :html`<div class="card"><div class="dim" style="padding:4px 0">No requests waiting. Staff adds and removals will show up here.</div></div>`}
+
+      ${(byOut.length>0||byLow.length>0)&&html`
+        <div class="card">
+          <div class="ttl">NEEDS ORDERING</div>
+          ${[...byOut,...byLow].map(i=>html`
+            <div key=${i.id} style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:7px 0;border-top:1px solid var(--bg)">
+              <span><b>${i.name}</b><div class="dim" style="font-size:11.5px">${byCatLabel(i.cat)} · ${i.count!=null?`${i.count}${i.unit?' '+i.unit:''} on hand`:'not counted'}</div></span>
+              <span class="pill" style=${{background:i.status==='out'?'var(--tomato)':'var(--amber)'}}>${i.status.toUpperCase()}</span>
+            </div>`)}
+        </div>`}
+
+      ${((byData&&byData.log)||[]).length>0&&html`
+        <div class="card">
+          <div class="ttl">RECENT ACTIVITY</div>
+          ${(byData.log||[]).slice(0,20).map((l,i)=>html`
+            <div key=${i} style="padding:6px 0;border-top:1px solid var(--bg);font-size:13px">
+              ${l.txt}<div class="dim" style="font-size:11px">${byRel(l.t)}</div>
+            </div>`)}
+        </div>`}
+    <//>`;
+
   const ordView=html`
     <${Fragment}>
       <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
@@ -2212,7 +2317,7 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
         ${err&&html`<div class="banner err">${err}</div>`}
         ${nameCard}
         ${storeSignal}
-        ${tab==='log'?logTab:tab==='sched'?schedView:tab==='ord'?ordView:tab==='cat'?cateringView:tab==='xfer'?xferView:tab==='cash'?cashView:wuList}
+        ${tab==='log'?logTab:tab==='sched'?schedView:tab==='ord'?ordView:tab==='cat'?cateringView:tab==='by'?backyardView:tab==='xfer'?xferView:tab==='cash'?cashView:wuList}
       </div>
       ${shareBox&&html`
         <div class="modal" onClick=${e=>{if(e.target.classList.contains('modal'))setShareBox(null);}}>
