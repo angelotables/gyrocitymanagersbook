@@ -194,6 +194,83 @@
     cursor:pointer;font-family:var(--disp);box-shadow:0 2px 5px rgba(14,42,71,.07);transition:all .12s}
   .key:active{transform:scale(.9);background:#EFEBDF;box-shadow:none}
   .key.ghostk{background:transparent;border-color:transparent;box-shadow:none;font-size:18px;color:var(--faint)}
+  .by-sub{display:flex;gap:6px;margin-bottom:14px}
+  .by-sub button{flex:1;border:1px solid var(--line);background:var(--card);color:var(--faint);border-radius:9px;
+    padding:9px 0;font-size:12px;font-weight:800;letter-spacing:.1em;cursor:pointer;font-family:inherit}
+  .by-sub button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+  .by-srow{display:flex;gap:9px;margin-bottom:14px}
+  .by-search{flex:1;min-width:0;padding:11px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card);
+    color:var(--ink);outline:none;font-size:15px;font-family:inherit}
+  .by-search:focus{border-color:var(--navy)}
+  .by-mode{flex:none;display:flex;align-items:center;gap:6px;padding:0 14px;border:1px solid var(--navy);border-radius:10px;
+    color:var(--navy);background:var(--card);font-size:13px;font-weight:800;letter-spacing:.06em;cursor:pointer;font-family:inherit}
+  .by-mode svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .by-cat{margin-bottom:20px}
+  .by-cath{display:flex;align-items:center;justify-content:space-between;padding:0 2px 7px}
+  .by-cath .nme{font-size:14px;font-weight:800;letter-spacing:.1em;color:var(--navy)}
+  .by-cath .need{font-size:11.5px;font-weight:800;letter-spacing:.08em;color:#B3261E}
+  .by-card{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .by-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #EEEDE9}
+  .by-row > :first-child{flex:1 1 auto;min-width:0}
+  .by-row:last-child{border-bottom:none}
+  .by-nm{font-weight:600;font-size:14.5px;line-height:1.2}
+  .by-meta{font-size:11.5px;color:var(--faint);margin-top:2px}
+  .by-seg{display:flex;flex:none;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .by-seg button{font-size:12px;font-weight:800;letter-spacing:.06em;padding:8px 0;width:48px;color:#98A0AB;
+    background:#F7F6F3;border:none;cursor:pointer;font-family:inherit}
+  .by-seg button + button{border-left:1px solid var(--line)}
+  .by-seg button.g-on{background:#1F6E43;color:#fff}
+  .by-seg button.l-on{background:#A66A00;color:#fff}
+  .by-seg button.o-on{background:#B3261E;color:#fff}
+  .by-chead{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--navy);color:#fff;
+    border-radius:10px;padding:12px 14px;margin-bottom:14px}
+  .by-chead .l{font-size:15px;font-weight:800;letter-spacing:.06em}
+  .by-chead .r{font-size:11.5px;opacity:.85;text-align:right;line-height:1.5}
+  .by-cin{width:74px;text-align:center;font-size:17px;font-weight:600;padding:9px 6px;border:1px solid var(--line);
+    border-radius:9px;background:#FBFAF8;outline:none;flex:none;font-family:inherit}
+  .by-cin:focus{border-color:var(--navy)}
+  .by-ccol{display:flex;flex-direction:column;align-items:center;gap:4px;flex:none}
+  .by-unit{font-size:10.5px;font-weight:800;letter-spacing:.08em;color:var(--faint);border:1px dashed var(--line);
+    border-radius:5px;padding:2px 8px;background:none;cursor:pointer;font-family:inherit}
+  .by-uin{width:74px;text-align:center;font-size:12px;padding:4px;border:1px solid var(--navy);border-radius:5px;
+    outline:none;background:#fff;font-family:inherit}
+  .by-wk{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:14px}
+  .by-wkt{font-size:12px;font-weight:800;letter-spacing:.1em;color:var(--navy);margin-bottom:8px}
+  .by-wkg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .by-wkc{border:1px solid var(--line);border-radius:8px;padding:6px 2px;text-align:center}
+  .by-wkc .d{font-size:9.5px;font-weight:800;letter-spacing:.08em;color:var(--faint)}
+  .by-wkc .w{font-size:11.5px;font-weight:800;margin-top:2px;color:var(--navy);min-height:15px}
+  .by-wkc.done{background:#E3EFE7;border-color:#1F6E43}
+  .by-wkc.done .w{color:#1F6E43}
+  .by-wkc.today{border-color:var(--navy);border-width:1.5px}
+  .by-wkn{font-size:12.5px;margin-top:9px;font-weight:700}
+  .by-wkn.warn{color:#A66A00}.by-wkn.ok{color:#1F6E43}.by-wkn.mut{color:var(--faint);font-weight:400}
+  .by-ban{background:#F5EBD6;border:1px solid #A66A00;color:#A66A00;border-radius:10px;padding:10px 12px;
+    font-size:13px;font-weight:700;margin-bottom:14px}
+  .by-save{position:fixed;left:14px;right:14px;bottom:calc(16px + env(safe-area-inset-bottom));max-width:532px;margin:0 auto;
+    padding:14px;background:#1F6E43;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:800;letter-spacing:.1em;
+    z-index:25;box-shadow:0 8px 24px rgba(0,0,0,.18);text-align:center;cursor:pointer;font-family:inherit}
+  .by-oh{font-size:14px;font-weight:800;letter-spacing:.1em;padding:0 2px 7px}
+  .by-oh.out{color:#B3261E}.by-oh.low{color:#A66A00}
+  .by-restock{font-size:12px;font-weight:800;letter-spacing:.06em;color:#1F6E43;border:1px solid #1F6E43;border-radius:9px;
+    padding:8px 12px;flex:none;background:#E3EFE7;cursor:pointer;font-family:inherit}
+  .by-copy{display:block;width:100%;padding:13px;margin-bottom:16px;background:var(--navy);color:#fff;border:none;
+    border-radius:10px;font-size:15px;font-weight:800;letter-spacing:.1em;cursor:pointer;font-family:inherit}
+  .by-empty{text-align:center;padding:44px 20px;color:var(--faint)}
+  .by-empty .big{font-size:19px;font-weight:800;letter-spacing:.08em;color:#1F6E43;margin-bottom:6px}
+  .by-addf{display:flex;flex-direction:column;gap:9px;background:var(--card);border:1px solid var(--line);
+    border-radius:10px;padding:12px;margin-bottom:20px}
+  .by-addf select,.by-addf input{padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:#FBFAF8;
+    outline:none;width:100%;font-size:15px;font-family:inherit}
+  .by-btn{padding:12px;background:var(--navy);color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:800;
+    letter-spacing:.1em;cursor:pointer;font-family:inherit}
+  .by-rm{font-size:12px;font-weight:800;letter-spacing:.06em;color:var(--faint);border:1px solid var(--line);
+    border-radius:9px;padding:8px 12px;flex:none;background:#F7F6F3;cursor:pointer;font-family:inherit}
+  .by-rm.armed{color:#fff;background:#B3261E;border-color:#B3261E}
+  .by-log{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .by-logr{padding:9px 12px;border-bottom:1px solid #EEEDE9;font-size:13px}
+  .by-logr:last-child{border-bottom:none}
+  .by-logr .t{color:var(--faint);font-size:11.5px;margin-top:1px}
   .mt8{margin-top:8px}.mt10{margin-top:10px}.mt12{margin-top:12px}.mb8{margin-bottom:8px}.mb10{margin-bottom:10px}.mb12{margin-bottom:12px}
 </style>
 </head>
@@ -291,6 +368,16 @@ const nowStamp=()=>{const d=new Date();return d.toLocaleDateString(undefined,{mo
 function dayInfo(offset){const d=new Date();d.setDate(d.getDate()-offset);return {key:dkey(d),dow:d.toLocaleDateString(undefined,{weekday:'short'}),md:(d.getMonth()+1)+'/'+d.getDate()};}
 function prettyDay(key){const [y,m,d]=key.split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'});}
 
+const BY_DOC='backyard_inventory';
+const BY_NO_COUNT=new Set(['angelo','mario']);
+const BY_WK=['MON','TUE','WED','THU','FRI','SAT','SUN'];
+const byCountStatus=(n,cur)=>n<=0?'out':(cur==='out'?'good':cur);
+const byDateKey=(d)=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const byTodayKey=()=>byDateKey(new Date());
+const byWeekKeys=()=>{const d=new Date();const mon=new Date(d);mon.setDate(d.getDate()-((d.getDay()+6)%7));
+  return [0,1,2,3,4,5,6].map(i=>{const x=new Date(mon);x.setDate(mon.getDate()+i);return byDateKey(x);});};
+const byInitials=(n)=>String(n||'').trim().split(/\s+/).map(w=>w[0]||'').join('').toUpperCase().slice(0,3)||'—';
+
 function App(){
   const [store,setStore]=useState(localStorage.getItem('gc-store')||'astoria');
   const [xfers,setXfers]=useState(null);
@@ -365,6 +452,15 @@ function App(){
   const [byLoaded,setByLoaded]=useState(false);
   const [byBusy,setByBusy]=useState('');
   const [byDenyArm,setByDenyArm]=useState('');
+  const [byTab,setByTab]=useState('stock');     // stock | order | edit
+  const [byQ,setByQ]=useState('');
+  const [byCountMode,setByCountMode]=useState(false);
+  const [byEntries,setByEntries]=useState({});
+  const [byUnitEdit,setByUnitEdit]=useState('');
+  const [byArmed,setByArmed]=useState('');
+  const [byAdd,setByAdd]=useState({cat:'branded',name:'',unit:''});
+  const [byRoster,setByRoster]=useState(null);  // Astoria cashier/expo, minus BY_NO_COUNT
+  const byArmT=useRef(null);
   const [catPay,setCatPay]=useState(null);      // {id, amount, method, note} — recording a payment
   const [inquiries,setInquiries]=useState([]);  // leads from the public inquiry form
   const [inqArm,setInqArm]=useState(null);      // dismiss-confirm id
@@ -442,6 +538,11 @@ function App(){
     const uw=onSnapshot(D('writeups'),(s)=>{if(!trustSnap('writeups',s))return;setWriteups(s.exists()?s.data().list:[]);setWuLoaded(true);},()=>setConnected(false));
     const ucat=onSnapshot(D('catering'),(s)=>{if(!trustSnap('catering',s))return;setCatering(s.exists()?(s.data().list||[]):[]);setCateringLoaded(true);},()=>setConnected(false));
     const uby=onSnapshot(D('backyard_inventory'),(s)=>{if(!trustSnap('backyard_inventory',s))return;setByData(s.exists()?s.data():null);setByLoaded(true);},()=>setConnected(false));
+    // Backyard is Astoria's, independent of the store toggle. Same roster rule as Staff Book.
+    const ubr=onSnapshot(D('emp_astoria'),(s)=>{
+      const l=s.exists()?(s.data().list||[]):SEED_EMP;
+      setByRoster(l.filter(e=>e&&(e.role==='cashier'||e.role==='expo')&&!BY_NO_COUNT.has(String(e.name||'').trim().toLowerCase())));
+    },()=>{});
     const uea=onSnapshot(D('cashexp_astoria'),(s)=>{if(!trustSnap('cashexp_astoria',s))return;setExpA(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
     const uem=onSnapshot(D('cashexp_macdougal'),(s)=>{if(!trustSnap('cashexp_macdougal',s))return;setExpM(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
     const uda=onSnapshot(D('bankdep_astoria'),(s)=>{if(!trustSnap('bankdep_astoria',s))return;setDepA(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
@@ -456,7 +557,7 @@ function App(){
     };
     const r1=onSnapshot(D('emp_astoria'),(s)=>{if(!trustSnap('r_a',s))return;if(s.exists()){rosterDocs.a=s.data().list||[];rebuild();}},()=>{});
     const r2=onSnapshot(D('emp_macdougal'),(s)=>{if(!trustSnap('r_m',s))return;if(s.exists()){rosterDocs.m=s.data().list||[];rebuild();}},()=>{});
-    return ()=>{um();ux();uca();ucm();uw();ucat();uinq();uby();uea();uem();uda();udm();r1();r2();};
+    return ()=>{um();ux();uca();ucm();uw();ucat();uinq();uby();ubr();uea();uem();uda();udm();r1();r2();};
   },[authed]);
 
   useEffect(()=>{
@@ -565,6 +666,96 @@ function App(){
   const byRel=(t)=>{if(!t)return '';const d=Date.now()-t;
     if(d<60e3)return 'just now';if(d<3600e3)return Math.floor(d/60e3)+'m ago';
     if(d<86400e3)return Math.floor(d/3600e3)+'h ago';return Math.floor(d/86400e3)+'d ago';};
+  // ---- backyard: manager can do everything staff can, plus approvals ----
+  const byMeName=()=>myName.trim()||'Manager';
+  const byMeIni=()=>byInitials(byMeName());
+  async function byWrite(patch,logTxt){
+    if(!byData)return;
+    const log=logTxt?[{t:Date.now(),txt:logTxt},...(byData.log||[])].slice(0,40):(byData.log||[]);
+    setByData({...byData,...patch,log});
+    try{await setDoc(D(BY_DOC),{...patch,log},{merge:true});setErr('');}
+    catch(e){setErr('Save failed — check internet. ('+(e.message||e)+')');}
+  }
+  function bySetStatus(id,status){
+    if(!byData)return;
+    const it=(byData.items||[]).find(i=>i.id===id);
+    const items=(byData.items||[]).map(x=>x.id===id?{...x,status,ts:Date.now(),by:byMeIni()}:x);
+    byWrite({items},`${byMeIni()} · ${it?it.name:id} → ${status.toUpperCase()}`);
+  }
+  function bySetUnit(id,val){
+    if(!byData)return;
+    const u=String(val||'').trim().toLowerCase().slice(0,12);
+    const it=(byData.items||[]).find(i=>i.id===id);
+    if(!it||(it.unit||'')===u)return;
+    byWrite({items:(byData.items||[]).map(x=>x.id===id?{...x,unit:u}:x)},null);
+  }
+  function bySaveCount(){
+    if(!byData)return;
+    const ids=Object.keys(byEntries).filter(k=>byEntries[k]!==''&&!isNaN(+byEntries[k]));
+    if(!ids.length){flash('Nothing entered');return;}
+    const dk=byTodayKey();
+    const guard=(byData.counts||{})[dk];
+    if(guard&&guard.empId&&guard.empId!=='mgr:'+byMeName()){
+      setErr(`${guard.by||'Someone else'} already counted today — one person per day.`);
+      setByCountMode(false);setByEntries({});return;
+    }
+    const now=Date.now();
+    const items=(byData.items||[]).map(it=>{
+      if(!ids.includes(it.id))return it;
+      const n=Math.max(0,Math.floor(+byEntries[it.id]));
+      return {...it,count:n,cts:now,cby:byMeIni(),status:byCountStatus(n,it.status),ts:now,by:byMeIni()};
+    });
+    const prev=(byData.counts||{})[dk]||{v:{}};
+    const v={...(prev.v||{})};
+    ids.forEach(id=>{v[id]=Math.max(0,Math.floor(+byEntries[id]));});
+    const counts={...(byData.counts||{}),[dk]:{by:byMeIni(),empId:'mgr:'+byMeName(),name:byMeName(),ts:now,v}};
+    const keys=Object.keys(counts).sort();
+    if(keys.length>120)keys.slice(0,keys.length-120).forEach(k=>delete counts[k]);
+    const log=[{t:now,txt:`${byMeIni()} · counted ${ids.length} item${ids.length===1?'':'s'}`},...(byData.log||[])].slice(0,40);
+    setByData({...byData,items,counts,log});
+    setDoc(D(BY_DOC),{items,counts,log},{merge:true}).catch(()=>setErr('Save failed — check internet.'));
+    setByEntries({});setByCountMode(false);window.scrollTo(0,0);
+    flash(`Count saved — ${ids.length} item${ids.length===1?'':'s'}`);
+  }
+  function byAddDirect(){
+    if(!byData)return;
+    const nm=byAdd.name.trim();
+    if(!nm){setErr('Type the item name first.');return;}
+    if((byData.items||[]).some(i=>i.name.toLowerCase()===nm.toLowerCase()&&i.cat===byAdd.cat)){setErr(`"${nm}" is already on the list.`);return;}
+    setErr('');
+    const maxOrd=Math.max(0,...(byData.items||[]).map(i=>i.ord||0));
+    const items=[...(byData.items||[]),{id:`${byAdd.cat}-${bySlug(nm)}-${Date.now()%1e5}`,name:nm,cat:byAdd.cat,
+      status:'good',ts:Date.now(),by:byMeIni(),ord:maxOrd+1,count:null,cts:0,cby:'',unit:byAdd.unit.trim().toLowerCase().slice(0,12)}];
+    byWrite({items},`${byMeIni()} · added ${nm}`);
+    setByAdd({...byAdd,name:'',unit:''});flash('Added');
+  }
+  function byRemoveDirect(id){
+    if(byArmed!==id){
+      setByArmed(id);clearTimeout(byArmT.current);
+      byArmT.current=setTimeout(()=>setByArmed(''),2500);
+      return;
+    }
+    setByArmed('');
+    if(!byData)return;
+    const it=(byData.items||[]).find(i=>i.id===id);
+    byWrite({items:(byData.items||[]).filter(i=>i.id!==id),
+      requests:(byData.requests||[]).filter(r=>r.itemId!==id)},`${byMeIni()} · removed ${it?it.name:id}`);
+    flash('Removed');
+  }
+  function byCopyOrder(){
+    const fmt=(i)=>{const u=i.unit?' '+i.unit:'';
+      return `- ${i.name} (${byCatLabel(i.cat)}) — ${i.count!=null?`${i.count}${u} on hand`:'not counted'}`;};
+    const out=((byData&&byData.items)||[]).filter(i=>i.status==='out');
+    const low=((byData&&byData.items)||[]).filter(i=>i.status==='low');
+    const d=new Date();
+    let txt=`BACKYARD ORDER — ASTORIA — ${d.getMonth()+1}/${d.getDate()}\n`;
+    if(out.length)txt+=`\nOUT:\n`+out.map(fmt).join('\n');
+    if(low.length)txt+=`\n\nLOW:\n`+low.map(fmt).join('\n');
+    const done=()=>flash('List copied');
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(done,()=>flash('Copy failed'));
+    else{const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();
+      try{document.execCommand('copy');done();}catch(e){flash('Copy failed');}ta.remove();}
+  }
   async function byResolve(req,approve){
     if(!byData)return;
     setByBusy(req.id);
@@ -2067,62 +2258,169 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
   const byReqs=(byData&&byData.requests)||[];
   const byOut=byItems.filter(i=>i.status==='out');
   const byLow=byItems.filter(i=>i.status==='low');
+  const byQl=byQ.trim().toLowerCase();
+  const byWk=byWeekKeys();
+  const byTk=byTodayKey();
+  const byCounts=(byData&&byData.counts)||{};
+  const byTodayEntry=byCounts[byTk];
+  const byMgrId='mgr:'+byMeName();
+  const byLockedOut=!!(byTodayEntry&&byTodayEntry.empId&&byTodayEntry.empId!==byMgrId);
+  const byDoneIds=new Set(byWk.map(k=>(byCounts[k]||{}).empId).filter(Boolean));
+  const byRemaining=(byRoster||[]).filter(e=>!byDoneIds.has(e.id)).map(e=>e.name);
+  const byEnteredN=Object.keys(byEntries).filter(k=>byEntries[k]!=='').length;
+  const bySetE=(id,v)=>setByEntries({...byEntries,[id]:v.replace(/[^0-9]/g,'').slice(0,4)});
+
+  const byApprovals=byReqs.length>0?html`
+    <div class="card" style="border-left:5px solid var(--amber);margin-bottom:14px">
+      <div class="ttl" style="color:var(--amber)">WAITING FOR APPROVAL (${byReqs.length})</div>
+      ${byReqs.map(r=>html`
+        <div key=${r.id} style="padding:10px 0;border-top:1px solid var(--bg)">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap">
+            <b style="font-size:15px">${r.type==='add'?'Add':'Remove'} — ${r.name}</b>
+            <span class="pill" style=${{background:r.type==='add'?'var(--green)':'var(--tomato)'}}>${r.type.toUpperCase()}</span>
+          </div>
+          <div class="dim" style="font-size:12px;margin-top:3px">
+            ${byCatLabel(r.cat)}${r.unit?' · '+r.unit:''} · asked by ${r.byName||r.by||'—'} · ${byRel(r.at)}
+          </div>
+          <div class="row mt8">
+            <button class="btn" style="background:var(--green)" disabled=${byBusy===r.id} onClick=${()=>byResolve(r,true)}>${byBusy===r.id?'…':'Approve'}</button>
+            ${byDenyArm===r.id
+              ?html`<button class="btn tomato" disabled=${byBusy===r.id} onClick=${()=>byResolve(r,false)}>Really deny?</button>`
+              :html`<button class="ghost" style="color:var(--tomato)" onClick=${()=>setByDenyArm(r.id)}>Deny</button>`}
+          </div>
+        </div>`)}
+    </div>`:'';
+
+  const byStockView=html`
+    <div>
+      <div class="by-srow">
+        <input class="by-search" placeholder="Search items" value=${byQ} onInput=${e=>setByQ(e.target.value)} />
+        <button class="by-mode" onClick=${()=>{if(byCountMode){setByCountMode(false);setByEntries({});}else setByCountMode(true);}}>
+          ${byCountMode?'STOCK':'⊞ COUNT'}
+        </button>
+      </div>
+      ${byCountMode&&html`
+        <div class="by-chead">
+          <div class="l">DAILY COUNT — ${BY_WK[(new Date().getDay()+6)%7]} ${new Date().getMonth()+1}/${new Date().getDate()}</div>
+          <div class="r">${byEnteredN}/${byItems.length} entered<br/>counting as ${byMeIni()}</div>
+        </div>
+        <div class="by-wk">
+          <div class="by-wkt">THIS WEEK — ONE COUNT PER DAY, EVERYONE ONCE A WEEK</div>
+          <div class="by-wkg">
+            ${byWk.map((k,i)=>{const who=(byCounts[k]||{}).by||'';return html`
+              <div class=${'by-wkc'+(who?' done':'')+(k===byTk?' today':'')} key=${k}>
+                <div class="d">${BY_WK[i]}</div><div class="w">${who}</div>
+              </div>`;})}
+          </div>
+          ${byRoster===null?html`<div class="by-wkn mut">Loading the roster…</div>`
+            :!byRoster.length?html`<div class="by-wkn mut">No cashier/expo staff on the Astoria roster yet.</div>`
+            :byRemaining.length?html`<div class="by-wkn warn">STILL TO COUNT: ${byRemaining.join(', ')}</div>`
+            :html`<div class="by-wkn ok">EVERYONE COUNTED THIS WEEK</div>`}
+        </div>
+        ${byLockedOut&&html`<div class="by-ban">${byTodayEntry.name||byTodayEntry.by} already counted today — one person per day.</div>`}`}
+      ${BY_CATS.map(c=>{
+        let list=byItems.filter(i=>i.cat===c.id).sort((a,b)=>(a.ord||0)-(b.ord||0));
+        if(byQl)list=list.filter(i=>i.name.toLowerCase().includes(byQl));
+        if(!list.length)return null;
+        const need=list.filter(i=>i.status!=='good').length;
+        return html`
+          <div class="by-cat" key=${c.id}>
+            <div class="by-cath"><span class="nme">${c.label}</span>${!byCountMode&&need>0?html`<span class="need">${need} TO ORDER</span>`:''}</div>
+            <div class="by-card">
+              ${list.map(it=>{const u=it.unit?' '+it.unit:'';
+                const meta=byCountMode
+                  ?(it.count!=null?`last: ${it.count}${u}${it.cts?` · ${byRel(it.cts)}`:''}${it.cby?` · ${it.cby}`:''}`:'')
+                  :[it.count!=null?`${it.count}${u} on hand`:null,it.ts&&it.by?`${byRel(it.ts)} · ${it.by}`:null].filter(Boolean).join(' · ');
+                return html`
+                  <div class="by-row" key=${it.id}>
+                    <div style="min-width:0"><div class="by-nm">${it.name}</div>${meta?html`<div class="by-meta">${meta}</div>`:''}</div>
+                    ${byCountMode?html`
+                      <div class="by-ccol">
+                        <input class="by-cin" type="text" inputmode="numeric" value=${byEntries[it.id]??''}
+                          placeholder=${it.count==null?'—':String(it.count)} onInput=${e=>bySetE(it.id,e.target.value)} />
+                        ${byUnitEdit===it.id
+                          ?html`<input class="by-uin" value=${it.unit||''} placeholder="unit"
+                              ref=${el=>{if(el&&document.activeElement!==el)el.focus();}}
+                              onBlur=${e=>{bySetUnit(it.id,e.target.value);setByUnitEdit('');}}
+                              onKeyDown=${e=>{if(e.key==='Enter')e.target.blur();}} />`
+                          :html`<button class="by-unit" onClick=${()=>setByUnitEdit(it.id)}>${it.unit?it.unit.toUpperCase():'SET UNIT'}</button>`}
+                      </div>`
+                      :html`<div class="by-seg">
+                        <button class=${it.status==='good'?'g-on':''} onClick=${()=>bySetStatus(it.id,'good')}>GOOD</button>
+                        <button class=${it.status==='low'?'l-on':''} onClick=${()=>bySetStatus(it.id,'low')}>LOW</button>
+                        <button class=${it.status==='out'?'o-on':''} onClick=${()=>bySetStatus(it.id,'out')}>OUT</button>
+                      </div>`}
+                  </div>`;})}
+            </div>
+          </div>`;})}
+      ${byCountMode&&byEnteredN>0&&!byLockedOut&&html`<button class="by-save" onClick=${bySaveCount}>SAVE COUNT (${byEnteredN} ${byEnteredN===1?'ITEM':'ITEMS'})</button>`}
+    </div>`;
+
+  const byOrderView=(()=>{
+    if(!byOut.length&&!byLow.length)return html`<div class="by-empty"><div class="big">FULLY STOCKED</div><div>Nothing to order. Items marked LOW or OUT show up here.</div></div>`;
+    const sub=(it)=>{const u=it.unit?' '+it.unit:'';return `${byCatLabel(it.cat)} · ${it.count!=null?`${it.count}${u} on hand`:'not counted'}`;};
+    const section=(list,cls,label)=>list.length?html`
+      <div style="margin-bottom:20px">
+        <div class=${'by-oh '+cls}>${label}</div>
+        <div class="by-card">
+          ${list.map(it=>html`
+            <div class="by-row" key=${it.id}>
+              <div style="min-width:0"><div class="by-nm">${it.name}</div><div class="by-meta">${sub(it)}</div></div>
+              <button class="by-restock" onClick=${()=>bySetStatus(it.id,'good')}>RESTOCKED</button>
+            </div>`)}
+        </div>
+      </div>`:null;
+    return html`<${Fragment}>
+      <button class="by-copy" onClick=${byCopyOrder}>COPY ORDER LIST</button>
+      ${section(byOut,'out','OUT NOW')}${section(byLow,'low','RUNNING LOW')}
+    <//>`;
+  })();
+
+  const byEditView=html`
+    <${Fragment}>
+      <div class="ttl">ADD ITEM</div>
+      <div class="by-addf">
+        <select value=${byAdd.cat} onChange=${e=>setByAdd({...byAdd,cat:e.target.value})}>
+          ${BY_CATS.map(c=>html`<option value=${c.id} key=${c.id}>${c.label}</option>`)}
+        </select>
+        <input placeholder="Item name" value=${byAdd.name} onInput=${e=>setByAdd({...byAdd,name:e.target.value})} onKeyDown=${e=>{if(e.key==='Enter')byAddDirect();}} />
+        <input placeholder="Unit — cases, sleeves, rolls… (optional)" value=${byAdd.unit} onInput=${e=>setByAdd({...byAdd,unit:e.target.value})} onKeyDown=${e=>{if(e.key==='Enter')byAddDirect();}} />
+        <button class="by-btn" onClick=${byAddDirect}>ADD TO LIST</button>
+      </div>
+      <div class="ttl">REMOVE ITEMS</div>
+      ${BY_CATS.map(c=>{
+        const list=byItems.filter(i=>i.cat===c.id).sort((a,b)=>(a.ord||0)-(b.ord||0));
+        if(!list.length)return null;
+        return html`
+          <div class="by-cat" key=${c.id}>
+            <div class="by-cath"><span class="nme" style="font-size:12px">${c.label}</span></div>
+            <div class="by-card">
+              ${list.map(it=>html`
+                <div class="by-row" key=${it.id}>
+                  <div class="by-nm" style="min-width:0">${it.name}</div>
+                  <button class=${'by-rm'+(byArmed===it.id?' armed':'')} onClick=${()=>byRemoveDirect(it.id)}>${byArmed===it.id?'TAP AGAIN':'REMOVE'}</button>
+                </div>`)}
+            </div>
+          </div>`;})}
+      ${((byData&&byData.log)||[]).length>0&&html`
+        <${Fragment}>
+          <div class="ttl">RECENT ACTIVITY</div>
+          <div class="by-log">
+            ${(byData.log||[]).slice(0,25).map((l,i)=>html`<div class="by-logr" key=${i}>${l.txt}<div class="t">${byRel(l.t)}</div></div>`)}
+          </div>
+        <//>`}
+    <//>`;
+
   const backyardView=!byLoaded?html`<div class="empty">⏳ Syncing the backyard…</div>`
-    :byData===null?html`<div class="empty">The backyard list hasn't been set up yet.<br/>It's created the first time a staff member opens the Backyard tab.</div>`
+    :byData===null?html`<div class="empty">The backyard list hasn't been set up yet.<br/>It's created the first time someone opens the Backyard tab.</div>`
     :html`
     <${Fragment}>
-      <div class="card">
-        <div class="ttl">BACKYARD — ASTORIA</div>
-        <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:13px;margin-top:4px">
-          <span>${byItems.length} items tracked</span>
-          <span style=${{color:byOut.length?'var(--tomato)':'var(--faint)',fontWeight:byOut.length?'800':'400'}}>${byOut.length} out</span>
-          <span style=${{color:byLow.length?'var(--amber)':'var(--faint)',fontWeight:byLow.length?'800':'400'}}>${byLow.length} low</span>
-        </div>
-        <div class="dim" style="font-size:10.5px;margin-top:6px">Staff count this in the Staff Book. Adds and removals come here for your approval.</div>
+      ${byApprovals}
+      <div class="by-sub">
+        ${[['stock','STOCK'],['order',byOut.length+byLow.length>0?`ORDER (${byOut.length+byLow.length})`:'ORDER'],['edit','EDIT']].map(([id,label])=>html`
+          <button class=${byTab===id?'on':''} key=${id} onClick=${()=>{setByTab(id);window.scrollTo(0,0);}}>${label}</button>`)}
       </div>
-
-      ${byReqs.length>0?html`
-        <div class="card" style="border-left:5px solid var(--amber)">
-          <div class="ttl" style="color:var(--amber)">WAITING FOR APPROVAL (${byReqs.length})</div>
-          ${byReqs.map(r=>html`
-            <div key=${r.id} style="padding:10px 0;border-top:1px solid var(--bg)">
-              <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap">
-                <b style="font-size:15px">${r.type==='add'?'Add':'Remove'} — ${r.name}</b>
-                <span class="pill" style=${{background:r.type==='add'?'var(--green)':'var(--tomato)'}}>${r.type.toUpperCase()}</span>
-              </div>
-              <div class="dim" style="font-size:12px;margin-top:3px">
-                ${byCatLabel(r.cat)}${r.unit?' · '+r.unit:''} · asked by ${r.byName||r.by||'—'} · ${byRel(r.at)}
-              </div>
-              <div class="row mt8">
-                <button class="btn" style="background:var(--green)" disabled=${byBusy===r.id} onClick=${()=>byResolve(r,true)}>
-                  ${byBusy===r.id?'…':'Approve'}
-                </button>
-                ${byDenyArm===r.id
-                  ?html`<button class="btn tomato" disabled=${byBusy===r.id} onClick=${()=>byResolve(r,false)}>Really deny?</button>`
-                  :html`<button class="ghost" style="color:var(--tomato)" onClick=${()=>setByDenyArm(r.id)}>Deny</button>`}
-              </div>
-            </div>`)}
-        </div>`
-        :html`<div class="card"><div class="dim" style="padding:4px 0">No requests waiting. Staff adds and removals will show up here.</div></div>`}
-
-      ${(byOut.length>0||byLow.length>0)&&html`
-        <div class="card">
-          <div class="ttl">NEEDS ORDERING</div>
-          ${[...byOut,...byLow].map(i=>html`
-            <div key=${i.id} style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:7px 0;border-top:1px solid var(--bg)">
-              <span><b>${i.name}</b><div class="dim" style="font-size:11.5px">${byCatLabel(i.cat)} · ${i.count!=null?`${i.count}${i.unit?' '+i.unit:''} on hand`:'not counted'}</div></span>
-              <span class="pill" style=${{background:i.status==='out'?'var(--tomato)':'var(--amber)'}}>${i.status.toUpperCase()}</span>
-            </div>`)}
-        </div>`}
-
-      ${((byData&&byData.log)||[]).length>0&&html`
-        <div class="card">
-          <div class="ttl">RECENT ACTIVITY</div>
-          ${(byData.log||[]).slice(0,20).map((l,i)=>html`
-            <div key=${i} style="padding:6px 0;border-top:1px solid var(--bg);font-size:13px">
-              ${l.txt}<div class="dim" style="font-size:11px">${byRel(l.t)}</div>
-            </div>`)}
-        </div>`}
+      ${byTab==='order'?byOrderView:byTab==='edit'?byEditView:byStockView}
     <//>`;
 
   const ordView=html`
