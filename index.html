@@ -450,6 +450,16 @@ function App(){
   // backyard (read-only view + approve staff add/remove requests)
   const [byData,setByData]=useState(null);
   const [byLoaded,setByLoaded]=useState(false);
+  // master inventory — Astoria morning count, fully manager-editable
+  const [miData,setMiData]=useState(null);
+  const [miLoaded,setMiLoaded]=useState(false);
+  const [miTab,setMiTab]=useState('today');   // today | history | edit
+  const [miVals,setMiVals]=useState({});      // local edits: itemId -> {fieldKey:value}
+  const [miHistDay,setMiHistDay]=useState(null);
+  const [miArm,setMiArm]=useState('');        // two-tap delete: 'cat:<id>' | 'item:<id>'
+  const [miNewCat,setMiNewCat]=useState('');
+  const [miNewItem,setMiNewItem]=useState(null); // {catId,name,f1,f2}
+  const [miEditItem,setMiEditItem]=useState(null); // item id being field-edited
   const [byBusy,setByBusy]=useState('');
   const [byDenyArm,setByDenyArm]=useState('');
   const [byTab,setByTab]=useState('stock');     // stock | order | edit
@@ -492,6 +502,8 @@ function App(){
   const [loginArm,setLoginArm]=useState(null);
 
   const srvSeen=useRef({});
+  const miSeeded=useRef(false);
+  const miArmT=useRef(null);
   // Trust policy: cold-cache "doesn't exist" is never believed; cache echoes never replace server data.
   const trustSnap=(key,s)=>{
     const fromCache=!!(s.metadata&&s.metadata.fromCache);
@@ -538,6 +550,12 @@ function App(){
     const uw=onSnapshot(D('writeups'),(s)=>{if(!trustSnap('writeups',s))return;setWriteups(s.exists()?s.data().list:[]);setWuLoaded(true);},()=>setConnected(false));
     const ucat=onSnapshot(D('catering'),(s)=>{if(!trustSnap('catering',s))return;setCatering(s.exists()?(s.data().list||[]):[]);setCateringLoaded(true);},()=>setConnected(false));
     const uby=onSnapshot(D('backyard_inventory'),(s)=>{if(!trustSnap('backyard_inventory',s))return;setByData(s.exists()?s.data():null);setByLoaded(true);},()=>setConnected(false));
+    const umi=onSnapshot(D('master_inventory'),(s)=>{
+      if(!trustSnap('master_inventory',s))return;
+      if(s.exists())setMiData(s.data());
+      else if(!miSeeded.current){miSeeded.current=true;setDoc(D('master_inventory'),miSeedDoc()).catch(()=>{});}
+      setMiLoaded(true);
+    },()=>setConnected(false));
     // Backyard is Astoria's, independent of the store toggle. Same roster rule as Staff Book.
     const ubr=onSnapshot(D('emp_astoria'),(s)=>{
       const l=s.exists()?(s.data().list||[]):SEED_EMP;
@@ -557,7 +575,7 @@ function App(){
     };
     const r1=onSnapshot(D('emp_astoria'),(s)=>{if(!trustSnap('r_a',s))return;if(s.exists()){rosterDocs.a=s.data().list||[];rebuild();}},()=>{});
     const r2=onSnapshot(D('emp_macdougal'),(s)=>{if(!trustSnap('r_m',s))return;if(s.exists()){rosterDocs.m=s.data().list||[];rebuild();}},()=>{});
-    return ()=>{um();ux();uca();ucm();uw();ucat();uinq();uby();ubr();uea();uem();uda();udm();r1();r2();};
+    return ()=>{um();ux();uca();ucm();uw();ucat();uinq();uby();ubr();umi();uea();uem();uda();udm();r1();r2();};
   },[authed]);
 
   useEffect(()=>{
@@ -1629,7 +1647,7 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
         ${STORES.map(s=>html`<button class=${store===s.id?'on':''} onClick=${()=>setStore(s.id)}>${s.label}</button>`)}
       </div>
       <div class="tabs">
-        ${[['log','Daily log'],['sched','Schedule'],['ord','Ordering'],['cat','Catering'],['by','Backyard'],['xfer','Transfers'],['cash','Cash'],['wu','Write-ups']].map(([id,label])=>html`
+        ${[['log','Daily log'],['sched','Schedule'],['ord','Ordering'],['cat','Catering'],['by','Backyard'],['mi','Inventory'],['xfer','Transfers'],['cash','Cash'],['wu','Write-ups']].map(([id,label])=>html`
           <button class=${tab===id?'on':''} key=${id} onClick=${()=>setTab(id)}>${label}</button>`)}
       </div>
     </div><div class="meander"></div></div>`;
@@ -2423,6 +2441,274 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
       ${byTab==='order'?byOrderView:byTab==='edit'?byEditView:byStockView}
     <//>`;
 
+  // ============ MASTER INVENTORY — Astoria morning count, fully manager-editable ============
+  const MI_SEED=[
+    ['DRINKS',['CASES','BOTTLES'],['Espa Cherry','Espa Orange','Espa Lemon','Zagori Water','Poland Spring','Zagori Sparkling','Zagori Lemon','Zagori Peach','Coke','Sprite','Diet Coke']],
+    ['PAPER GOODS',['CASES','PACKS'],['Plates','Napkins','Knives','Forks','Solo Cups','Solo Lids','Plastic Bags Small','Plastic Bags Large','Bowls','Lids','BBQ Bags','Platter Boxes','Wrapping Paper','Take Out Box']],
+    ['GYROS',['LB','AMOUNT'],['Chicken Gyro','Beef Lamb Gyro']],
+    ['PULL OUT FRIDGE',['QTY'],['Chicken Souvlaki','Pork Souvlaki','Shrimp','Beef Lamb Kebab','Loukaniko','Chicken Breast']],
+    ['TINS',['QTY'],['Tomato (Pita)','Tzatziki','Gyro Onion','Lettuce','Tomato (Salad)','Onion','Feta','Cucumber','Tomato/Cucumber Mix','Lemon','Peppers','Olives']],
+    ['PRODUCE',['QTY'],['Bin Olives','Feta','Sweet Peppers','Cucumbers','Lettuce','Tomato','Onions','Potatoes','Green Peppers','Lemons','Rice','Tzatziki']],
+    ['MISC',['QTY'],['Falafel','Haloumi Fries','Shrimp Frozen']],
+  ];
+  function miSeedDoc(){
+    const cats=[],items=[];
+    MI_SEED.forEach(([catName,fieldLabels,names],ci)=>{
+      const catId=bySlug(catName);
+      cats.push({id:catId,name:catName,ord:ci});
+      names.forEach((nm,ii)=>items.push({id:catId+'-'+bySlug(nm),catId,name:nm,ord:ii,
+        fields:fieldLabels.map((lb,fi)=>({key:'f'+fi,label:lb}))}));
+    });
+    return {cats,items,days:{}};
+  }
+  const miCatsSorted=useMemo(()=>[...((miData&&miData.cats)||[])].sort((a,b)=>(a.ord||0)-(b.ord||0)),[miData]);
+  const miItemsFor=(catId)=>((miData&&miData.items)||[]).filter(i=>i.catId===catId).sort((a,b)=>(a.ord||0)-(b.ord||0));
+  const miDays=(miData&&miData.days)||{};
+  const miTodayKey=todayKey();
+  const miTodaySaved=(miDays[miTodayKey]||{}).vals||{};
+  const miLastVal=(itemId,fkey)=>{ // most recent prior day that has this value, for a placeholder
+    const keys=Object.keys(miDays).filter(k=>k<miTodayKey).sort().reverse();
+    for(const k of keys){const v=((miDays[k].vals||{})[itemId]||{})[fkey];if(v!=null)return v;}
+    return null;
+  };
+  const miFieldVal=(itemId,fkey)=>{
+    const local=(miVals[itemId]||{})[fkey];
+    if(local!==undefined)return local;
+    const saved=(miTodaySaved[itemId]||{})[fkey];
+    return saved!=null?String(saved):'';
+  };
+  const miSetVal=(itemId,fkey,v)=>setMiVals({...miVals,[itemId]:{...(miVals[itemId]||{}),[fkey]:v.replace(/[^0-9.]/g,'')}});
+  const miDirtyCount=Object.keys(miVals).filter(id=>Object.values(miVals[id]).some(v=>v!=='')).length;
+  async function miWrite(patch){
+    try{await setDoc(D('master_inventory'),patch,{merge:true});setErr('');}
+    catch(e){setErr('Save failed — check internet. ('+(e.message||e)+')');}
+  }
+  function miSaveToday(){
+    if(!miData)return;
+    const vals={...miTodaySaved};
+    for(const id of Object.keys(miVals)){
+      const entry={...(vals[id]||{})};
+      let any=false;
+      for(const [fk,v] of Object.entries(miVals[id])){
+        if(v==='')continue;
+        entry[fk]=Number(v)||0;any=true;
+      }
+      if(any||vals[id])vals[id]=entry;
+    }
+    const days={...miDays,[miTodayKey]:{by:myName.trim()||'Manager',at:nowStamp(),vals}};
+    const keys=Object.keys(days).sort();
+    if(keys.length>120)keys.slice(0,keys.length-120).forEach(k=>delete days[k]);
+    miWrite({days});
+    setMiVals({});
+    flash('Count saved ✓');
+  }
+  function miAddCat(){
+    const nm=miNewCat.trim();if(!nm||!miData)return;
+    const maxOrd=Math.max(-1,...miCatsSorted.map(c=>c.ord||0));
+    miWrite({cats:[...miData.cats,{id:bySlug(nm)+'-'+Date.now().toString(36).slice(-4),name:nm,ord:maxOrd+1}]});
+    setMiNewCat('');
+  }
+  function miMoveCat(id,dir){
+    const list=[...miCatsSorted];const i=list.findIndex(c=>c.id===id);const j=i+dir;
+    if(i<0||j<0||j>=list.length)return;
+    const oi=list[i].ord,oj=list[j].ord;
+    miWrite({cats:miData.cats.map(c=>c.id===list[i].id?{...c,ord:oj}:c.id===list[j].id?{...c,ord:oi}:c)});
+  }
+  function miDeleteCat(id){
+    const key='cat:'+id;
+    if(miArm!==key){
+      setMiArm(key);
+      clearTimeout(miArmT.current);
+      miArmT.current=setTimeout(()=>setMiArm(''),2500);
+      return;
+    }
+    clearTimeout(miArmT.current);setMiArm('');
+    miWrite({cats:miData.cats.filter(c=>c.id!==id),items:miData.items.filter(i=>i.catId!==id)});
+  }
+  function miAddItem(){
+    const d=miNewItem;if(!d||!d.name.trim()||!d.f1.trim()||!miData)return;
+    const fields=[{key:'f0',label:d.f1.trim().toUpperCase()}];
+    if(d.f2.trim())fields.push({key:'f1',label:d.f2.trim().toUpperCase()});
+    const sib=miItemsFor(d.catId);
+    const maxOrd=Math.max(-1,...sib.map(i=>i.ord||0));
+    miWrite({items:[...miData.items,{id:d.catId+'-'+bySlug(d.name.trim())+'-'+Date.now().toString(36).slice(-4),
+      catId:d.catId,name:d.name.trim(),ord:maxOrd+1,fields}]});
+    setMiNewItem({...d,name:'',f1:'',f2:''});
+    flash('Item added ✓');
+  }
+  function miMoveItem(id,catId,dir){
+    const list=miItemsFor(catId);const i=list.findIndex(it=>it.id===id);const j=i+dir;
+    if(i<0||j<0||j>=list.length)return;
+    const oi=list[i].ord,oj=list[j].ord;
+    miWrite({items:miData.items.map(it=>it.id===list[i].id?{...it,ord:oj}:it.id===list[j].id?{...it,ord:oi}:it)});
+  }
+  function miDeleteItem(id){
+    const key='item:'+id;
+    if(miArm!==key){
+      setMiArm(key);
+      clearTimeout(miArmT.current);
+      miArmT.current=setTimeout(()=>setMiArm(''),2500);
+      return;
+    }
+    clearTimeout(miArmT.current);setMiArm('');
+    miWrite({items:miData.items.filter(i=>i.id!==id)});
+  }
+  function miSaveFields(){
+    const d=miEditItem;if(!d||!d.name.trim()||!d.f1.trim()||!miData)return;
+    const fields=[{key:'f0',label:d.f1.trim().toUpperCase()}];
+    if(d.f2.trim())fields.push({key:'f1',label:d.f2.trim().toUpperCase()});
+    miWrite({items:miData.items.map(i=>i.id===d.id?{...i,name:d.name.trim(),fields}:i)});
+    setMiEditItem(null);
+    flash('Saved ✓');
+  }
+
+  const miTodayView=html`
+    <${Fragment}>
+      <div class="card" style="display:flex;justify-content:space-between;align-items:baseline">
+        <div>
+          <div class="ttl">TODAY — ${prettyDay(miTodayKey)}</div>
+          <div class="muted" style="font-size:12.5px">Last entered numbers show as a hint — type over them to update.</div>
+        </div>
+        ${miDays[miTodayKey]&&html`<span class="mono" style="font-size:10.5px;color:var(--faint)">saved ${miDays[miTodayKey].at}</span>`}
+      </div>
+      ${miCatsSorted.length===0&&html`<div class="empty">No categories yet — set them up in Edit.</div>`}
+      ${miCatsSorted.map(cat=>{
+        const items=miItemsFor(cat.id);
+        if(!items.length)return null;
+        return html`
+          <div class="card" key=${cat.id}>
+            <div class="ttl">${cat.name}</div>
+            ${items.map(it=>html`
+              <div key=${it.id} style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--bg)">
+                <div style="flex:1 1 auto;min-width:0;font-size:14.5px;font-weight:600">${it.name}</div>
+                <div style="display:flex;gap:8px;flex:none">
+                  ${it.fields.map(f=>html`
+                    <div key=${f.key} style="display:flex;flex-direction:column;align-items:center;gap:3px">
+                      <input style="width:64px;text-align:center;padding:9px 4px" inputmode="decimal"
+                        placeholder=${(()=>{const lv=miLastVal(it.id,f.key);return lv!=null?String(lv):'—';})()}
+                        value=${miFieldVal(it.id,f.key)} onInput=${e=>miSetVal(it.id,f.key,e.target.value)} />
+                      <span class="mono" style="font-size:9px;letter-spacing:.1em;color:var(--faint)">${f.label}</span>
+                    </div>`)}
+                </div>
+              </div>`)}
+          </div>`;
+      })}
+      ${miDirtyCount>0&&html`
+        <div style="position:sticky;bottom:calc(74px + env(safe-area-inset-bottom));z-index:5">
+          <button class="btn wide" style="background:linear-gradient(135deg,var(--olive),#7A8590)" onClick=${miSaveToday}>SAVE TODAY'S COUNT</button>
+        </div>`}
+    <//>`;
+
+  const miHistDates=Object.keys(miDays).sort().reverse();
+  const miHistoryView=html`
+    <${Fragment}>
+      ${miHistDates.length===0&&html`<div class="empty">No counts saved yet.</div>`}
+      ${!miHistDay&&miHistDates.length>0&&html`
+        <div class="card">
+          <div class="ttl">PAST COUNTS</div>
+          ${miHistDates.map(k=>html`
+            <button key=${k} class="empline" style="width:100%;padding:9px 0;border-top:1px solid var(--bg)" onClick=${()=>setMiHistDay(k)}>
+              <span>${prettyDay(k)}</span>
+              <span class="mono" style="font-size:11px;color:var(--faint)">${miDays[k].by} · ${miDays[k].at}</span>
+            </button>`)}
+        </div>`}
+      ${miHistDay&&html`
+        <${Fragment}>
+          <button class="ghost mb10" onClick=${()=>setMiHistDay(null)}>‹ All dates</button>
+          <div class="card"><div class="ttl">${prettyDay(miHistDay)}</div>
+            <div class="muted" style="font-size:12.5px">Saved by ${miDays[miHistDay].by} · ${miDays[miHistDay].at}</div>
+          </div>
+          ${miCatsSorted.map(cat=>{
+            const items=miItemsFor(cat.id).filter(it=>(miDays[miHistDay].vals||{})[it.id]);
+            if(!items.length)return null;
+            return html`
+              <div class="card" key=${cat.id}>
+                <div class="ttl">${cat.name}</div>
+                ${items.map(it=>html`
+                  <div key=${it.id} class="vrow" style="padding:7px 0;border-top:1px solid var(--bg)">
+                    <span style="font-size:14px">${it.name}</span>
+                    <span class="mono" style="font-size:13px">${it.fields.map(f=>`${(miDays[miHistDay].vals[it.id]||{})[f.key]??'—'} ${f.label}`).join(' · ')}</span>
+                  </div>`)}
+              </div>`;
+          })}
+        <//>`}
+    <//>`;
+
+  const miEditView=!miData?html`<div class="empty">⏳ Setting up…</div>`:html`
+    <${Fragment}>
+      <div class="card">
+        <div class="ttl">ADD A CATEGORY</div>
+        <div class="row">
+          <input placeholder="e.g. FROZEN" value=${miNewCat} onInput=${e=>setMiNewCat(e.target.value)} onKeyDown=${e=>{if(e.key==='Enter')miAddCat();}} />
+          <button class="btn" style="flex:none" onClick=${miAddCat}>ADD</button>
+        </div>
+      </div>
+      ${miCatsSorted.map((cat,ci)=>{
+        const items=miItemsFor(cat.id);
+        const adding=miNewItem&&miNewItem.catId===cat.id;
+        return html`
+          <div class="card" key=${cat.id}>
+            <div class="vrow">
+              <b style="font-size:15px">${cat.name}</b>
+              <span style="display:flex;gap:6px;align-items:center">
+                <button class="ghost" disabled=${ci===0} onClick=${()=>miMoveCat(cat.id,-1)}>↑</button>
+                <button class="ghost" disabled=${ci===miCatsSorted.length-1} onClick=${()=>miMoveCat(cat.id,1)}>↓</button>
+                ${miArm==='cat:'+cat.id
+                  ?html`<button class="btn tomato" style="padding:6px 10px;font-size:11px" onClick=${()=>miDeleteCat(cat.id)}>SURE? (removes ${items.length} item${items.length===1?'':'s'})</button>`
+                  :html`<button class="ghost" style="color:var(--tomato)" onClick=${()=>miDeleteCat(cat.id)}>Remove</button>`}
+              </span>
+            </div>
+            ${items.map((it,ii)=>html`
+              <div key=${it.id} style="padding:8px 0;border-top:1px solid var(--bg)">
+                ${miEditItem&&miEditItem.id===it.id?html`
+                  <div class="row mb8">
+                    <input placeholder="Item name" value=${miEditItem.name} onInput=${e=>setMiEditItem({...miEditItem,name:e.target.value})} />
+                  </div>
+                  <div class="row mb8">
+                    <input placeholder="Field 1 (e.g. CASES)" value=${miEditItem.f1} onInput=${e=>setMiEditItem({...miEditItem,f1:e.target.value})} />
+                    <input placeholder="Field 2 (optional)" value=${miEditItem.f2} onInput=${e=>setMiEditItem({...miEditItem,f2:e.target.value})} />
+                  </div>
+                  <div class="row"><button class="btn" onClick=${miSaveFields}>Save</button><button class="ghost" onClick=${()=>setMiEditItem(null)}>Cancel</button></div>
+                `:html`
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+                    <div style="min-width:0">
+                      <div style="font-size:14px;font-weight:600">${it.name}</div>
+                      <div class="mono" style="font-size:10.5px;color:var(--faint)">${it.fields.map(f=>f.label).join(' · ')}</div>
+                    </div>
+                    <span style="display:flex;gap:5px;align-items:center;flex:none">
+                      <button class="ghost" disabled=${ii===0} onClick=${()=>miMoveItem(it.id,cat.id,-1)}>↑</button>
+                      <button class="ghost" disabled=${ii===items.length-1} onClick=${()=>miMoveItem(it.id,cat.id,1)}>↓</button>
+                      <button class="ghost" onClick=${()=>setMiEditItem({id:it.id,name:it.name,f1:it.fields[0]?.label||'',f2:it.fields[1]?.label||''})}>Edit</button>
+                      ${miArm==='item:'+it.id
+                        ?html`<button class="btn tomato" style="padding:6px 10px;font-size:11px" onClick=${()=>miDeleteItem(it.id)}>SURE?</button>`
+                        :html`<button class="ghost" style="color:var(--tomato)" onClick=${()=>miDeleteItem(it.id)}>Remove</button>`}
+                    </span>
+                  </div>`}
+              </div>`)}
+            ${adding?html`
+              <div style="padding-top:10px;border-top:1px solid var(--bg)">
+                <input class="mb8" placeholder="Item name" value=${miNewItem.name} onInput=${e=>setMiNewItem({...miNewItem,name:e.target.value})} />
+                <div class="row mb8">
+                  <input placeholder="Field 1 (e.g. QTY)" value=${miNewItem.f1} onInput=${e=>setMiNewItem({...miNewItem,f1:e.target.value})} />
+                  <input placeholder="Field 2 (optional)" value=${miNewItem.f2} onInput=${e=>setMiNewItem({...miNewItem,f2:e.target.value})} />
+                </div>
+                <div class="row"><button class="btn" onClick=${miAddItem}>Add item</button><button class="ghost" onClick=${()=>setMiNewItem(null)}>Cancel</button></div>
+              </div>`:html`
+              <button class="ghost mt8" onClick=${()=>setMiNewItem({catId:cat.id,name:'',f1:'',f2:''})}>+ add item to ${cat.name}</button>`}
+          </div>`;
+      })}
+    <//>`;
+
+  const masterInvView=html`
+    <${Fragment}>
+      <div class="subtabs">
+        ${[['today','Today'],['history','History'],['edit','Edit']].map(([id,label])=>html`
+          <button class=${miTab===id?'on':''} key=${id} onClick=${()=>{setMiTab(id);setMiHistDay(null);window.scrollTo(0,0);}}>${label}</button>`)}
+      </div>
+      ${!miLoaded?html`<div class="empty">⏳ Syncing the master inventory…</div>`
+        :miTab==='history'?miHistoryView:miTab==='edit'?miEditView:miTodayView}
+    <//>`;
+
   const ordView=html`
     <${Fragment}>
       <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
@@ -2615,7 +2901,7 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
         ${err&&html`<div class="banner err">${err}</div>`}
         ${nameCard}
         ${storeSignal}
-        ${tab==='log'?logTab:tab==='sched'?schedView:tab==='ord'?ordView:tab==='cat'?cateringView:tab==='by'?backyardView:tab==='xfer'?xferView:tab==='cash'?cashView:wuList}
+        ${tab==='log'?logTab:tab==='sched'?schedView:tab==='ord'?ordView:tab==='cat'?cateringView:tab==='by'?backyardView:tab==='mi'?masterInvView:tab==='xfer'?xferView:tab==='cash'?cashView:wuList}
       </div>
       ${shareBox&&html`
         <div class="modal" onClick=${e=>{if(e.target.classList.contains('modal'))setShareBox(null);}}>
