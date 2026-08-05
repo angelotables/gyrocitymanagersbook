@@ -385,6 +385,8 @@ function App(){
   const [cashM,setCashM]=useState(null);
   const [cd,setCd]=useState(null);   // envelope draft
   const [cArm,setCArm]=useState(null);
+  const [cEditId,setCEditId]=useState(null);   // envelope being edited, or null for a new one
+  const [cHistOpen,setCHistOpen]=useState(null); // envelope id whose edit history is expanded
   // cash expenses + bank deposits
   const [expA,setExpA]=useState(null);
   const [expM,setExpM]=useState(null);
@@ -1122,11 +1124,29 @@ function App(){
     if(cNum(cd.register)===null){setErr('Enter the register total from the envelope.');return;}
     if(cNum(cd.counted)===null){setErr('Count the envelope and enter what you found.');return;}
     setErr('');
+    if(cEditId){
+      const orig=cashCur.find(x=>x.id===cEditId);
+      if(!orig){setErr('That envelope was removed by someone else.');setCd(null);setCEditId(null);return;}
+      const prev={date:orig.date,cashier:orig.cashier,shift:orig.shift,register:orig.register,
+        bank:orig.bank,drop:orig.drop,counted:orig.counted,note:orig.note||''};
+      const updated={...orig,date:cd.date||cToday(),cashier:cd.cashier,shift:cd.shift,
+        register:cNum(cd.register),bank:cBank,drop:cDrop(cd.register),counted:cNum(cd.counted),
+        note:(cd.note||'').trim(),
+        edits:[{by:myName.trim()||'Manager',at:nowStamp(),prev},...(orig.edits||[])]};
+      writeK('cash_'+store,{list:cashCur.map(x=>x.id===cEditId?updated:x)},'Envelope updated ✓');
+      setCd(null);setCEditId(null);
+      return;
+    }
     const entry={id:Date.now().toString(36),date:cd.date||cToday(),cashier:cd.cashier,shift:cd.shift,
       register:cNum(cd.register),bank:cBank,drop:cDrop(cd.register),counted:cNum(cd.counted),
       note:(cd.note||'').trim(),at:new Date().toISOString().slice(0,16).replace('T',' ')};
     writeK('cash_'+store,{list:[entry,...cashCur].slice(0,300)},'Envelope logged ✓');
     setCd(null);
+  }
+  function cStartEdit(e){
+    setCEditId(e.id);
+    setCd({date:e.date,cashier:e.cashier,shift:e.shift,register:String(e.register),counted:String(e.counted),note:e.note||''});
+    window.scrollTo({top:0,behavior:'smooth'});
   }
   function cDel(id){
     if(cArm!==id){setCArm(id);return;}
@@ -1378,7 +1398,7 @@ function App(){
         <button class="btn" style="width:100%;margin-bottom:12px" onClick=${()=>setCd(cBlank())}>+ LOG AN ENVELOPE</button>
       `:html`
         <div class="card">
-          <div class="ttl">NEW ENVELOPE — VERIFY AS YOU COUNT</div>
+          <div class="ttl">${cEditId?'EDIT ENVELOPE — CHANGE IS KEPT ON RECORD':'NEW ENVELOPE — VERIFY AS YOU COUNT'}</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
             <input type="date" value=${cd.date} onInput=${e=>setCd({...cd,date:e.target.value})} />
             <select value=${cd.cashier} onChange=${e=>setCd({...cd,cashier:e.target.value})}>
@@ -1415,8 +1435,8 @@ function App(){
             <input style="width:100%;margin-top:8px" placeholder="Note — why the difference? (kept with the record)"
               value=${cd.note} onInput=${e=>setCd({...cd,note:e.target.value})} />`:'';})()}
           <div style="display:flex;gap:8px;margin-top:10px">
-            <button class="btn" style="flex:1" onClick=${cSave}>LOG ENVELOPE ✓</button>
-            <button class="ghost" onClick=${()=>setCd(null)}>cancel</button>
+            <button class="btn" style="flex:1" onClick=${cSave}>${cEditId?'SAVE CHANGE ✓':'LOG ENVELOPE ✓'}</button>
+            <button class="ghost" onClick=${()=>{setCd(null);setCEditId(null);}}>cancel</button>
           </div>
         </div>`}
 
@@ -1432,6 +1452,7 @@ function App(){
           <div key=${e.id} style="padding:8px 0;border-bottom:1px solid var(--edge)">
             <div class="hcg" style="grid-template-columns:1fr 70px 70px 76px;font-size:13px">
               <span><b>${e.date.slice(5)}</b> · ${e.cashier} · ${e.shift}
+                <button class="ghost" style="font-size:10.5px;padding:0 4px" onClick=${()=>cStartEdit(e)}>edit</button>
                 <button class="ghost" style=${{color:'var(--tomato)',fontSize:'10.5px',fontWeight:cArm===e.id?'800':'400',padding:'0 4px'}} onClick=${()=>cDel(e.id)}>${cArm===e.id?'sure?':'✕'}</button>
               </span>
               <span class="num">${money(e.drop)}</span>
@@ -1441,7 +1462,22 @@ function App(){
               </span>
             </div>
             ${e.note?html`<div class="dim" style="font-size:11px;margin-top:3px">${e.note}</div>`:''}
-            <div class="dim" style="font-size:10px;margin-top:2px">register ${money(e.register)} − bank ${money(e.bank)} · logged ${e.at}</div>
+            <div class="dim" style="font-size:10px;margin-top:2px">
+              register ${money(e.register)} − bank ${money(e.bank)} · logged ${e.at}
+              ${(e.edits&&e.edits.length)?html`
+                · <button class="ghost" style="font-size:10px;color:var(--amber,#A66A00);padding:0" onClick=${()=>setCHistOpen(cHistOpen===e.id?null:e.id)}>
+                  edited ${e.edits.length}× ${cHistOpen===e.id?'▴':'▾'}
+                </button>`:''}
+            </div>
+            ${(cHistOpen===e.id&&e.edits&&e.edits.length)?html`
+              <div style="margin-top:6px;padding:8px 10px;background:var(--bg);border-radius:8px;border:1px solid var(--edge)">
+                <div class="dim" style="font-size:9.5px;font-weight:800;letter-spacing:.06em;margin-bottom:4px">EDIT HISTORY — ORIGINAL VALUES KEPT, NOT ALTERABLE</div>
+                ${e.edits.map((ed,ei)=>html`
+                  <div key=${ei} style="font-size:10.5px;padding:4px 0;border-top:${ei===0?'none':'1px solid var(--edge)'}">
+                    <span class="dim">${ed.at} · changed by <b>${ed.by}</b></span><br/>
+                    <span>was: ${ed.prev.date} · ${ed.prev.cashier} · ${ed.prev.shift} · register ${money(ed.prev.register)} · counted ${money(ed.prev.counted)}${ed.prev.note?' · "'+ed.prev.note+'"':''}</span>
+                  </div>`)}
+              </div>`:''}
           </div>`;})}
       </div>
     <//>`;
