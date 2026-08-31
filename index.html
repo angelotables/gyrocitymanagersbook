@@ -1481,8 +1481,31 @@ function App(){
           </div>`;})}
       </div>
     <//>`;
+  // ---- cash on hand: collected from envelopes − bank deposits − cash expenses ----
+  const cohReady=cashCur!==null&&depCur!==null&&expCur!==null;
+  const cohCollected=(cashCur||[]).reduce((s,e)=>s+(Number(e.counted)||0),0);
+  const cohDeposited=(depCur||[]).reduce((s,d)=>s+(Number(d.amount)||0),0);
+  const cohExpenses=(expCur||[]).reduce((s,x)=>s+(Number(x.amount)||0),0);
+  const cohOnHand=cohCollected-cohDeposited-cohExpenses;
+  const cohLabel=STORES.find(s2=>s2.id===store)?.label?.toUpperCase();
   const cashView=html`
     <${Fragment}>
+      <div class="card" style=${{borderLeft:'5px solid '+(cohOnHand<0?'var(--tomato)':'var(--green,#1E7F4F)')}}>
+        <div class="ttl">CASH ON HAND — ${cohLabel}</div>
+        ${!cohReady?html`<div class="dim" style="padding:6px 0">Syncing…</div>`:html`
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:2px">
+            <span style="font-size:13px">Should be in the safe right now</span>
+            <b style=${{fontSize:'24px',fontFamily:'var(--disp)',color:cohOnHand<0?'var(--tomato)':'var(--navy)'}}>${money(cohOnHand)}</b>
+          </div>
+          <div style="margin-top:8px;font-size:12.5px">
+            <div class="vrow" style="padding:2px 0"><span>Collected from envelopes</span><b>${money(cohCollected)}</b></div>
+            <div class="vrow" style="padding:2px 0"><span>− Deposited at the bank</span><b>${money(cohDeposited)}</b></div>
+            <div class="vrow" style="padding:2px 0;border-bottom:1px solid var(--edge);padding-bottom:6px"><span>− Cash expenses</span><b>${money(cohExpenses)}</b></div>
+            <div class="vrow" style="padding:6px 0 0"><b>= Cash on hand</b><b style=${{color:cohOnHand<0?'var(--tomato)':'var(--navy)'}}>${money(cohOnHand)}</b></div>
+          </div>
+          <div class="dim" style="font-size:10px;margin-top:7px;line-height:1.6">Counts everything logged for ${cohLabel} — envelopes counted, minus deposits and expenses. If it's off by the same amount every time, that's the cash you had before you started tracking here.</div>
+        `}
+      </div>
       <div class="subtabs">
         ${[['env','Envelopes'],['exp','Expenses'],['dep','Deposits']].map(([id,label])=>html`
           <button class=${cashTab===id?'on':''} key=${id} onClick=${()=>{setCashTab(id);setErr('');}}>${label}</button>`)}
