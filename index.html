@@ -982,6 +982,11 @@ function App(){
   }
   function saveRate(id){
     const d=rateEdit[id];if(!d)return;
+    const nm=(d.name||'').trim();
+    if(!nm){setErr('Name can’t be empty.');return;}
+    setErr('');
+    // name + role live in the roster (emp_); rate lives in pay_
+    saveRoster(roster.map(e=>e.id===id?{...e,name:nm,role:d.role||e.role}:e));
     savePay({...(pay||{}),[id]:{rate:Number(d.rate)||0,rateType:d.rateType}});
     setRateEdit({...rateEdit,[id]:undefined});
   }
@@ -2096,15 +2101,21 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
       <b style="font-size:14.5px">Syncing the roster…</b>
     </div>`:html`
     <${Fragment}>
-      <div class="muted mb12" style="margin:0 2px 12px">Tap a person to fix their rate or remove them. Staff pick their names from this roster in the schedule app.</div>
+      <div class="muted mb12" style="margin:0 2px 12px">Tap a person to fix their name, role, or pay — or remove them. Staff pick their names from this roster in the schedule app.</div>
       ${POSITIONS.map(pos=>html`
         <div class="mb12" key=${pos.id}>
           <div class="roledir" style=${{color:pos.edge}}>${pos.label.toUpperCase()}S</div>
           ${employees.filter(e=>e.role===pos.id).map(e=>html`
             <div class="empcard" style=${{borderLeftColor:pos.edge}} key=${e.id}>
               ${rateEdit[e.id]?html`
-                <b style="font-size:15px">${e.name}</b>
-                <div class="row mt8">
+                <div class="lbl" style="margin-bottom:3px">NAME</div>
+                <input value=${rateEdit[e.id].name} onInput=${ev=>setRateEdit({...rateEdit,[e.id]:{...rateEdit[e.id],name:ev.target.value}})} />
+                <div class="lbl mt8" style="margin-bottom:3px">ROLE</div>
+                <select value=${rateEdit[e.id].role} onChange=${ev=>setRateEdit({...rateEdit,[e.id]:{...rateEdit[e.id],role:ev.target.value}})}>
+                  ${POSITIONS.map(p=>html`<option value=${p.id} key=${p.id}>${p.label}</option>`)}
+                </select>
+                <div class="lbl mt8" style="margin-bottom:3px">PAY</div>
+                <div class="row">
                   <input inputmode="decimal" value=${rateEdit[e.id].rate} onInput=${ev=>setRateEdit({...rateEdit,[e.id]:{...rateEdit[e.id],rate:ev.target.value}})} />
                   <select value=${rateEdit[e.id].rateType} onChange=${ev=>setRateEdit({...rateEdit,[e.id]:{...rateEdit[e.id],rateType:ev.target.value}})}>
                     <option value="hr">per hour</option><option value="wk">per week (flat)</option>
@@ -2116,7 +2127,7 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
                   <button class="ghost" onClick=${()=>setRateEdit({...rateEdit,[e.id]:undefined})}>Cancel</button>
                 </div>
               `:html`
-                <button class="empline" onClick=${()=>setRateEdit({...rateEdit,[e.id]:{rate:String(e.rate),rateType:e.rateType}})}>
+                <button class="empline" onClick=${()=>setRateEdit({...rateEdit,[e.id]:{rate:String(e.rate),rateType:e.rateType,name:e.name,role:e.role}})}>
                   <b>${e.name}</b>
                   <span class="mono" style="font-size:12.5px;color:var(--faint)">${e.rateType==='wk'?money(e.rate)+'/wk':money(e.rate)+'/hr'}</span>
                 </button>
