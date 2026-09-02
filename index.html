@@ -499,6 +499,7 @@ function App(){
   const [draft,setDraft]=useState({});
   const [newEmp,setNewEmp]=useState(null);
   const [rateEdit,setRateEdit]=useState({});
+  const [copyArm,setCopyArm]=useState(false);
   const [loginsWith,setLoginsWith]=useState(null); // empIds that have a staff login
   const [roleCodesSet,setRoleCodesSet]=useState(null); // ['orders','owner'] — which are configured
   const [roleCodeDraft,setRoleCodeDraft]=useState({});
@@ -601,7 +602,7 @@ function App(){
     const u2=onSnapshot(D(`week_${store}_${monday}`),(s)=>{if(!trustSnap('week_'+store+'_'+monday,s))return;setWeek(s.exists()?s.data():emptyWeek());setWeekLoaded(true);},()=>setConnected(false));
     const u3=onSnapshot(D(`avail_${store}_${monday}`),(s)=>{if(!trustSnap('avail_'+store+'_'+monday,s))return;setAvail(s.exists()?(s.data().byEmp||{}):{});setAvailLoaded(true);},()=>setConnected(false));
     const oStore=store==='astoria'?'macdougal':'astoria';
-    setOWeek(null);setOEmp(null);
+    setOWeek(null);setOEmp(null);setCopyArm(false);
     const u4=onSnapshot(D(`week_${oStore}_${monday}`),(s)=>{if(!trustSnap('week_'+oStore+'_'+monday,s))return;setOWeek(s.exists()?s.data():{shifts:[]});},()=>{});
     const u5=onSnapshot(D('emp_'+oStore),(s)=>{if(!trustSnap('emp_'+oStore,s))return;setOEmp(s.exists()?(s.data().list||[]):SEED_EMP);},()=>{});
     return ()=>{u1();u2();u3();u4();u5();u6();};
@@ -1003,6 +1004,43 @@ function App(){
     if(j<0||j>=list.length)return;
     [list[idx],list[j]]=[list[j],list[idx]];
     saveRoster(list);
+  }
+  function exportStaff(){
+    const label=STORES.find(s=>s.id===store)?.label||store;
+    const q=(v)=>{v=String(v==null?'':v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+    const posLabel=(id)=>POSITIONS.find(p=>p.id===id)?.label||id;
+    const rows=[['Name','Position','Pay','Per']];
+    for(const pos of POSITIONS){
+      for(const e of employees.filter(x=>x.role===pos.id)){
+        rows.push([e.name,posLabel(e.role),(Number(e.rate)||0).toFixed(2),e.rateType==='wk'?'week':'hour']);
+      }
+    }
+    const csv=rows.map(r=>r.map(q).join(',')).join('\r\n');
+    const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='gyrocity-'+store+'-staff-'+new Date().toISOString().slice(0,10)+'.csv';
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),30000);
+    flash('Staff exported — '+(rows.length-1)+' people');
+  }
+  function copyRosterToOther(){
+    const other=store==='astoria'?'macdougal':'astoria';
+    const otherLabel=STORES.find(s=>s.id===other)?.label||other;
+    if(emp===null||pay===null){setErr('Still connecting — try again in a second.');return;}
+    if(!roster.length){setErr('This roster is empty — nothing to copy.');return;}
+    const has=(oEmp||[]).length;
+    if(!copyArm){
+      setCopyArm(true);
+      setErr(has?`This REPLACES ${otherLabel}’s current ${has} on the roster with this store’s ${roster.length}. Tap again to confirm.`
+                :`Copying all ${roster.length} to ${otherLabel}’s roster. Tap again to confirm.`);
+      return;
+    }
+    setCopyArm(false);setErr('');
+    const list=roster.map(({rate,rateType,...rest})=>rest);
+    const rates={};for(const e of roster){const p=(pay||{})[e.id];if(p)rates[e.id]={rate:Number(p.rate)||0,rateType:p.rateType||'hr'};}
+    writeK('emp_'+other,{list});
+    writeK('pay_'+other,{rates},'Copied to '+otherLabel+' ✓');
   }
   function removeEmployee(id){
     const who=employees.find(e=>e.id===id);
@@ -2172,6 +2210,12 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
           </div>
         </div>
       `:html`<button class="btn wide" style="background:var(--blue)" onClick=${()=>setNewEmp({})}>+ Add employee</button>`}
+      <div class="row mt8">
+        <button class="btn" style="background:none;color:var(--faint);border:1px solid rgba(228,224,212,.9)" onClick=${exportStaff}>⬇ Export to sheet</button>
+        <button class="btn" style="background:none;color:var(--faint);border:1px solid rgba(228,224,212,.9)" onClick=${copyRosterToOther}>
+          ${copyArm?'Tap again to confirm':'Copy to '+(STORES.find(s=>s.id!==store)?.label||'other store')}
+        </button>
+      </div>
     <//>`;
 
   // ---- catering ----
