@@ -154,6 +154,10 @@
     align-items:baseline;font-size:15px;font-family:inherit}
   .empcard{background:var(--card);border:1px solid rgba(228,224,212,.8);border-radius:14px;padding:13px 15px;margin-bottom:9px;
     box-shadow:var(--shadow);border-left:4px solid}
+  .ordbtn{width:34px;height:20px;padding:0;border:1px solid rgba(228,224,212,.9);border-radius:7px;background:var(--card);
+    color:var(--faint);font-size:10px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .ordbtn:active{background:rgba(228,224,212,.5)}
+  .ordbtn:disabled{opacity:.25;cursor:default}
   .roledir{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.16em;margin:0 2px 7px;font-weight:700}
   .hcg{display:grid;grid-template-columns:1fr 60px 64px 84px;gap:6px;align-items:baseline}
   .hcg .num{text-align:right;font-variant-numeric:tabular-nums}
@@ -989,6 +993,16 @@ function App(){
     saveRoster(roster.map(e=>e.id===id?{...e,name:nm,role:d.role||e.role}:e));
     savePay({...(pay||{}),[id]:{rate:Number(d.rate)||0,rateType:d.rateType}});
     setRateEdit({...rateEdit,[id]:undefined});
+  }
+  function moveEmp(id,dir){
+    const list=[...roster];
+    const idx=list.findIndex(e=>e.id===id);if(idx<0)return;
+    const role=list[idx].role;
+    let j=idx+dir;
+    while(j>=0&&j<list.length&&list[j].role!==role)j+=dir; // skip other roles
+    if(j<0||j>=list.length)return;
+    [list[idx],list[j]]=[list[j],list[idx]];
+    saveRoster(list);
   }
   function removeEmployee(id){
     const who=employees.find(e=>e.id===id);
@@ -2105,7 +2119,7 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
       ${POSITIONS.map(pos=>html`
         <div class="mb12" key=${pos.id}>
           <div class="roledir" style=${{color:pos.edge}}>${pos.label.toUpperCase()}S</div>
-          ${employees.filter(e=>e.role===pos.id).map(e=>html`
+          ${employees.filter(e=>e.role===pos.id).map((e,i,arr)=>html`
             <div class="empcard" style=${{borderLeftColor:pos.edge}} key=${e.id}>
               ${rateEdit[e.id]?html`
                 <div class="lbl" style="margin-bottom:3px">NAME</div>
@@ -2127,10 +2141,16 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
                   <button class="ghost" onClick=${()=>setRateEdit({...rateEdit,[e.id]:undefined})}>Cancel</button>
                 </div>
               `:html`
-                <button class="empline" onClick=${()=>setRateEdit({...rateEdit,[e.id]:{rate:String(e.rate),rateType:e.rateType,name:e.name,role:e.role}})}>
-                  <b>${e.name}</b>
-                  <span class="mono" style="font-size:12.5px;color:var(--faint)">${e.rateType==='wk'?money(e.rate)+'/wk':money(e.rate)+'/hr'}</span>
-                </button>
+                <div style="display:flex;align-items:stretch;gap:6px">
+                  <button class="empline" style="flex:1" onClick=${()=>setRateEdit({...rateEdit,[e.id]:{rate:String(e.rate),rateType:e.rateType,name:e.name,role:e.role}})}>
+                    <b>${e.name}</b>
+                    <span class="mono" style="font-size:12.5px;color:var(--faint)">${e.rateType==='wk'?money(e.rate)+'/wk':money(e.rate)+'/hr'}</span>
+                  </button>
+                  <div style="display:flex;flex-direction:column;gap:3px;justify-content:center">
+                    <button class="ordbtn" disabled=${i===0} onClick=${()=>moveEmp(e.id,-1)} aria-label="Move up">▲</button>
+                    <button class="ordbtn" disabled=${i===arr.length-1} onClick=${()=>moveEmp(e.id,1)} aria-label="Move down">▼</button>
+                  </div>
+                </div>
               `}
             </div>`)}
         </div>`)}
