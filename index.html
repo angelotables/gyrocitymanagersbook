@@ -450,9 +450,25 @@ function App(){
   const [catering,setCatering]=useState(null);
   const [cateringLoaded,setCateringLoaded]=useState(false);
   const [catForm,setCatForm]=useState(null);   // null = closed; object = new/edit draft
-  const [catTab,setCatTab]=useState('active');  // active | past
+  const [catTab,setCatTab]=useState('active');  // active | past | inq (within Bookings)
+  const [catSection,setCatSection]=useState('overview'); // overview | book | pipe | margin | loyal
   const [catOpen,setCatOpen]=useState(null);    // expanded card id
   const [catArm,setCatArm]=useState(null);      // delete-confirm id
+  // catering CRM — company-wide, manager-only (pipeline / margins / loyalty)
+  const [pipe,setPipe]=useState(null);          // sales leads
+  const [pipeLoaded,setPipeLoaded]=useState(false);
+  const [pipeForm,setPipeForm]=useState(null);  // null=closed; object=new/edit
+  const [pipeFilter,setPipeFilter]=useState('all');
+  const [pipeArm,setPipeArm]=useState(null);
+  const [cmargin,setCmargin]=useState(null);    // per-order profitability
+  const [cmarginLoaded,setCmarginLoaded]=useState(false);
+  const [cmarginForm,setCmarginForm]=useState(null);
+  const [cmarginArm,setCmarginArm]=useState(null);
+  const [loyal,setLoyal]=useState(null);        // repeat clients
+  const [loyalLoaded,setLoyalLoaded]=useState(false);
+  const [loyalForm,setLoyalForm]=useState(null);
+  const [loyalArm,setLoyalArm]=useState(null);
+  const [loyalPay,setLoyalPay]=useState(null);  // {id, amount} logging a repeat order
   // backyard (read-only view + approve staff add/remove requests)
   const [byData,setByData]=useState(null);
   const [byLoaded,setByLoaded]=useState(false);
@@ -556,6 +572,9 @@ function App(){
     const ucm=onSnapshot(D('cash_macdougal'),(s)=>{if(!trustSnap('cash_macdougal',s))return;setCashM(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
     const uw=onSnapshot(D('writeups'),(s)=>{if(!trustSnap('writeups',s))return;setWriteups(s.exists()?s.data().list:[]);setWuLoaded(true);},()=>setConnected(false));
     const ucat=onSnapshot(D('catering'),(s)=>{if(!trustSnap('catering',s))return;setCatering(s.exists()?(s.data().list||[]):[]);setCateringLoaded(true);},()=>setConnected(false));
+    const upipe=onSnapshot(D('catpipe'),(s)=>{if(!trustSnap('catpipe',s))return;setPipe(s.exists()?(s.data().list||[]):[]);setPipeLoaded(true);},()=>setConnected(false));
+    const umar=onSnapshot(D('catmargin'),(s)=>{if(!trustSnap('catmargin',s))return;setCmargin(s.exists()?(s.data().list||[]):[]);setCmarginLoaded(true);},()=>setConnected(false));
+    const uloy=onSnapshot(D('catloyal'),(s)=>{if(!trustSnap('catloyal',s))return;setLoyal(s.exists()?(s.data().list||[]):[]);setLoyalLoaded(true);},()=>setConnected(false));
     const uby=onSnapshot(D('backyard_inventory'),(s)=>{if(!trustSnap('backyard_inventory',s))return;setByData(s.exists()?s.data():null);setByLoaded(true);},()=>setConnected(false));
     const umi=onSnapshot(D('master_inventory'),(s)=>{
       if(!trustSnap('master_inventory',s))return;
@@ -582,7 +601,7 @@ function App(){
     };
     const r1=onSnapshot(D('emp_astoria'),(s)=>{if(!trustSnap('r_a',s))return;if(s.exists()){rosterDocs.a=s.data().list||[];rebuild();}},()=>{});
     const r2=onSnapshot(D('emp_macdougal'),(s)=>{if(!trustSnap('r_m',s))return;if(s.exists()){rosterDocs.m=s.data().list||[];rebuild();}},()=>{});
-    return ()=>{um();ux();uca();ucm();uw();ucat();uinq();uby();ubr();umi();uea();uem();uda();udm();r1();r2();};
+    return ()=>{um();ux();uca();ucm();uw();ucat();upipe();umar();uloy();uinq();uby();ubr();umi();uea();uem();uda();udm();r1();r2();};
   },[authed]);
 
   useEffect(()=>{
@@ -678,6 +697,55 @@ function App(){
     setCatForm(null);flash('Catering saved ✓');
   }
   function deleteCatering(id){setCatArm(null);setCatOpen(null);saveCatering((catering||[]).filter(c=>c.id!==id));}
+
+  // ---- catering CRM: pipeline / margins / loyalty (company-wide, manager-only) ----
+  const num=(v)=>Number(String(v==null?'':v).replace(/[$,]/g,''))||0;
+  const newId=(p)=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+  // pipeline
+  const PIPE_ST={new:{label:'New Lead',color:'var(--blue)'},contacted:{label:'Contacted',color:'var(--amber)'},quoted:{label:'Quote Sent',color:'#6A3E9B'},booked:{label:'Booked',color:'var(--green)'},completed:{label:'Completed',color:'var(--green)'},lost:{label:'Lost',color:'var(--tomato)'}};
+  const PIPE_ORDER=['new','contacted','quoted','booked','completed','lost'];
+  const PIPE_SRC=['Outreach','Referral','Walk-in','Website','Repeat client'];
+  const pipeBlank=()=>({id:newId('pl'),company:'',contact:'',info:'',event:'',date:'',headcount:'',value:'',status:'new',source:'Outreach',notes:''});
+  async function savePipe(next){if(!pipeLoaded){setErr('Still connecting — try again in a second.');return;}setPipe(next);try{await setDoc(D('catpipe'),{list:next.slice(0,500)});setErr('');}catch(e){setErr('Save failed — check internet. ('+(e.message||e)+')');}}
+  function submitPipe(){
+    const d=pipeForm;if(!d.company?.trim()){setErr('Company / client name is required.');return;}setErr('');
+    const exists=(pipe||[]).some(l=>l.id===d.id);
+    const rec={...d,company:d.company.trim(),contact:(d.contact||'').trim(),info:(d.info||'').trim(),event:(d.event||'').trim(),notes:(d.notes||'').trim(),headcount:d.headcount===''?'':Number(d.headcount)||0,value:num(d.value),by:myName.trim()||d.by||'',at:d.at||nowStamp()};
+    savePipe(exists?(pipe||[]).map(l=>l.id===rec.id?rec:l):[rec,...(pipe||[])]);
+    setPipeForm(null);flash('Lead saved ✓');
+  }
+  function pipeSetStatus(id,status){savePipe((pipe||[]).map(l=>l.id===id?{...l,status}:l));}
+  function delPipe(id){setPipeArm(null);savePipe((pipe||[]).filter(l=>l.id!==id));}
+  // margins
+  const marginBlank=()=>({id:newId('mg'),client:'',date:'',revenue:'',food:'',packaging:'',labor:'',delivery:'',other:''});
+  const marginCalc=(m)=>{const cost=num(m.food)+num(m.packaging)+num(m.labor)+num(m.delivery)+num(m.other);const rev=num(m.revenue);const profit=rev-cost;return {rev,cost,profit,pct:rev?profit/rev*100:0};};
+  async function saveMargin(next){if(!cmarginLoaded){setErr('Still connecting — try again in a second.');return;}setCmargin(next);try{await setDoc(D('catmargin'),{list:next.slice(0,500)});setErr('');}catch(e){setErr('Save failed — check internet. ('+(e.message||e)+')');}}
+  function submitMargin(){
+    const d=cmarginForm;if(!d.client?.trim()){setErr('Client name is required.');return;}if(num(d.revenue)<=0){setErr('Enter the revenue for this order.');return;}setErr('');
+    const exists=(cmargin||[]).some(m=>m.id===d.id);
+    const rec={...d,client:d.client.trim(),revenue:num(d.revenue),food:num(d.food),packaging:num(d.packaging),labor:num(d.labor),delivery:num(d.delivery),other:num(d.other),by:myName.trim()||d.by||'',at:d.at||nowStamp()};
+    saveMargin(exists?(cmargin||[]).map(m=>m.id===rec.id?rec:m):[rec,...(cmargin||[])]);
+    setCmarginForm(null);flash('Order saved ✓');
+  }
+  function delMargin(id){setCmarginArm(null);saveMargin((cmargin||[]).filter(m=>m.id!==id));}
+  // loyalty
+  const tierFor=(o)=>o>=5?'VIP':o>=2?'Regular':'New';
+  const TIER_COLOR={VIP:'var(--amber)',Regular:'var(--blue)',New:'var(--faint)'};
+  const loyalBlank=()=>({id:newId('ly'),name:'',contact:'',firstOrder:'',notes:''});
+  async function saveLoyal(next){if(!loyalLoaded){setErr('Still connecting — try again in a second.');return;}setLoyal(next);try{await setDoc(D('catloyal'),{list:next.slice(0,500)});setErr('');}catch(e){setErr('Save failed — check internet. ('+(e.message||e)+')');}}
+  function submitLoyal(){
+    const d=loyalForm;if(!d.name?.trim()){setErr('Client name is required.');return;}setErr('');
+    const exists=(loyal||[]).some(c=>c.id===d.id);
+    if(exists){saveLoyal((loyal||[]).map(c=>c.id===d.id?{...c,name:d.name.trim(),contact:(d.contact||'').trim(),firstOrder:d.firstOrder||c.firstOrder,notes:(d.notes||'').trim()}:c));}
+    else{saveLoyal([{id:d.id,name:d.name.trim(),contact:(d.contact||'').trim(),firstOrder:d.firstOrder||'',lastOrder:d.firstOrder||'',orders:1,spend:0,notes:(d.notes||'').trim(),by:myName.trim(),at:nowStamp()},...(loyal||[])]);}
+    setLoyalForm(null);flash('Client saved ✓');
+  }
+  function logLoyalOrder(id){
+    const amt=num(loyalPay?.amount);
+    saveLoyal((loyal||[]).map(c=>c.id===id?{...c,orders:(Number(c.orders)||0)+1,spend:(Number(c.spend)||0)+amt,lastOrder:new Date().toISOString().slice(0,10)}:c));
+    setLoyalPay(null);flash('Order logged ✓');
+  }
+  function delLoyal(id){setLoyalArm(null);saveLoyal((loyal||[]).filter(c=>c.id!==id));}
 
   // ---- backyard: approve / deny staff item requests ----
   const BY_CATS=[
@@ -2377,7 +2445,209 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
         </div>
       </div>
     </div>`;
-  const cateringView=!cateringLoaded?html`<div class="empty">⏳ Syncing catering…</div>`:html`
+  // ===== CRM sub-views: pipeline / margins / loyalty / overview =====
+  const pipeList=pipe||[];
+  const pipeShown=pipeFilter==='all'?pipeList:pipeList.filter(l=>l.status===pipeFilter);
+  const pipeFld=(k,v)=>setPipeForm({...pipeForm,[k]:v});
+  const pipeFormCard=html`
+    <div class="card" style="border-left:5px solid var(--blue)">
+      <div class="vrow"><b style="font-size:16.5px;color:var(--navy)">${pipeList.some(l=>l.id===(pipeForm||{}).id)?'Edit lead':'New lead'}</b>
+        <button class="ghost" onClick=${()=>{setPipeForm(null);setErr('');}}>Cancel</button></div>
+      <div class="lbl mt12">COMPANY / CLIENT *</div>
+      <input placeholder="e.g. WeWork Astor Pl" value=${(pipeForm||{}).company||''} onInput=${e=>pipeFld('company',e.target.value)} />
+      <div class="row mt12">
+        <div style="min-width:0"><div class="lbl" style="margin-bottom:4px">CONTACT</div><input value=${(pipeForm||{}).contact||''} onInput=${e=>pipeFld('contact',e.target.value)} /></div>
+        <div style="min-width:0"><div class="lbl" style="margin-bottom:4px">EMAIL / PHONE</div><input value=${(pipeForm||{}).info||''} onInput=${e=>pipeFld('info',e.target.value)} /></div>
+      </div>
+      <div class="lbl mt12">EVENT TYPE</div>
+      <input placeholder="Office lunch, meeting, party…" value=${(pipeForm||{}).event||''} onInput=${e=>pipeFld('event',e.target.value)} />
+      <div class="row mt12">
+        <div style="min-width:0"><div class="lbl" style="margin-bottom:4px">EVENT DATE</div><input type="date" value=${(pipeForm||{}).date||''} onInput=${e=>pipeFld('date',e.target.value)} /></div>
+        <div style="min-width:0"><div class="lbl" style="margin-bottom:4px">HEADCOUNT</div><input inputmode="numeric" value=${(pipeForm||{}).headcount||''} onInput=${e=>pipeFld('headcount',e.target.value)} /></div>
+      </div>
+      <div class="row mt12">
+        <div style="min-width:0"><div class="lbl" style="margin-bottom:4px">EST. VALUE $</div><input inputmode="decimal" value=${(pipeForm||{}).value||''} onInput=${e=>pipeFld('value',e.target.value)} /></div>
+        <div style="min-width:0"><div class="lbl" style="margin-bottom:4px">STATUS</div>
+          <select value=${(pipeForm||{}).status||'new'} onChange=${e=>pipeFld('status',e.target.value)}>${PIPE_ORDER.map(s=>html`<option value=${s} key=${s}>${PIPE_ST[s].label}</option>`)}</select></div>
+      </div>
+      <div class="lbl mt12">SOURCE</div>
+      <select value=${(pipeForm||{}).source||'Outreach'} onChange=${e=>pipeFld('source',e.target.value)}>${PIPE_SRC.map(s=>html`<option value=${s} key=${s}>${s}</option>`)}</select>
+      <div class="lbl mt12">NOTES</div>
+      <textarea placeholder="Anything worth remembering…" value=${(pipeForm||{}).notes||''} onInput=${e=>pipeFld('notes',e.target.value)}></textarea>
+      <div class="row mt12"><button class="btn" onClick=${submitPipe}>Save lead</button></div>
+    </div>`;
+  const pipeCard=(l)=>{const st=PIPE_ST[l.status]||PIPE_ST.new;return html`
+    <div class="wcard" key=${l.id} style=${{borderLeftColor:st.color}}>
+      <div style="padding:14px 16px">
+        <div class="vrow">
+          <div style="min-width:0"><b style="font-size:15.5px">${l.company}</b>
+            <div style="font-size:12.5px;color:var(--faint);margin-top:2px">${l.contact||''}${l.contact&&l.info?' · ':''}${l.info||''}</div></div>
+          <span class="pill" style=${{background:st.color}}>${st.label}</span>
+        </div>
+        <div style="margin-top:9px;display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--ink)">
+          ${l.event?html`<span><b>${l.event}</b></span>`:''}
+          ${l.date?html`<span>${prettyShort(l.date)}</span>`:''}
+          ${l.headcount?html`<span>${l.headcount} ppl</span>`:''}
+          ${num(l.value)>0?html`<span><b>${money(l.value)}</b> est.</span>`:''}
+          <span style="color:var(--faint)">${l.source||''}</span>
+        </div>
+        ${l.notes?html`<div style="font-size:13px;color:var(--faint);margin-top:8px;white-space:pre-wrap">${l.notes}</div>`:''}
+        <div class="row mt12" style="align-items:center">
+          <select value=${l.status} onChange=${e=>pipeSetStatus(l.id,e.target.value)}>${PIPE_ORDER.map(s=>html`<option value=${s} key=${s}>${PIPE_ST[s].label}</option>`)}</select>
+          <button class="btn blue" style="flex:0 0 auto" onClick=${()=>{setPipeForm({...l});window.scrollTo({top:0,behavior:'smooth'});}}>Edit</button>
+          ${pipeArm===l.id?html`<button class="btn tomato" style="flex:0 0 auto" onClick=${()=>delPipe(l.id)}>Sure?</button>`
+            :html`<button class="ghost" style="flex:0 0 auto;color:var(--tomato)" onClick=${()=>setPipeArm(l.id)}>✕</button>`}
+        </div>
+      </div>
+    </div>`;};
+  const pipeView=html`
+    <${Fragment}>
+      ${pipeForm?pipeFormCard:html`<button class="btn wide mb12" style=${{background:'linear-gradient(135deg,var(--navy),var(--blue))'}} onClick=${()=>{setPipeForm(pipeBlank());setErr('');}}>+ Add lead</button>`}
+      <div class="subtabs">
+        ${[['all','All ('+pipeList.length+')']].concat(PIPE_ORDER.map(s=>[s,PIPE_ST[s].label+' ('+pipeList.filter(l=>l.status===s).length+')'])).map(([id,label])=>html`
+          <button class=${pipeFilter===id?'on':''} key=${id} onClick=${()=>setPipeFilter(id)}>${label}</button>`)}
+      </div>
+      ${pipeShown.length===0?html`<div class="empty">No leads here yet.${pipeForm?'':' Tap “+ Add lead” to start.'}</div>`:pipeShown.map(pipeCard)}
+    <//>`;
+
+  // ---- margins ----
+  const marginList=cmargin||[];
+  const mTot=marginList.reduce((a,m)=>{const c=marginCalc(m);a.rev+=c.rev;a.cost+=c.cost;a.profit+=c.profit;return a;},{rev:0,cost:0,profit:0});
+  const mAvg=mTot.rev?mTot.profit/mTot.rev*100:0;
+  const mFld=(k,v)=>setCmarginForm({...cmarginForm,[k]:v});
+  const mNumField=(lbl,k)=>html`<div style="min-width:0"><div class="lbl" style="margin-bottom:4px">${lbl}</div><input inputmode="decimal" value=${(cmarginForm||{})[k]||''} onInput=${e=>mFld(k,e.target.value)} /></div>`;
+  const marginFormCard=html`
+    <div class="card" style="border-left:5px solid var(--blue)">
+      <div class="vrow"><b style="font-size:16.5px;color:var(--navy)">${marginList.some(m=>m.id===(cmarginForm||{}).id)?'Edit order':'Log order'}</b>
+        <button class="ghost" onClick=${()=>{setCmarginForm(null);setErr('');}}>Cancel</button></div>
+      <div class="lbl mt12">CLIENT *</div>
+      <input placeholder="e.g. WeWork Astor Pl" value=${(cmarginForm||{}).client||''} onInput=${e=>mFld('client',e.target.value)} />
+      <div class="row mt12">
+        <div style="min-width:0"><div class="lbl" style="margin-bottom:4px">ORDER DATE</div><input type="date" value=${(cmarginForm||{}).date||''} onInput=${e=>mFld('date',e.target.value)} /></div>
+        ${mNumField('REVENUE $','revenue')}
+      </div>
+      <div class="row mt12">${mNumField('FOOD $','food')}${mNumField('PACKAGING $','packaging')}</div>
+      <div class="row mt12">${mNumField('LABOR $','labor')}${mNumField('DELIVERY $','delivery')}</div>
+      <div class="row mt12">${mNumField('OTHER $','other')}<div style="min-width:0"></div></div>
+      ${(()=>{const c=marginCalc(cmarginForm||{});return html`<div class="note mt12">Cost <b>${money(c.cost)}</b> · Profit <b style=${{color:c.profit>=0?'var(--green)':'var(--tomato)'}}>${money(c.profit)}</b> · Margin <b>${c.pct.toFixed(1)}%</b></div>`;})()}
+      <div class="row mt12"><button class="btn" onClick=${submitMargin}>Save order</button></div>
+    </div>`;
+  const marginCard=(m)=>{const c=marginCalc(m);return html`
+    <div class="wcard" key=${m.id} style=${{borderLeftColor:c.profit>=0?'var(--green)':'var(--tomato)'}}>
+      <div style="padding:13px 16px">
+        <div class="vrow">
+          <div style="min-width:0"><b style="font-size:15px">${m.client}</b>
+            <div style="font-size:12.5px;color:var(--faint);margin-top:2px">${m.date?prettyShort(m.date):'—'}</div></div>
+          <div style="text-align:right"><b style="font-size:15px;color:${c.profit>=0?'var(--green)':'var(--tomato)'}">${money(c.profit)}</b>
+            <div style="font-size:12px;color:var(--faint)">${c.pct.toFixed(1)}% margin</div></div>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--faint)">
+          <span>Revenue <b style="color:var(--ink)">${money(c.rev)}</b></span>
+          <span>Cost <b style="color:var(--ink)">${money(c.cost)}</b></span>
+        </div>
+        <div class="row mt8">
+          <button class="ghost" style="flex:0 0 auto" onClick=${()=>{setCmarginForm({...m});window.scrollTo({top:0,behavior:'smooth'});}}>Edit</button>
+          ${cmarginArm===m.id?html`<button class="btn tomato" style="flex:0 0 auto" onClick=${()=>delMargin(m.id)}>Sure?</button>`
+            :html`<button class="ghost" style="flex:0 0 auto;color:var(--tomato)" onClick=${()=>setCmarginArm(m.id)}>Delete</button>`}
+        </div>
+      </div>
+    </div>`;};
+  const marginView=html`
+    <${Fragment}>
+      ${cmarginForm?marginFormCard:html`<button class="btn wide mb12" style=${{background:'linear-gradient(135deg,var(--navy),var(--blue))'}} onClick=${()=>{setCmarginForm(marginBlank());setErr('');}}>+ Log order</button>`}
+      ${marginList.length>0?html`
+        <div class="card" style="padding:12px 15px;margin-bottom:12px">
+          <div class="lbl" style="margin-bottom:7px">ALL ORDERS — ${marginList.length}</div>
+          <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:13px">
+            <span>Revenue <b>${money(mTot.rev)}</b></span>
+            <span>Cost <b>${money(mTot.cost)}</b></span>
+            <span>Profit <b style=${{color:mTot.profit>=0?'var(--green)':'var(--tomato)'}}>${money(mTot.profit)}</b></span>
+            <span>Avg margin <b style=${{color:mAvg>=0?'var(--green)':'var(--tomato)'}}>${mAvg.toFixed(1)}%</b></span>
+          </div>
+        </div>`:''}
+      ${marginList.length===0?html`<div class="empty">No catering orders logged yet.${cmarginForm?'':' Log one to track profit.'}</div>`:marginList.map(marginCard)}
+    <//>`;
+
+  // ---- loyalty ----
+  const loyalSorted=[...(loyal||[])].sort((a,b)=>(Number(b.orders)||0)-(Number(a.orders)||0));
+  const loyalFld=(k,v)=>setLoyalForm({...loyalForm,[k]:v});
+  const loyalFormCard=html`
+    <div class="card" style="border-left:5px solid var(--blue)">
+      <div class="vrow"><b style="font-size:16.5px;color:var(--navy)">${(loyal||[]).some(c=>c.id===(loyalForm||{}).id)?'Edit client':'Add client'}</b>
+        <button class="ghost" onClick=${()=>{setLoyalForm(null);setErr('');}}>Cancel</button></div>
+      <div class="lbl mt12">CLIENT / COMPANY *</div>
+      <input placeholder="e.g. WeWork Astor Pl" value=${(loyalForm||{}).name||''} onInput=${e=>loyalFld('name',e.target.value)} />
+      <div class="row mt12">
+        <div style="min-width:0"><div class="lbl" style="margin-bottom:4px">CONTACT</div><input value=${(loyalForm||{}).contact||''} onInput=${e=>loyalFld('contact',e.target.value)} /></div>
+        <div style="min-width:0"><div class="lbl" style="margin-bottom:4px">FIRST ORDER</div><input type="date" value=${(loyalForm||{}).firstOrder||''} onInput=${e=>loyalFld('firstOrder',e.target.value)} /></div>
+      </div>
+      <div class="lbl mt12">NOTES</div>
+      <textarea placeholder="Preferences, allergies, usual order…" value=${(loyalForm||{}).notes||''} onInput=${e=>loyalFld('notes',e.target.value)}></textarea>
+      <div class="row mt12"><button class="btn" onClick=${submitLoyal}>Save client</button></div>
+    </div>`;
+  const loyalCard=(c)=>{const tier=tierFor(Number(c.orders)||0);const paying=loyalPay&&loyalPay.id===c.id;return html`
+    <div class="wcard" key=${c.id} style=${{borderLeftColor:TIER_COLOR[tier]}}>
+      <div style="padding:13px 16px">
+        <div class="vrow">
+          <div style="min-width:0"><b style="font-size:15.5px">${c.name}</b>
+            <div style="font-size:12.5px;color:var(--faint);margin-top:2px">${c.contact||''}</div></div>
+          <span class="pill" style=${{background:TIER_COLOR[tier],color:tier==='New'?'#fff':'#fff'}}>${tier}</span>
+        </div>
+        <div style="margin-top:9px;display:flex;gap:16px;flex-wrap:wrap;font-size:13px">
+          <span><b>${Number(c.orders)||0}</b> orders</span>
+          <span><b>${money(c.spend)}</b> spend</span>
+          ${c.lastOrder?html`<span style="color:var(--faint)">Last ${prettyShort(c.lastOrder)}</span>`:''}
+        </div>
+        ${c.notes?html`<div style="font-size:13px;color:var(--faint);margin-top:8px;white-space:pre-wrap">${c.notes}</div>`:''}
+        ${paying?html`
+          <div class="editbox">
+            <div class="lbl" style="margin-bottom:4px">ORDER AMOUNT $ (optional)</div>
+            <input inputmode="decimal" placeholder="e.g. 450" value=${loyalPay.amount} onInput=${e=>setLoyalPay({...loyalPay,amount:e.target.value})} />
+            <div class="row mt8"><button class="btn" onClick=${()=>logLoyalOrder(c.id)}>Log order</button><button class="ghost" onClick=${()=>setLoyalPay(null)}>Cancel</button></div>
+          </div>`:html`
+          <div class="row mt12">
+            <button class="btn blue" style="flex:0 0 auto" onClick=${()=>{setLoyalPay({id:c.id,amount:''});setLoyalArm(null);}}>+ Log order</button>
+            <button class="ghost" style="flex:0 0 auto" onClick=${()=>{setLoyalForm({...c});window.scrollTo({top:0,behavior:'smooth'});}}>Edit</button>
+            ${loyalArm===c.id?html`<button class="btn tomato" style="flex:0 0 auto" onClick=${()=>delLoyal(c.id)}>Sure?</button>`
+              :html`<button class="ghost" style="flex:0 0 auto;color:var(--tomato)" onClick=${()=>setLoyalArm(c.id)}>✕</button>`}
+          </div>`}
+      </div>
+    </div>`;};
+  const loyalView=html`
+    <${Fragment}>
+      ${loyalForm?loyalFormCard:html`<button class="btn wide mb12" style=${{background:'linear-gradient(135deg,var(--navy),var(--blue))'}} onClick=${()=>{setLoyalForm(loyalBlank());setErr('');}}>+ Add client</button>`}
+      ${loyalSorted.length===0?html`<div class="empty">No repeat clients tracked yet.${loyalForm?'':' Add your regulars here.'}</div>`:loyalSorted.map(loyalCard)}
+    <//>`;
+
+  // ---- overview ----
+  const ovLeads=pipeList.length;
+  const ovBooked=pipeList.filter(l=>l.status==='booked'||l.status==='completed').length;
+  const ovLost=pipeList.filter(l=>l.status==='lost').length;
+  const ovWin=ovLeads?ovBooked/ovLeads*100:0;
+  const ovRepeat=(loyal||[]).filter(c=>(Number(c.orders)||0)>=2).length;
+  const ovVip=(loyal||[]).filter(c=>(Number(c.orders)||0)>=5).length;
+  const ovActive=pipeList.filter(l=>['new','contacted','quoted'].includes(l.status)).slice(0,6);
+  const ovTop=[...(loyal||[])].sort((a,b)=>(Number(b.spend)||0)-(Number(a.spend)||0)).slice(0,6);
+  const kpi=(n,l)=>html`<div class="card" style="flex:1;min-width:130px;padding:12px 14px"><div style="font-size:22px;font-weight:800;color:var(--navy)">${n}</div><div style="font-size:11.5px;color:var(--faint);margin-top:2px">${l}</div></div>`;
+  const catOverview=html`
+    <${Fragment}>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+        ${kpi(ovLeads,'Total leads')}
+        ${kpi(ovWin.toFixed(0)+'%','Win rate')}
+        ${kpi(money(mTot.rev),'Catering revenue')}
+        ${kpi(mAvg.toFixed(1)+'%','Avg margin')}
+        ${kpi(ovRepeat,'Repeat clients')}
+      </div>
+      <div class="lbl">ACTIVE LEADS TO FOLLOW UP</div>
+      ${ovActive.length?ovActive.map(l=>html`<div class="wcard" key=${l.id} style="padding:11px 15px;margin-bottom:8px"><b style="font-size:14.5px">${l.company}</b><div style="font-size:12.5px;color:var(--faint);margin-top:2px">${(PIPE_ST[l.status]||PIPE_ST.new).label}${num(l.value)>0?' · '+money(l.value)+' est.':''}</div></div>`)
+        :html`<div class="empty" style="padding:14px 0">Nothing active right now.</div>`}
+      <div class="lbl mt12">TOP CLIENTS BY SPEND</div>
+      ${ovTop.length&&ovTop.some(c=>(Number(c.spend)||0)>0)?ovTop.map(c=>html`<div class="wcard" key=${c.id} style="padding:11px 15px;margin-bottom:8px"><div class="vrow"><b style="font-size:14.5px">${c.name}</b><b style="font-size:14px">${money(c.spend)}</b></div><div style="font-size:12.5px;color:var(--faint);margin-top:2px">${Number(c.orders)||0} orders · ${tierFor(Number(c.orders)||0)}</div></div>`)
+        :html`<div class="empty" style="padding:14px 0">No client spend logged yet.</div>`}
+      <div style="font-size:12.5px;color:var(--faint);margin-top:14px">${ovLost} lead${ovLost===1?'':'s'} lost · ${ovVip} VIP client${ovVip===1?'':'s'} (5+ orders)</div>
+    <//>`;
+
+  const bookingsView=html`
     <${Fragment}>
       ${catForm?catFormCard:html`<button class="btn wide mb12" style=${{background:'linear-gradient(135deg,var(--navy),var(--blue))'}} onClick=${()=>{setCatForm(catBlank());setErr('');setConvertingInq(null);}}>+ New catering</button>`}
       <div class="subtabs">
@@ -2407,6 +2677,18 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
         :catTab==='active'
         ?(catActive.length===0?html`<div class="empty">No upcoming catering scheduled.${catForm?'':' Tap “+ New catering” above to add one.'}</div>`:catActive.map(catCard))
         :(catPast.length===0?html`<div class="empty">No past catering on record yet.</div>`:catPast.map(catCard))}
+    <//>`;
+  const cateringView=!cateringLoaded?html`<div class="empty">⏳ Syncing catering…</div>`:html`
+    <${Fragment}>
+      <div class="subtabs">
+        ${[['overview','Overview'],['book','Bookings'],['pipe','Pipeline'+(pipeList.length?' ('+pipeList.length+')':'')],['margin','Margins'],['loyal','Loyalty']].map(([id,label])=>html`
+          <button class=${catSection===id?'on':''} key=${id} onClick=${()=>{setCatSection(id);setErr('');}}>${label}</button>`)}
+      </div>
+      ${catSection==='overview'?catOverview
+       :catSection==='pipe'?pipeView
+       :catSection==='margin'?marginView
+       :catSection==='loyal'?loyalView
+       :bookingsView}
     <//>`;
 
   // ---- backyard view (approvals + read-only stock) ----
