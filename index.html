@@ -351,6 +351,25 @@
   .mi-confetti{position:fixed;inset:0;pointer-events:none;z-index:900;overflow:hidden}
   .mi-confetti i{position:absolute;top:-14px;width:9px;height:14px;border-radius:2px;animation:miFall linear forwards}
   @keyframes miFall{to{transform:translateY(105vh) rotate(720deg);opacity:.9}}
+
+  /* ===== view-only accounts: show everything, offer nothing ===== */
+  /* Hidden: anything that creates, saves or removes. Kept: navigation,
+     tabs, the store switch, date pickers, card expanders, EXPORT and LOCK. */
+  body.ro .btn,
+  body.ro .chips,
+  body.ro .useb,
+  body.ro .ordbtn,
+  body.ro .box,
+  body.ro .mi-mn, body.ro .mi-pl, body.ro .mi-bmn, body.ro .mi-bpl,
+  body.ro .mi-same, body.ro .mi-tile .mi-ring + *,
+  body.ro .editbox,
+  body.ro .by-addf{display:none!important}
+  /* values stay readable, just not editable */
+  body.ro input, body.ro select, body.ro textarea{
+    pointer-events:none;background:#F1F3F5;color:var(--faint);border-style:dashed}
+  body.ro .empline{pointer-events:none}
+  body.ro .banner.ro-note{position:sticky;top:0;z-index:60}
+  body.ro .card:has(> .lbl:only-child){display:none}
   .mt8{margin-top:8px}.mt10{margin-top:10px}.mt12{margin-top:12px}.mb8{margin-bottom:8px}.mb10{margin-bottom:10px}.mb12{margin-bottom:12px}
 </style>
 </head>
@@ -514,6 +533,7 @@ function App(){
   const [authed,setAuthed]=useState(false);
   const [user,setUser]=useState(null);
   const viewOnly=!!user&&!user.isAnonymous&&!MANAGER_UIDS.includes(user.uid);
+  useEffect(()=>{document.body.classList.toggle('ro',viewOnly);},[viewOnly]);
   const [authReady,setAuthReady]=useState(false);
   const [loginEmail,setLoginEmail]=useState('');
   const [loginPw,setLoginPw]=useState('');
@@ -1939,7 +1959,7 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
       </div>
     </div><div class="meander"></div></div>`;
 
-  const nameCard=html`
+  const nameCard=viewOnly?'':html`
     <div class="card" style="display:flex;gap:10px;align-items:center">
       <span class="lbl" style="margin:0;white-space:nowrap">YOUR NAME</span>
       <input style="flex:1" placeholder="Who's logging?" value=${myName} onInput=${e=>setName(e.target.value)} />
@@ -1958,7 +1978,7 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
         </div>
         <button class="arrow" style=${{opacity:win===0?0.3:1}} disabled=${win===0} onClick=${()=>setWin(win-1)}>›</button>
       </div>
-      ${isToday?html`
+      ${isToday&&!viewOnly?html`
         <div class="card">
           <div class="lbl">TAP WHAT YOU JUST DID</div>
           <div class="chips">
@@ -1969,7 +1989,7 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
           <input style="flex:1" placeholder="Or type it — 'fixed the soda fridge door'" value=${txt} onInput=${e=>setTxt(e.target.value)} onKeyDown=${e=>{if(e.key==='Enter')logTyped();}} />
           <button class="btn" onClick=${logTyped}>Log it</button>
         </div>`
-      :html`<div class="banner info">Viewing ${prettyDay(sel)} — read only. Every day is saved forever.</div>`}
+      :!isToday?html`<div class="banner info">Viewing ${prettyDay(sel)} — read only. Every day is saved forever.</div>`:''}
       <div class="cnt">${list.length} ${list.length===1?'entry':'entries'} · ${prettyDay(sel)}</div>
       ${!dayLoaded&&html`<div class="empty">⏳ Syncing this day\u2019s log…</div>`}
       ${dayLoaded&&list.length===0
@@ -3670,8 +3690,8 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
     <${Fragment}>
       ${header}
       <div class="wrap">
-        ${viewOnly&&html`<div class="banner info" style="border-left-color:var(--blue);background:#EEF4FA;border-color:#D3E2F0;color:#1B4A73">
-          <b>Viewing only.</b> You can see everything in the book, but changes are turned off for your account. The Menu app is yours to edit.
+        ${viewOnly&&html`<div class="banner info ro-note" style="border-left-color:var(--blue);background:#EEF4FA;border-color:#D3E2F0;color:#1B4A73">
+          <b>Viewing only.</b> The whole book is here to read — editing is switched off for your account, so the buttons are hidden. The Menu app is yours to change.
         </div>`}
         ${connected===false&&html`<div class="banner err"><b>Can't reach the database.</b> Check your internet.</div>`}
         ${err&&html`<div class="banner err">${err}</div>`}
