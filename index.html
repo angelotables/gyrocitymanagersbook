@@ -275,6 +275,82 @@
   .by-logr{padding:9px 12px;border-bottom:1px solid #EEEDE9;font-size:13px}
   .by-logr:last-child{border-bottom:none}
   .by-logr .t{color:var(--faint);font-size:11.5px;margin-top:1px}
+
+  /* ===== master inventory — count experience ===== */
+  .mi-bar{display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,var(--navy),var(--navy2));
+    color:#fff;border-radius:14px;padding:12px 15px;margin-bottom:12px;box-shadow:var(--shadow)}
+  .mi-bar .big{font-size:21px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+  .mi-bar .sm{font-family:ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:.12em;color:#9BB6CE;margin-top:3px}
+  .mi-tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .mi-tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 10px;text-align:center;
+    cursor:pointer;font-family:inherit;box-shadow:var(--shadow);transition:transform .12s,border-color .2s}
+  .mi-tile:active{transform:scale(.97)}
+  .mi-tile.done{background:#F1F8F3;border-color:#CBE0D1}
+  .mi-ring{width:46px;height:46px;margin:0 auto 7px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+  .mi-ring span{background:var(--card);width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:11.5px;font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums}
+  .mi-tile.done .mi-ring span{background:#F1F8F3;color:var(--green);font-size:17px}
+  .mi-tname{font-size:13.5px;font-weight:700;line-height:1.2;color:var(--ink)}
+  .mi-tsub{font-family:ui-monospace,Menlo,monospace;font-size:9px;letter-spacing:.1em;color:var(--faint);margin-top:3px}
+  .mi-tile.done .mi-tsub{color:var(--green)}
+  /* stepper */
+  .mi-stp{display:flex;align-items:center;gap:9px;margin-top:7px}
+  .mi-stp .lb{font-family:ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:.1em;color:var(--faint);
+    width:52px;flex:none;text-align:left}
+  .mi-mn,.mi-pl{width:38px;height:38px;border-radius:12px;font-size:21px;font-weight:800;line-height:1;flex:none;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:inherit;
+    -webkit-user-select:none;user-select:none;touch-action:manipulation}
+  .mi-mn{background:#EEF1F4;color:var(--olive);border:1.5px solid var(--line)}
+  .mi-pl{background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;border:none;box-shadow:0 5px 12px -5px rgba(14,42,71,.55)}
+  .mi-mn:active,.mi-pl:active{transform:scale(.9)}
+  .mi-mn:disabled{opacity:.4}
+  .mi-val{flex:1;text-align:center;font-size:19px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;
+    background:none;border:none;padding:6px 0;font-family:inherit;cursor:pointer;min-width:0}
+  .mi-val.empty{color:#C3CAD2}
+  .mi-irow{border-top:1px solid var(--bg);padding:9px 0}
+  .mi-irow:first-of-type{border-top:none}
+  .mi-iname{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .mi-iname b{font-size:14.5px}
+  .mi-was{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:#A9B2BC;flex:none}
+  .mi-prog{height:5px;background:#E9ECF0;border-radius:99px;overflow:hidden;margin:7px 0 4px}
+  .mi-prog i{display:block;height:100%;background:linear-gradient(90deg,var(--navy),var(--blue));transition:width .3s}
+  /* focus mode */
+  .mi-fx{text-align:center;padding:6px 2px 0}
+  .mi-fxtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .mi-dots{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-bottom:16px}
+  .mi-dots i{width:7px;height:7px;border-radius:99px;background:#D7DDE3;transition:all .2s}
+  .mi-dots i.on{background:var(--navy)}
+  .mi-dots i.cur{background:var(--blue);transform:scale(1.55)}
+  .mi-fxcat{font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.16em;color:var(--blue);margin-bottom:5px}
+  .mi-fxname{font-size:25px;font-weight:800;line-height:1.15;margin-bottom:14px;color:var(--ink)}
+  .mi-fxstp{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:6px}
+  .mi-bmn,.mi-bpl{width:64px;height:64px;border-radius:20px;font-size:34px;font-weight:800;line-height:1;flex:none;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:inherit;
+    -webkit-user-select:none;user-select:none;touch-action:manipulation}
+  .mi-bmn{background:#EEF1F4;color:var(--olive);border:1.5px solid var(--line)}
+  .mi-bpl{background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;border:none;box-shadow:0 9px 20px -7px rgba(14,42,71,.6)}
+  .mi-bmn:active,.mi-bpl:active{transform:scale(.92)}
+  .mi-bmn:disabled{opacity:.4}
+  .mi-bval{font-size:54px;font-weight:800;min-width:96px;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1;
+    background:none;border:none;text-align:center;font-family:inherit;cursor:pointer;padding:0}
+  .mi-bval.empty{color:#C3CAD2}
+  .mi-fxlb{font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.14em;color:var(--faint);margin-bottom:14px}
+  .mi-chips{display:flex;gap:6px;justify-content:center;margin-bottom:12px;flex-wrap:wrap}
+  .mi-chips button{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;background:var(--card);border:1.5px solid var(--line);
+    border-radius:99px;padding:7px 13px;color:var(--faint);cursor:pointer}
+  .mi-chips button:active{transform:scale(.94)}
+  .mi-same{width:100%;background:#EAF3EC;border:1.5px solid #CBE0D1;color:var(--green);border-radius:13px;padding:11px;
+    font-size:14.5px;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:9px}
+  .mi-same:active{transform:scale(.98)}
+  .mi-same span{display:block;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;font-weight:400;color:#7FA98C;margin-top:2px;letter-spacing:.1em}
+  .mi-moved{background:#FDF3E7;border:1px solid #EBD9BE;color:#8A6114;border-radius:11px;padding:8px 11px;font-size:12.5px;
+    margin-bottom:9px;font-weight:600}
+  .mi-nav{display:flex;gap:8px}
+  .mi-nav button{flex:1}
+  /* confetti */
+  .mi-confetti{position:fixed;inset:0;pointer-events:none;z-index:900;overflow:hidden}
+  .mi-confetti i{position:absolute;top:-14px;width:9px;height:14px;border-radius:2px;animation:miFall linear forwards}
+  @keyframes miFall{to{transform:translateY(105vh) rotate(720deg);opacity:.9}}
   .mt8{margin-top:8px}.mt10{margin-top:10px}.mt12{margin-top:12px}.mb8{margin-bottom:8px}.mb10{margin-bottom:10px}.mb12{margin-bottom:12px}
 </style>
 </head>
@@ -476,6 +552,14 @@ function App(){
   const [miData,setMiData]=useState(null);
   const [miLoaded,setMiLoaded]=useState(false);
   const [miTab,setMiTab]=useState('today');   // today | history | edit
+  const [miMode,setMiMode]=useState('board'); // board | focus | list  (inside Today)
+  const [miFocusCat,setMiFocusCat]=useState(null); // category id being counted
+  const [miFocusIdx,setMiFocusIdx]=useState(0);    // item index within that category
+  const [miCelebrate,setMiCelebrate]=useState(false);
+  const [miLocalStart,setMiLocalStart]=useState(null); // clock starts on the first tap, not on the DB round-trip
+  const [miTick,setMiTick]=useState(0);            // 1s tick so the timer redraws
+  const miSaveT=useRef(null);                      // autosave debounce
+  const miHoldT=useRef(null);                      // hold-to-repeat
   const [miVals,setMiVals]=useState({});      // local edits: itemId -> {fieldKey:value}
   const [miHistDay,setMiHistDay]=useState(null);
   const [miArm,setMiArm]=useState('');        // two-tap delete: 'cat:<id>' | 'item:<id>'
@@ -2897,7 +2981,11 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
     const saved=(miTodaySaved[itemId]||{})[fkey];
     return saved!=null?String(saved):'';
   };
-  const miSetVal=(itemId,fkey,v)=>setMiVals({...miVals,[itemId]:{...(miVals[itemId]||{}),[fkey]:v.replace(/[^0-9.]/g,'')}});
+  const miTouchClock=()=>{if(!miLocalStart&&!(miDays[miTodayKey]||{}).startedAt)setMiLocalStart(new Date().toISOString());};
+  const miSetVal=(itemId,fkey,v)=>{
+    miTouchClock();
+    setMiVals({...miVals,[itemId]:{...(miVals[itemId]||{}),[fkey]:v.replace(/[^0-9.]/g,'')}});
+  };
   const miDirtyCount=Object.keys(miVals).filter(id=>Object.values(miVals[id]).some(v=>v!=='')).length;
   async function miWrite(patch){
     try{await setDoc(D('master_inventory'),patch,{merge:true});setErr('');}
@@ -2982,40 +3070,290 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
     flash('Saved ✓');
   }
 
-  const miTodayView=html`
-    <${Fragment}>
-      <div class="card" style="display:flex;justify-content:space-between;align-items:baseline">
-        <div>
-          <div class="ttl">TODAY — ${prettyDay(miTodayKey)}</div>
-          <div class="muted" style="font-size:12.5px">Last entered numbers show as a hint — type over them to update.</div>
+  // ---- count engine: progress, steppers, timer, autosave ----
+  const miFieldNum=(itemId,fkey)=>{const v=miFieldVal(itemId,fkey);return v===''?null:(Number(v)||0);};
+  const miItemDone=(it)=>!!(it.fields&&it.fields.length)&&it.fields.every(f=>miFieldVal(it.id,f.key)!=='');
+  const miCatProg=(catId)=>{const its=miItemsFor(catId);return {done:its.filter(miItemDone).length,total:its.length};};
+  const miTotal=(()=>{let d=0,t=0;for(const c of miCatsSorted){const p=miCatProg(c.id);d+=p.done;t+=p.total;}return {done:d,total:t};})();
+  const miAllDone=miTotal.total>0&&miTotal.done===miTotal.total;
+  const miBump=(itemId,fkey,delta)=>{
+    const cur=miFieldVal(itemId,fkey);
+    const n=Math.max(0,Math.round(((cur===''?0:Number(cur)||0)+delta)*100)/100);
+    miSetVal(itemId,fkey,String(n));
+  };
+  function miSameAsLast(it){
+    miTouchClock();
+    const patch={...(miVals[it.id]||{})};
+    for(const f of it.fields){const lv=miLastVal(it.id,f.key);patch[f.key]=lv!=null?String(lv):'0';}
+    setMiVals({...miVals,[it.id]:patch});
+  }
+  function miHoldStart(fn){
+    fn();let d=420;
+    const step=()=>{fn();d=Math.max(55,d*0.72);miHoldT.current=setTimeout(step,d);};
+    miHoldT.current=setTimeout(step,d);
+  }
+  const miHoldEnd=()=>{clearTimeout(miHoldT.current);miHoldT.current=null;};
+  const miStep=(itemId,fkey,delta)=>({
+    onPointerDown:(e)=>{e.preventDefault();miHoldStart(()=>miBump(itemId,fkey,delta));},
+    onPointerUp:miHoldEnd,onPointerLeave:miHoldEnd,onPointerCancel:miHoldEnd
+  });
+  // timer + best
+  const miStartedAt=(miDays[miTodayKey]||{}).startedAt||miLocalStart||null;
+  const miSavedSecs=(miDays[miTodayKey]||{}).secs;
+  const miElapsed=miSavedSecs!=null?miSavedSecs:(miStartedAt?Math.max(0,Math.floor((Date.now()-new Date(miStartedAt).getTime())/1000)):0);
+  const miFmtSecs=(s)=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+  const miBest=(miData&&typeof miData.best==='number')?miData.best:null;
+  useEffect(()=>{
+    if(miTab!=='today'||!miStartedAt||miSavedSecs!=null)return;
+    const t=setInterval(()=>setMiTick(x=>x+1),1000);
+    return ()=>clearInterval(t);
+  },[miTab,miStartedAt,miSavedSecs]);
+  // build today's saved values from local edits
+  function miDayVals(){
+    const vals={...miTodaySaved};
+    for(const id of Object.keys(miVals)){
+      const entry={...(vals[id]||{})};let any=false;
+      for(const [fk,v] of Object.entries(miVals[id])){if(v==='')continue;entry[fk]=Number(v)||0;any=true;}
+      if(any||vals[id])vals[id]=entry;
+    }
+    return vals;
+  }
+  function miDayPatch(extra){
+    const prev=miDays[miTodayKey]||{};
+    const rec={by:prev.by||myName.trim()||'Manager',at:nowStamp(),
+      startedAt:prev.startedAt||miLocalStart||new Date().toISOString(),vals:miDayVals(),...(extra||{})};
+    const days={...miDays,[miTodayKey]:rec};
+    const keys=Object.keys(days).sort();
+    if(keys.length>120)keys.slice(0,keys.length-120).forEach(k=>delete days[k]);
+    return days;
+  }
+  // autosave — every tap is safe, nothing is ever lost
+  useEffect(()=>{
+    if(!miLoaded||!miData)return;
+    if(!Object.keys(miVals).length)return;
+    clearTimeout(miSaveT.current);
+    miSaveT.current=setTimeout(()=>{miWrite({days:miDayPatch()});},1200);
+    return ()=>clearTimeout(miSaveT.current);
+  },[miVals,miLoaded]);
+  async function miFinishCount(){
+    if(!miData)return;
+    clearTimeout(miSaveT.current);
+    const secs=miElapsed;
+    const patch={days:miDayPatch({secs,done:true})};
+    if(miBest==null||secs<miBest)patch.best=secs;
+    await miWrite(patch);
+    setMiCelebrate(true);setTimeout(()=>setMiCelebrate(false),3400);
+    setMiMode('board');window.scrollTo(0,0);
+  }
+  const miLowList=(()=>{
+    const out=[];
+    for(const c of miCatsSorted)for(const it of miItemsFor(c.id))for(const f of (it.fields||[])){
+      const n=miFieldNum(it.id,f.key);
+      if(n!==null&&n<=1)out.push({cat:c.name,name:it.name,label:f.label,n});
+    }
+    return out.sort((a,b)=>a.n-b.n||a.name.localeCompare(b.name));
+  })();
+  function miCopyLow(){
+    const d=new Date();
+    const out=miLowList.filter(x=>x.n===0),low=miLowList.filter(x=>x.n>0);
+    const fmt=(x)=>`• ${x.name} — ${x.n} ${String(x.label||'').toLowerCase()} (${x.cat})`;
+    let txt=`MASTER INVENTORY — ${d.getMonth()+1}/${d.getDate()}\n`;
+    if(out.length)txt+=`\nOUT:\n`+out.map(fmt).join('\n');
+    if(low.length)txt+=`\n\nLOW:\n`+low.map(fmt).join('\n');
+    if(!out.length&&!low.length)txt+=`\nNothing low — all stocked.`;
+    const done=()=>flash('List copied');
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(done,()=>flash('Copy failed'));
+    else{const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();
+      try{document.execCommand('copy');done();}catch(e){flash('Copy failed');}ta.remove();}
+  }
+  // focus-mode navigation
+  const miFocusItems=miFocusCat?miItemsFor(miFocusCat):[];
+  const miFocusItem=miFocusItems[miFocusIdx]||null;
+  const miFocusCatObj=miCatsSorted.find(c=>c.id===miFocusCat);
+  function miOpenCat(catId){
+    const its=miItemsFor(catId);
+    let i=its.findIndex(x=>!miItemDone(x));if(i<0)i=0;
+    setMiFocusCat(catId);setMiFocusIdx(i);setMiMode('focus');window.scrollTo(0,0);
+  }
+  function miNextItem(){
+    if(miFocusIdx<miFocusItems.length-1)setMiFocusIdx(miFocusIdx+1);
+    else{setMiMode('board');setMiFocusCat(null);window.scrollTo(0,0);}
+  }
+
+  // ---- shared stepper row ----
+  const miStepper=(it,f,big)=>{
+    const v=miFieldVal(it.id,f.key);
+    const lv=miLastVal(it.id,f.key);
+    if(big)return html`
+      <div key=${f.key}>
+        <div class="mi-fxlb">${f.label}${lv!=null?' · was '+lv:''}</div>
+        <div class="mi-fxstp">
+          <button class="mi-bmn" disabled=${v===''||Number(v)<=0} ...${miStep(it.id,f.key,-1)}>−</button>
+          <input class=${'mi-bval'+(v===''?' empty':'')} inputmode="decimal" value=${v} placeholder="0"
+            onInput=${e=>miSetVal(it.id,f.key,e.target.value)} />
+          <button class="mi-bpl" ...${miStep(it.id,f.key,1)}>+</button>
         </div>
-        ${miDays[miTodayKey]&&html`<span class="mono" style="font-size:10.5px;color:var(--faint)">saved ${miDays[miTodayKey].at}</span>`}
+      </div>`;
+    return html`
+      <div class="mi-stp" key=${f.key}>
+        <span class="lb">${f.label}</span>
+        <button class="mi-mn" disabled=${v===''||Number(v)<=0} ...${miStep(it.id,f.key,-1)}>−</button>
+        <input class=${'mi-val'+(v===''?' empty':'')} inputmode="decimal" value=${v} placeholder=${lv!=null?String(lv):'—'}
+          onInput=${e=>miSetVal(it.id,f.key,e.target.value)} />
+        <button class="mi-pl" ...${miStep(it.id,f.key,1)}>+</button>
+      </div>`;
+  };
+
+  // ---- Today: THE BOARD ----
+  const miBoardView=html`
+    <${Fragment}>
+      <div class="mi-bar">
+        <div>
+          <div class="big">${miStartedAt?miFmtSecs(miElapsed):'—:—'}</div>
+          <div class="sm">${miSavedSecs!=null?'FINISHED':miStartedAt?'COUNTING':'NOT STARTED'}${miBest!=null?' · BEST '+miFmtSecs(miBest):''}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="big">${miTotal.done}/${miTotal.total}</div>
+          <div class="sm">ITEMS COUNTED</div>
+        </div>
       </div>
-      ${miCatsSorted.length===0&&html`<div class="empty">No categories yet — set them up in Edit.</div>`}
+      <div class="mi-prog" style="margin:-4px 0 14px"><i style=${{width:(miTotal.total?miTotal.done/miTotal.total*100:0)+'%'}}></i></div>
+
+      ${miAllDone&&html`
+        <div class="card" style="border-left:5px solid var(--green)">
+          <div class="vrow"><b style="font-size:17px;color:var(--green)">Count complete 🎉</b>
+            <span class="mono" style="font-size:11px;color:var(--faint)">${miFmtSecs(miElapsed)}</span></div>
+          <div class="muted" style="margin-top:4px">All ${miTotal.total} items counted.${miBest!=null&&miElapsed<=miBest?' New personal best 🏆':''}</div>
+          ${miLowList.length>0?html`
+            <div class="mt12">
+              <div class="lbl">RUNNING LOW — ${miLowList.length}</div>
+              ${miLowList.slice(0,8).map((x,i)=>html`
+                <div class="vrow" key=${i} style="padding:4px 0;font-size:13.5px">
+                  <span>${x.name} <span class="dim">· ${x.cat}</span></span>
+                  <b style=${{color:x.n===0?'var(--tomato)':'var(--amber)'}}>${x.n} ${String(x.label||'').toLowerCase()}</b>
+                </div>`)}
+              ${miLowList.length>8&&html`<div class="muted" style="font-size:12.5px;margin-top:4px">+${miLowList.length-8} more</div>`}
+              <button class="btn wide mt12" style="background:linear-gradient(135deg,var(--green),#2f9e63)" onClick=${miCopyLow}>Copy order list</button>
+            </div>`
+            :html`<div class="muted mt8">Nothing running low — everything's stocked. ✓</div>`}
+        </div>`}
+
+      ${miCatsSorted.length===0&&html`<div class="empty">No sections yet — set them up in Edit.</div>`}
+      <div class="mi-tiles">
+        ${miCatsSorted.map(cat=>{
+          const p=miCatProg(cat.id);
+          if(!p.total)return null;
+          const pct=p.done/p.total*100,done=p.done===p.total;
+          return html`
+            <button class=${'mi-tile'+(done?' done':'')} key=${cat.id} onClick=${()=>miOpenCat(cat.id)}>
+              <div class="mi-ring" style=${{background:done?'#DDEFE1':`conic-gradient(var(--blue) ${pct}%, #E9ECF0 0)`}}>
+                <span>${done?'✓':p.done+'/'+p.total}</span>
+              </div>
+              <div class="mi-tname">${cat.name}</div>
+              <div class="mi-tsub">${done?'DONE':p.done?'IN PROGRESS':'NOT STARTED'}</div>
+            </button>`;
+        })}
+      </div>
+
+      <div class="row mt12">
+        <button class="btn" style="background:none;color:var(--faint);border:1px solid rgba(228,224,212,.9)" onClick=${()=>{setMiMode('list');window.scrollTo(0,0);}}>☰ List view</button>
+        ${miTotal.done>0&&!miAllDone&&html`<button class="btn" style="background:linear-gradient(135deg,var(--olive),#7A8590)" onClick=${miFinishCount}>Finish count</button>`}
+        ${miAllDone&&miSavedSecs==null&&html`<button class="btn" style="background:linear-gradient(135deg,var(--green),#2f9e63)" onClick=${miFinishCount}>Lock it in ✓</button>`}
+      </div>
+      <div class="muted mt8" style="text-align:center;font-size:12px">Every tap saves on its own — you can stop and come back.</div>
+    <//>`;
+
+  // ---- Today: FOCUS MODE ----
+  const miFocusView=!miFocusItem?html`<div class="empty">Nothing to count here.</div>`:(()=>{
+    const it=miFocusItem;
+    const lastShown=it.fields.map(f=>({f,lv:miLastVal(it.id,f.key),cur:miFieldNum(it.id,f.key)}));
+    const moved=lastShown.filter(x=>x.lv!=null&&x.cur!=null&&x.cur!==x.lv);
+    const hasLast=lastShown.some(x=>x.lv!=null);
+    const done=miItemDone(it);
+    return html`
+      <${Fragment}>
+        <div class="mi-fxtop">
+          <button class="ghost" onClick=${()=>{setMiMode('board');setMiFocusCat(null);window.scrollTo(0,0);}}>‹ ${miFocusCatObj?miFocusCatObj.name:'Back'}</button>
+          <span class="mono" style="font-size:11px;color:var(--faint)">${miFocusIdx+1} OF ${miFocusItems.length}</span>
+        </div>
+        <div class="mi-dots">
+          ${miFocusItems.map((x,i)=>html`<i key=${x.id} class=${i===miFocusIdx?'cur':miItemDone(x)?'on':''}></i>`)}
+        </div>
+        <div class="mi-fx">
+          <div class="mi-fxcat">${miFocusCatObj?miFocusCatObj.name:''}</div>
+          <div class="mi-fxname">${it.name}</div>
+          ${it.fields.map(f=>miStepper(it,f,true))}
+          <div class="mi-chips">
+            ${[5,10,-5].map(n=>html`<button key=${n} onClick=${()=>miBump(it.id,it.fields[0].key,n)}>${n>0?'+':''}${n}</button>`)}
+            <button onClick=${()=>it.fields.forEach(f=>miSetVal(it.id,f.key,'0'))}>zero</button>
+          </div>
+          ${moved.length>0&&html`
+            <div class="mi-moved">
+              ${moved.map(x=>`${x.cur>x.lv?'Up':'Down'} ${Math.abs(x.cur-x.lv)} ${String(x.f.label||'').toLowerCase()} — was ${x.lv}`).join(' · ')}
+            </div>`}
+          ${hasLast&&html`
+            <button class="mi-same" onClick=${()=>{miSameAsLast(it);setTimeout(miNextItem,180);}}>
+              Same as last time${lastShown.length===1&&lastShown[0].lv!=null?' — '+lastShown[0].lv:''}
+              <span>TAP TO ACCEPT & GO NEXT</span>
+            </button>`}
+          <div class="mi-nav">
+            <button class="ghost" style="flex:0 0 auto;padding:0 14px" disabled=${miFocusIdx===0}
+              onClick=${()=>setMiFocusIdx(Math.max(0,miFocusIdx-1))}>‹</button>
+            <button class="btn" style=${{background:miFocusIdx===miFocusItems.length-1
+              ?'linear-gradient(135deg,var(--green),#2f9e63)':'linear-gradient(135deg,var(--navy),var(--blue))'}}
+              onClick=${miNextItem}>
+              ${miFocusIdx===miFocusItems.length-1?'Finish section ✓':(done?'Next item →':'Skip →')}
+            </button>
+          </div>
+        </div>
+      <//>`;
+  })();
+
+  // ---- Today: LIST VIEW (tap counter) ----
+  const miListView=html`
+    <${Fragment}>
+      <div class="row mb12">
+        <button class="btn" style="background:none;color:var(--faint);border:1px solid rgba(228,224,212,.9)" onClick=${()=>{setMiMode('board');window.scrollTo(0,0);}}>‹ Board</button>
+        <div style="flex:1;text-align:right;align-self:center" class="mono">
+          <span style="font-size:12px;color:var(--faint)">${miTotal.done}/${miTotal.total} counted</span>
+        </div>
+      </div>
       ${miCatsSorted.map(cat=>{
         const items=miItemsFor(cat.id);
         if(!items.length)return null;
+        const p=miCatProg(cat.id);
         return html`
           <div class="card" key=${cat.id}>
-            <div class="ttl">${cat.name}</div>
+            <div class="vrow"><div class="ttl" style="margin:0">${cat.name}</div>
+              <span class="mono" style="font-size:10.5px;color:${p.done===p.total?'var(--green)':'var(--faint)'}">${p.done}/${p.total}</span></div>
+            <div class="mi-prog"><i style=${{width:(p.total?p.done/p.total*100:0)+'%'}}></i></div>
             ${items.map(it=>html`
-              <div key=${it.id} style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--bg)">
-                <div style="flex:1 1 auto;min-width:0;font-size:14.5px;font-weight:600">${it.name}</div>
-                <div style="display:flex;gap:8px;flex:none">
-                  ${it.fields.map(f=>html`
-                    <div key=${f.key} style="display:flex;flex-direction:column;align-items:center;gap:3px">
-                      <input style="width:64px;text-align:center;padding:9px 4px" inputmode="decimal"
-                        placeholder=${(()=>{const lv=miLastVal(it.id,f.key);return lv!=null?String(lv):'—';})()}
-                        value=${miFieldVal(it.id,f.key)} onInput=${e=>miSetVal(it.id,f.key,e.target.value)} />
-                      <span class="mono" style="font-size:9px;letter-spacing:.1em;color:var(--faint)">${f.label}</span>
-                    </div>`)}
+              <div class="mi-irow" key=${it.id}>
+                <div class="mi-iname">
+                  <b>${it.name}</b>
+                  ${miItemDone(it)?html`<span class="mi-was" style="color:var(--green)">✓</span>`
+                    :html`<span class="mi-was">${(()=>{const lv=miLastVal(it.id,it.fields[0]&&it.fields[0].key);return lv!=null?'was '+lv:'';})()}</span>`}
                 </div>
+                ${it.fields.map(f=>miStepper(it,f,false))}
               </div>`)}
           </div>`;
       })}
-      ${miDirtyCount>0&&html`
-        <div style="position:sticky;bottom:calc(74px + env(safe-area-inset-bottom));z-index:5">
-          <button class="btn wide" style="background:linear-gradient(135deg,var(--olive),#7A8590)" onClick=${miSaveToday}>SAVE TODAY'S COUNT</button>
+      <div class="muted mt8" style="text-align:center;font-size:12px">Every tap saves on its own.</div>
+    <//>`;
+
+  const miTodayView=html`
+    <${Fragment}>
+      <div class="card" style="display:flex;justify-content:space-between;align-items:baseline;padding:11px 15px">
+        <div class="ttl" style="margin:0">TODAY — ${prettyDay(miTodayKey)}</div>
+        ${miDays[miTodayKey]&&html`<span class="mono" style="font-size:10.5px;color:var(--faint)">saved ${miDays[miTodayKey].at}</span>`}
+      </div>
+      ${miMode==='focus'?miFocusView:miMode==='list'?miListView:miBoardView}
+      ${miCelebrate&&html`
+        <div class="mi-confetti">
+          ${Array.from({length:44}).map((_,i)=>html`
+            <i key=${i} style=${{left:(i*2.3+Math.random()*2)+'%',
+              background:['#0E2A47','#2E6FA3','#1E7F4F','#A66A00','#7FB2DC'][i%5],
+              animationDuration:(1.6+Math.random()*1.3)+'s',animationDelay:(Math.random()*0.5)+'s'}}></i>`)}
         </div>`}
     <//>`;
 
