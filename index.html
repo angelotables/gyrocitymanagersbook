@@ -362,7 +362,17 @@ import { h, render, Fragment } from 'https://esm.sh/preact@10.22.0';
 import { useState, useEffect, useMemo, useRef } from 'https://esm.sh/preact@10.22.0/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { initializeFirestore, doc, collection, onSnapshot, setDoc, getDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { initializeFirestore, doc, collection, onSnapshot, setDoc as _setDoc, getDoc, deleteDoc as _deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+// ---- view-only accounts (partners) ----------------------------------
+// Only these people can change anything. Anyone else who can sign in and
+// read gets the whole book, read-only. The database rules enforce this too;
+// this just makes the app honest about it instead of failing with an error.
+const MANAGER_UIDS=['9ys8uO70MzUHiCerNDSx6TT22qm1'];   // Alessandro
+let RO=false, onRO=()=>{};
+const blocked=()=>{ setTimeout(()=>onRO(),0); return Promise.reject(new Error('view-only')); };
+const setDoc=(...a)=>RO?blocked():_setDoc(...a);
+const deleteDoc=(...a)=>RO?blocked():_deleteDoc(...a);
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
 const html = htm.bind(h);
@@ -503,6 +513,7 @@ function App(){
   const [meta,setMeta]=useState(null);
   const [authed,setAuthed]=useState(false);
   const [user,setUser]=useState(null);
+  const viewOnly=!!user&&!user.isAnonymous&&!MANAGER_UIDS.includes(user.uid);
   const [authReady,setAuthReady]=useState(false);
   const [loginEmail,setLoginEmail]=useState('');
   const [loginPw,setLoginPw]=useState('');
@@ -621,7 +632,11 @@ function App(){
   };
   // ---- manager sign-in (Firebase email/password) ----
   useEffect(()=>{
-    const unsub=onAuthStateChanged(_auth,(u)=>{ setUser(u); setAuthed(!!u&&!u.isAnonymous); setAuthReady(true); });
+    onRO=()=>setErr('You have view-only access — ask Alessandro to make this change.');
+    const unsub=onAuthStateChanged(_auth,(u)=>{
+      RO = !!u && !u.isAnonymous && !MANAGER_UIDS.includes(u.uid);
+      setUser(u); setAuthed(!!u&&!u.isAnonymous); setAuthReady(true);
+    });
     return unsub;
   },[]);
   const authMsg=(err)=>{
@@ -1242,7 +1257,7 @@ function App(){
   // ---- manager sign-in handled above via Firebase Auth ----
   // Daily auto-backup: mirror critical docs; a backup only ever accepts an equal-or-bigger copy.
   useEffect(()=>{
-    if(!authed||meta===null)return;
+    if(!authed||meta===null||RO)return;   // view-only accounts never write backups
     const today=new Date().toISOString().slice(0,10);
     if(localStorage.getItem('mgr-bak')===today)return;
     localStorage.setItem('mgr-bak',today);
@@ -3655,6 +3670,9 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
     <${Fragment}>
       ${header}
       <div class="wrap">
+        ${viewOnly&&html`<div class="banner info" style="border-left-color:var(--blue);background:#EEF4FA;border-color:#D3E2F0;color:#1B4A73">
+          <b>Viewing only.</b> You can see everything in the book, but changes are turned off for your account. The Menu app is yours to edit.
+        </div>`}
         ${connected===false&&html`<div class="banner err"><b>Can't reach the database.</b> Check your internet.</div>`}
         ${err&&html`<div class="banner err">${err}</div>`}
         ${nameCard}
