@@ -168,6 +168,45 @@
     color:#fff;cursor:pointer;font-family:'Inter',sans-serif;box-shadow:0 6px 20px -6px rgba(19,26,34,.45);
     display:flex;align-items:center;gap:7px;transition:transform .12s}
   .storepill:active{transform:scale(.96)}
+  .rf-card{background:var(--card);border:1px solid rgba(228,224,212,.8);border-radius:14px;padding:13px 14px;margin-bottom:10px;box-shadow:var(--shadow)}
+  .rf-card.late{border-color:#EBD3B0;background:#FFFCF5}
+  .rf-top{display:flex;gap:11px;align-items:flex-start}
+  .rf-thumb{width:56px;height:56px;border-radius:10px;object-fit:cover;background:#EDEFF3;flex:none;cursor:pointer;border:1px solid var(--line)}
+  .rf-none{width:56px;height:56px;border-radius:10px;background:#EDEFF3;flex:none;display:flex;align-items:center;justify-content:center;font-size:21px}
+  .rf-mid{flex:1;min-width:0}
+  .rf-amt{font-weight:700;font-size:17px;white-space:nowrap;font-family:var(--disp)}
+  .rf-amt.got{color:var(--olive2)}
+  .rf-pill{display:inline-block;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:.09em;color:#fff;border-radius:5px;padding:3px 6px;font-weight:700}
+  .rf-meta{color:var(--faint);font-size:12.5px;margin-top:4px;line-height:1.55;word-break:break-word}
+  .rf-flag{color:var(--amber);font-weight:700}
+  .rf-acts{display:flex;gap:8px;margin-top:11px}
+  .rf-acts .btn{flex:1;padding:11px 6px}
+  .rf-panel{margin-top:12px;border-top:1px dashed var(--line);padding-top:12px}
+  .rf-shots{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+  .rf-tw{position:relative;display:inline-block;line-height:0}
+  .rf-tw img{width:66px;height:66px;object-fit:cover;border-radius:10px;border:1px solid var(--line);cursor:pointer}
+  .rf-tw .x{position:absolute;top:-6px;right:-6px;width:21px;height:21px;border-radius:50%;background:var(--tomato);color:#fff;border:none;font-size:12px;line-height:1;cursor:pointer;padding:0}
+  .rf-pick{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+  .rf-pick button{flex:1;min-width:92px;border:1.5px solid var(--line);background:#FBFAF6;border-radius:11px;padding:12px 8px;
+    font-size:14px;font-weight:700;color:var(--ink);cursor:pointer;font-family:inherit;text-align:center;transition:all .15s}
+  .rf-pick button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+  .rf-file{display:block;text-align:center;border:1.5px dashed #CFD5DD;background:#FBFAF6;border-radius:12px;padding:15px;
+    font-weight:700;color:var(--navy);cursor:pointer;font-size:14px}
+  .rf-big{text-align:center;padding:6px 0 16px}
+  .rf-big .v{font-size:38px;font-weight:700;letter-spacing:-.02em;color:var(--olive2);font-family:var(--disp);line-height:1.1}
+  .rf-big .k{font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.13em;color:var(--faint);margin-top:6px}
+  .rf-stats{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .rf-stat{background:#FBFAF6;border:1px solid var(--line);border-radius:12px;padding:11px 12px}
+  .rf-stat .v{font-size:19px;font-weight:700;font-family:var(--disp)}
+  .rf-stat .k{font-family:ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:.1em;color:var(--faint);margin-top:3px}
+  .rf-stat.warn .v{color:var(--amber)}
+  .rf-bar{height:8px;background:#EDEFF3;border-radius:5px;overflow:hidden;margin-top:5px}
+  .rf-bar i{display:block;height:100%;background:linear-gradient(90deg,#5E6C38,var(--olive2));border-radius:5px}
+  .rf-lb{position:fixed;inset:0;background:rgba(9,18,30,.94);z-index:120;display:flex;align-items:center;justify-content:center;padding:16px}
+  .rf-lb img{max-width:100%;max-height:86vh;border-radius:10px}
+  .rf-lb .x{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;background:rgba(255,255,255,.16);color:#fff;
+    border:none;border-radius:50%;width:40px;height:40px;font-size:21px;cursor:pointer;line-height:1}
+  body.ro .rf-file,body.ro .rf-pick{display:none}
   .subtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
   .subtabs button{border:1px solid var(--line);background:var(--card);color:var(--faint);border-radius:8px;padding:9px 15px;
     font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;font-family:inherit;box-shadow:none;transition:all .15s}
@@ -393,6 +432,7 @@ const blocked=()=>{ setTimeout(()=>onRO(),0); return Promise.reject(new Error('v
 const setDoc=(...a)=>RO?blocked():_setDoc(...a);
 const deleteDoc=(...a)=>RO?blocked():_deleteDoc(...a);
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getStorage, ref as sref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
 
 const html = htm.bind(h);
 
@@ -412,6 +452,32 @@ const db = initializeFirestore(fb, { experimentalForceLongPolling: true }); // s
 const D = (key) => doc(db, 'gyrocity', key);
 const inqCol = () => collection(db, 'gyrocity', 'catering_inquiries', 'items');
 const inqItemDoc = (id) => doc(db, 'gyrocity', 'catering_inquiries', 'items', id);
+const storage = getStorage(fb);
+const refCol = () => collection(db, 'gyrocity', 'refunds', 'items');
+const refItemDoc = (id) => doc(db, 'gyrocity', 'refunds', 'items', id);
+const PLATFORMS = [
+  { id:'uber', label:'UberEats', c:'#0B7A3E' },
+  { id:'doordash', label:'DoorDash', c:'#C4321E' },
+  { id:'grubhub', label:'Grubhub', c:'#B4610C' },
+  { id:'other', label:'Other', c:'#5C6670' },
+];
+const platOf = (id) => PLATFORMS.find(p=>p.id===id) || PLATFORMS[3];
+const money2 = (n) => '$'+Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const numOf = (v) => { const n=parseFloat(String(v==null?'':v).replace(/[^0-9.\-]/g,'')); return isFinite(n)?n:0; };
+function compressImage(file){
+  return new Promise((res,rej)=>{
+    const img=new Image();
+    img.onload=()=>{
+      const max=2000; let w=img.width,h=img.height;
+      if(w>max||h>max){const k=max/Math.max(w,h);w=Math.round(w*k);h=Math.round(h*k);}
+      const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      cv.toBlob(b=>b?res(b):rej(new Error('could not process the photo')),'image/jpeg',0.82);
+    };
+    img.onerror=()=>rej(new Error('could not read that photo'));
+    img.src=URL.createObjectURL(file);
+  });
+}
 const EMAIL_KEY = 'd6ec7d78-c114-427b-868d-b1bbb4f6d28f';
 
 const STORES = [ { id: 'astoria', label: 'Astoria' }, { id: 'macdougal', label: 'MacDougal' } ];
@@ -614,6 +680,17 @@ function App(){
   const byArmT=useRef(null);
   const [catPay,setCatPay]=useState(null);      // {id, amount, method, note} — recording a payment
   const [inquiries,setInquiries]=useState([]);  // leads from the public inquiry form
+  const [refunds,setRefunds]=useState(null);    // voided delivery orders we're chasing
+  const [refSeg,setRefSeg]=useState('open');
+  const [rfAdd,setRfAdd]=useState(false);
+  const [rfDraft,setRfDraft]=useState({platform:'',store:'',order:'',orderDate:'',amount:'',notes:''});
+  const [rfShots,setRfShots]=useState([]);
+  const [rfBusy,setRfBusy]=useState(false);
+  const [rfProg,setRfProg]=useState('');
+  const [rfErr,setRfErr]=useState('');
+  const [rfOpenId,setRfOpenId]=useState(null);
+  const [rfHf,setRfHf]=useState({});
+  const [rfLb,setRfLb]=useState(null);
   const [inqArm,setInqArm]=useState(null);      // dismiss-confirm id
   const [convertingInq,setConvertingInq]=useState(null); // inquiry id being turned into a booking
   // scheduling
@@ -716,6 +793,7 @@ function App(){
     const uda=onSnapshot(D('bankdep_astoria'),(s)=>{if(!trustSnap('bankdep_astoria',s))return;setDepA(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
     const udm=onSnapshot(D('bankdep_macdougal'),(s)=>{if(!trustSnap('bankdep_macdougal',s))return;setDepM(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
     const uinq=onSnapshot(inqCol(),(snap)=>{setInquiries(snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.at||'').localeCompare(a.at||'')));},()=>{});
+    const uref=onSnapshot(refCol(),(snap)=>{setRefunds(snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.at||'').localeCompare(String(a.at||''))));},()=>setRefunds([]));
     // pull live rosters (both stores), merged with the built-in list
     const rosterDocs={};
     const rebuild=()=>{
@@ -725,7 +803,7 @@ function App(){
     };
     const r1=onSnapshot(D('emp_astoria'),(s)=>{if(!trustSnap('r_a',s))return;if(s.exists()){rosterDocs.a=s.data().list||[];rebuild();}},()=>{});
     const r2=onSnapshot(D('emp_macdougal'),(s)=>{if(!trustSnap('r_m',s))return;if(s.exists()){rosterDocs.m=s.data().list||[];rebuild();}},()=>{});
-    return ()=>{um();ux();uca();ucm();uw();ucat();upp();upipe();umar();uloy();uinq();uby();ubr();umi();uea();uem();uda();udm();r1();r2();};
+    return ()=>{um();ux();uca();ucm();uw();ucat();upp();upipe();umar();uloy();uinq();uref();uby();ubr();umi();uea();uem();uda();udm();r1();r2();};
   },[authed]);
 
   useEffect(()=>{
@@ -1966,7 +2044,7 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
         ${STORES.map(s=>html`<button class=${store===s.id?'on':''} onClick=${()=>setStore(s.id)}>${s.label}</button>`)}
       </div>
       <div class="tabs">
-        ${[['log','Daily log'],['sched','Schedule'],['ord','Ordering'],['cat','Catering'],['by','Backyard'],['mi','Inventory'],['xfer','Transfers'],['cash','Cash'],['pay','Payroll'],['wu','Write-ups']].map(([id,label])=>html`
+        ${[['log','Daily log'],['sched','Schedule'],['ord','Ordering'],['cat','Catering'],['by','Backyard'],['mi','Inventory'],['xfer','Transfers'],['cash','Cash'],['pay','Payroll'],['ref','Refunds'],['wu','Write-ups']].map(([id,label])=>html`
           <button class=${tab===id?'on':''} key=${id} onClick=${()=>setTab(id)}>${label}</button>`)}
       </div>
     </div><div class="meander"></div></div>`;
@@ -2926,6 +3004,260 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
           </div>`;})()}`}
     <//>`;
 
+
+  // ---- refunds: voided delivery orders we chase the credit on ----
+  const rfList = refunds||[];
+  const rfWaiting = rfList.filter(r=>r.status==='open'||r.status==='calling');
+  const rfClosed  = rfList.filter(r=>r.status==='won'||r.status==='lost');
+  const rfWon     = rfList.filter(r=>r.status==='won');
+  const rfLost    = rfList.filter(r=>r.status==='lost');
+  const rfBack    = rfWon.reduce((n,r)=>n+numOf(r.recovered),0);
+  const rfOut     = rfWaiting.reduce((n,r)=>n+numOf(r.amount),0);
+  const rfRate    = rfClosed.length?Math.round(rfWon.length/rfClosed.length*100):null;
+  const rfMonth   = (()=>{const k=new Date().toISOString().slice(0,7);
+    return rfWon.filter(r=>String(r.handledAt||r.at||'').slice(0,7)===k).reduce((n,r)=>n+numOf(r.recovered),0);})();
+  const rfByPlat  = PLATFORMS.map(p=>{const m=rfWon.filter(r=>r.platform===p.id);
+    return {...p,n:m.length,sum:m.reduce((n,r)=>n+numOf(r.recovered),0)};}).filter(p=>p.n>0).sort((a,b)=>b.sum-a.sum);
+  const rfByStore = STORES.map(st=>{const m=rfWon.filter(r=>r.store===st.id);
+    return {...st,n:m.length,sum:m.reduce((n,r)=>n+numOf(r.recovered),0)};}).filter(x=>x.n>0);
+  const rfMonths  = (()=>{const out=[];
+    for(let i=5;i>=0;i--){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-i);
+      const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+      out.push({k,label:d.toLocaleDateString(undefined,{month:'short'}),
+        sum:rfWon.filter(r=>String(r.handledAt||r.at||'').slice(0,7)===k).reduce((n,r)=>n+numOf(r.recovered),0)});}
+    return out;})();
+  const rfMax = Math.max(1,...rfMonths.map(m=>m.sum));
+  const rfDaysOld=(iso)=>{if(!iso)return 0;const t=new Date(iso).getTime();return isFinite(t)?Math.floor((Date.now()-t)/86400000):0;};
+  const rfAgo=(iso)=>{const d=rfDaysOld(iso);return !iso?'':d<=0?'today':d===1?'yesterday':d+' days ago';};
+  const rfShortDate=(d)=>{if(!d)return '';const [y,m,dd]=String(d).split('-').map(Number);
+    return y?new Date(y,m-1,dd).toLocaleDateString(undefined,{month:'short',day:'numeric'}):d;};
+  const rfStore=(id)=>(STORES.find(x=>x.id===id)||{}).label||id||'';
+  const rfBlank=()=>({platform:'',store:store,order:'',orderDate:dkey(new Date()),amount:'',notes:''});
+
+  async function rfAddShots(files){
+    if(!files||!files.length)return;
+    setRfErr('');
+    try{
+      const out=[];
+      for(const file of Array.from(files).slice(0,6)){
+        const blob=await compressImage(file);
+        out.push({blob,url:URL.createObjectURL(blob)});
+      }
+      setRfShots(prev=>[...prev,...out].slice(0,6));
+    }catch(e){ setRfErr(e.message||'Couldn’t read that photo.'); }
+  }
+  async function rfFile(){
+    if(!rfDraft.platform){setRfErr('Which app was it?');return;}
+    if(!rfDraft.store){setRfErr('Which store?');return;}
+    if(numOf(rfDraft.amount)<=0){setRfErr('Add how much they took back.');return;}
+    setRfErr('');setRfBusy(true);
+    try{
+      const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+      const urls=[];
+      for(let i=0;i<rfShots.length;i++){
+        setRfProg('Uploading photo '+(i+1)+' of '+rfShots.length+'…');
+        const path=sref(storage,'refunds/'+rfDraft.store+'/'+id+'-'+i+'.jpg');
+        await uploadBytes(path,rfShots[i].blob,{contentType:'image/jpeg'});
+        urls.push(await getDownloadURL(path));
+      }
+      setRfProg('Saving…');
+      await setDoc(refItemDoc(id),{id,platform:rfDraft.platform,store:rfDraft.store,order:rfDraft.order.trim(),
+        orderDate:rfDraft.orderDate||dkey(new Date()),amount:numOf(rfDraft.amount),photos:urls,
+        notes:rfDraft.notes.trim(),by:myName.trim()||'Manager',status:'open',recovered:0,at:new Date().toISOString()});
+      rfShots.forEach(x=>{try{URL.revokeObjectURL(x.url)}catch(e){}});
+      setRfShots([]);setRfDraft(rfBlank());setRfAdd(false);setRefSeg('open');
+    }catch(e){ setRfErr('Couldn’t file it — '+(e.message||e)); }
+    setRfProg('');setRfBusy(false);
+  }
+  function rfPatch(id,data){
+    setRfErr('');
+    setDoc(refItemDoc(id),data,{merge:true}).catch(e=>{ if(e.message!=='view-only') setRfErr('Didn’t save — '+(e.message||e)); });
+  }
+  function rfSettle(r,won){
+    const d=rfHf[r.id]||{};
+    const got=won?((d.got===''||d.got==null)?numOf(r.amount):numOf(d.got)):0;
+    rfPatch(r.id,{status:won?'won':'lost',recovered:got,ref:(d.ref||'').trim(),
+      lostReason:won?'':(d.reason||'').trim(),handledBy:myName.trim()||'Manager',handledAt:new Date().toISOString()});
+    setRfOpenId(null);
+  }
+  const rfSetHf=(id,k,v)=>setRfHf(prev=>({...prev,[id]:{...(prev[id]||{}),[k]:v}}));
+
+  function rfCard(r){
+    const p=platOf(r.platform);
+    const isOpen=rfOpenId===r.id;
+    const d=rfHf[r.id]||{};
+    const done=r.status==='won'||r.status==='lost';
+    const late=!done&&rfDaysOld(r.at)>=3;
+    return html`
+      <div class=${'rf-card'+(late?' late':'')} key=${r.id}>
+        <div class="rf-top">
+          ${(r.photos&&r.photos.length)
+            ? html`<img class="rf-thumb" src=${r.photos[0]} onClick=${()=>setRfLb(r.photos[0])} alt="receipt" />`
+            : html`<div class="rf-none">🧾</div>`}
+          <div class="rf-mid">
+            <div class="vrow">
+              <div><span class="rf-pill" style=${'background:'+p.c}>${p.label.toUpperCase()}</span>
+                <b style="margin-left:7px">${rfStore(r.store)}</b></div>
+              <div class=${'rf-amt'+(r.status==='won'?' got':'')}>${r.status==='won'?money2(r.recovered):money2(r.amount)}</div>
+            </div>
+            <div class="rf-meta">
+              ${r.order?'Order '+r.order+' · ':''}${rfShortDate(r.orderDate)}
+              ${r.notes?html`<br/>${r.notes}`:''}
+              <br/>Filed by ${r.by||'—'} · ${rfAgo(r.at)}
+              ${r.status==='calling'&&html`<br/><span class="rf-flag">${r.claimedBy||'The office'} is on it</span>`}
+              ${late&&html`<br/><span class="rf-flag">Still open after ${rfDaysOld(r.at)} days</span>`}
+              ${r.status==='won'&&html`<br/>Got back by ${r.handledBy||'the office'}${r.ref?' · ref '+r.ref:''}${numOf(r.recovered)<numOf(r.amount)?' · partial of '+money2(r.amount):''}`}
+              ${r.status==='lost'&&html`<br/><span class="rf-flag">Not recovered${r.lostReason?' — '+r.lostReason:''}</span>`}
+            </div>
+          </div>
+        </div>
+        ${(r.photos&&r.photos.length>1)&&html`
+          <div class="rf-shots">${r.photos.slice(1).map((u,i)=>html`
+            <div class="rf-tw" key=${i}><img src=${u} onClick=${()=>setRfLb(u)} alt="receipt" /></div>`)}</div>`}
+
+        ${!done&&!viewOnly&&html`
+          <div class="rf-acts">
+            ${r.status==='open'
+              ? html`<button class="btn blue" onClick=${()=>rfPatch(r.id,{status:'calling',claimedBy:myName.trim()||'Manager',claimedAt:new Date().toISOString()})}>I’m on it</button>`
+              : html`<button class="btn" style="background:var(--olive)" onClick=${()=>rfPatch(r.id,{status:'open',claimedBy:'',claimedAt:''})}>Not yet</button>`}
+            <button class="btn olive" onClick=${()=>setRfOpenId(isOpen?null:r.id)}>${isOpen?'Close':'Mark handled'}</button>
+          </div>`}
+        ${done&&!viewOnly&&html`
+          <div class="rf-acts"><button class="ghost" style="text-align:left"
+            onClick=${()=>{rfPatch(r.id,{status:'open',recovered:0,handledBy:'',handledAt:'',lostReason:''});setRfOpenId(null);}}>Reopen this one</button></div>`}
+
+        ${isOpen&&html`
+          <div class="rf-panel">
+            <div class="lbl">HOW MUCH DID WE GET BACK?</div>
+            <input inputmode="decimal" placeholder=${money2(r.amount)+' (full credit)'}
+              value=${d.got==null?'':d.got} onInput=${e=>rfSetHf(r.id,'got',e.target.value)} />
+            <div class="lbl" style="margin-top:12px">CASE / REFERENCE #</div>
+            <input placeholder="Optional" value=${d.ref||''} onInput=${e=>rfSetHf(r.id,'ref',e.target.value)} />
+            <div class="rf-acts">
+              <button class="btn olive" onClick=${()=>rfSettle(r,true)}>
+                ${(d.got==null||d.got==='')?'Got the full '+money2(r.amount):'Got '+money2(numOf(d.got))}</button>
+            </div>
+            <div class="lbl" style="margin-top:14px">DIDN’T GET IT?</div>
+            <input placeholder="What did they say?" value=${d.reason||''} onInput=${e=>rfSetHf(r.id,'reason',e.target.value)} />
+            <div class="rf-acts"><button class="btn" style="background:var(--olive)" onClick=${()=>rfSettle(r,false)}>Close it — no credit</button></div>
+          </div>`}
+      </div>`;
+  }
+
+  const rfForm = html`
+    <div class="card">
+      <div class="lbl">WHICH APP</div>
+      <div class="rf-pick">${PLATFORMS.map(p=>html`
+        <button class=${rfDraft.platform===p.id?'on':''} key=${p.id}
+          onClick=${()=>setRfDraft(prev=>({...prev,platform:p.id}))}>${p.label}</button>`)}</div>
+      <div class="lbl" style="margin-top:14px">WHICH STORE</div>
+      <div class="rf-pick">${STORES.map(st=>html`
+        <button class=${rfDraft.store===st.id?'on':''} key=${st.id}
+          onClick=${()=>setRfDraft(prev=>({...prev,store:st.id}))}>${st.label}</button>`)}</div>
+      <div class="row" style="margin-top:14px">
+        <div><div class="lbl">AMOUNT TAKEN</div>
+          <input inputmode="decimal" placeholder="42.75" value=${rfDraft.amount}
+            onInput=${e=>setRfDraft(prev=>({...prev,amount:e.target.value}))} /></div>
+        <div><div class="lbl">ORDER DATE</div>
+          <input type="date" value=${rfDraft.orderDate}
+            onInput=${e=>setRfDraft(prev=>({...prev,orderDate:e.target.value}))} /></div>
+      </div>
+      <div class="lbl" style="margin-top:14px">ORDER #</div>
+      <input placeholder="Off the receipt" value=${rfDraft.order}
+        onInput=${e=>setRfDraft(prev=>({...prev,order:e.target.value}))} />
+      <div class="lbl" style="margin-top:14px">RECEIPT PHOTO</div>
+      <label class="rf-file">
+        ${rfShots.length?'Add another photo':'📷  Take or pick a photo of the receipt'}
+        <input type="file" accept="image/*" multiple style="display:none"
+          onChange=${e=>{rfAddShots(e.target.files);e.target.value='';}} />
+      </label>
+      ${rfShots.length>0&&html`
+        <div class="rf-shots">${rfShots.map((x,i)=>html`
+          <div class="rf-tw" key=${i}><img src=${x.url} alt="receipt" />
+            <button class="x" onClick=${()=>setRfShots(prev=>prev.filter((_,j)=>j!==i))}>×</button></div>`)}</div>`}
+      <div class="lbl" style="margin-top:14px">ANYTHING ELSE</div>
+      <textarea placeholder="What happened, anything the office should mention on the call…"
+        value=${rfDraft.notes} onInput=${e=>setRfDraft(prev=>({...prev,notes:e.target.value}))}></textarea>
+      ${rfErr&&html`<div class="note" style="margin-top:12px;color:var(--tomato)">${rfErr}</div>`}
+      <div class="rf-acts">
+        <button class="btn olive" disabled=${rfBusy} onClick=${rfFile}>${rfBusy?(rfProg||'Filing…'):'File this refund'}</button>
+        <button class="ghost" onClick=${()=>{setRfAdd(false);setRfErr('');}}>Never mind</button>
+      </div>
+    </div>`;
+
+  const rfMoney = html`
+    <div class="card">
+      <div class="rf-big"><div class="v">${money2(rfBack)}</div><div class="k">CLAWED BACK SO FAR</div></div>
+      <div class="rf-stats">
+        <div class="rf-stat"><div class="v">${money2(rfMonth)}</div><div class="k">THIS MONTH</div></div>
+        <div class="rf-stat warn"><div class="v">${money2(rfOut)}</div><div class="k">STILL OUT THERE</div></div>
+        <div class="rf-stat"><div class="v">${rfWon.length}</div><div class="k">CLAIMS WON</div></div>
+        <div class="rf-stat"><div class="v">${rfRate==null?'—':rfRate+'%'}</div><div class="k">SUCCESS RATE</div></div>
+      </div>
+      ${rfWon.length>0&&html`
+        <div style="margin-top:20px">
+          <div class="lbl">LAST 6 MONTHS</div>
+          ${rfMonths.map(m=>html`
+            <div key=${m.k} style="padding:7px 0">
+              <div class="vrow" style="font-size:13.5px"><span class="muted">${m.label}</span><b>${m.sum?money2(m.sum):'—'}</b></div>
+              <div class="rf-bar"><i style=${'width:'+Math.round(m.sum/rfMax*100)+'%'}></i></div>
+            </div>`)}
+        </div>`}
+      ${rfByPlat.length>0&&html`
+        <div style="margin-top:20px">
+          <div class="lbl">WHERE IT CAME FROM</div>
+          ${rfByPlat.map(p=>html`
+            <div class="vrow" key=${p.id} style="padding:10px 0;border-top:1px solid var(--bg)">
+              <div><span class="rf-pill" style=${'background:'+p.c}>${p.label.toUpperCase()}</span>
+                <span class="muted" style="margin-left:8px">${p.n} claim${p.n===1?'':'s'}</span></div>
+              <b>${money2(p.sum)}</b></div>`)}
+        </div>`}
+      ${rfByStore.length>0&&html`
+        <div style="margin-top:20px">
+          <div class="lbl">BY STORE</div>
+          ${rfByStore.map(st=>html`
+            <div class="vrow" key=${st.id} style="padding:10px 0;border-top:1px solid var(--bg)">
+              <div><b>${st.label}</b><span class="muted" style="margin-left:8px">${st.n} claim${st.n===1?'':'s'}</span></div>
+              <b>${money2(st.sum)}</b></div>`)}
+        </div>`}
+      <div style="margin-top:20px">
+        <div class="lbl">THE NUMBERS</div>
+        <div class="vrow" style="padding:10px 0;border-top:1px solid var(--bg)"><span class="muted">Average credit</span><b>${rfWon.length?money2(rfBack/rfWon.length):'—'}</b></div>
+        <div class="vrow" style="padding:10px 0;border-top:1px solid var(--bg)"><span class="muted">Claims filed</span><b>${rfList.length}</b></div>
+        <div class="vrow" style="padding:10px 0;border-top:1px solid var(--bg)"><span class="muted">Waiting on a call</span><b>${rfWaiting.length}</b></div>
+        ${rfLost.length>0&&html`<div class="vrow" style="padding:10px 0;border-top:1px solid var(--bg)"><span class="muted">Written off</span><b>${rfLost.length}</b></div>`}
+      </div>
+    </div>`;
+
+  const refundsView = html`
+    <${Fragment}>
+      ${!rfAdd&&html`
+        <${Fragment}>
+          ${!viewOnly&&html`<button class="btn olive wide" style="margin-bottom:14px"
+            onClick=${()=>{setRfAdd(true);setRfErr('');setRfDraft(rfBlank());}}>+  File a voided order</button>`}
+          <div class="subtabs">
+            <button class=${refSeg==='open'?'on':''} onClick=${()=>setRefSeg('open')}>To do · ${rfWaiting.length}</button>
+            <button class=${refSeg==='done'?'on':''} onClick=${()=>setRefSeg('done')}>Handled · ${rfClosed.length}</button>
+            <button class=${refSeg==='money'?'on':''} onClick=${()=>setRefSeg('money')}>Money back</button>
+          </div>
+          ${rfErr&&html`<div class="note" style="color:var(--tomato);margin-bottom:12px">${rfErr}</div>`}
+        <//>`}
+      ${rfAdd?rfForm
+        :refSeg==='money'?rfMoney
+        :refunds===null?html`<div class="muted" style="text-align:center;padding:22px 0">Loading…</div>`
+        :(refSeg==='open'?rfWaiting:rfClosed).length===0
+          ?html`<div class="card"><div class="muted" style="text-align:center;padding:24px 8px">
+              ${refSeg==='open'
+                ?'Nothing waiting. When a delivery app pulls money back on an order we already made, snap the receipt and file it here.'
+                :'Nothing closed out yet. Handled claims land here with what we got back.'}</div></div>`
+          :(refSeg==='open'?rfWaiting:rfClosed).map(rfCard)}
+      ${rfLb&&html`
+        <div class="rf-lb" onClick=${()=>setRfLb(null)}>
+          <button class="x" onClick=${()=>setRfLb(null)}>×</button>
+          <img src=${rfLb} alt="receipt" />
+        </div>`}
+    <//>`;
+
   // ---- backyard view (approvals + read-only stock) ----
   const byItems=(byData&&byData.items)||[];
   const byReqs=(byData&&byData.requests)||[];
@@ -3813,7 +4145,7 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
         ${err&&html`<div class="banner err">${err}</div>`}
         ${nameCard}
         ${storeSignal}
-        ${tab==='log'?logTab:tab==='sched'?schedView:tab==='ord'?ordView:tab==='cat'?cateringView:tab==='by'?backyardView:tab==='mi'?masterInvView:tab==='xfer'?xferView:tab==='cash'?cashView:tab==='pay'?payView:wuList}
+        ${tab==='log'?logTab:tab==='sched'?schedView:tab==='ord'?ordView:tab==='cat'?cateringView:tab==='by'?backyardView:tab==='mi'?masterInvView:tab==='xfer'?xferView:tab==='cash'?cashView:tab==='pay'?payView:tab==='ref'?refundsView:wuList}
       </div>
       ${shareBox&&html`
         <div class="modal" onClick=${e=>{if(e.target.classList.contains('modal'))setShareBox(null);}}>
