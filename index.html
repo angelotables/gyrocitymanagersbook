@@ -559,6 +559,10 @@ function App(){
   const [catForm,setCatForm]=useState(null);   // null = closed; object = new/edit draft
   const [catTab,setCatTab]=useState('active');  // active | past | inq (within Bookings)
   const [catSection,setCatSection]=useState('overview'); // overview | book | pipe | margin | loyal
+  // payroll — Mario enters it in the payroll portal, we write the checks here
+  const [payPeople,setPayPeople]=useState(null);
+  const [payWk,setPayWk]=useState(null);
+  const [payWeek,setPayWeek]=useState(mondayOf(-1));
   const [catOpen,setCatOpen]=useState(null);    // expanded card id
   const [catArm,setCatArm]=useState(null);      // delete-confirm id
   // catering CRM — company-wide, manager-only (pipeline / margins / loyalty)
@@ -691,6 +695,7 @@ function App(){
     const ucm=onSnapshot(D('cash_macdougal'),(s)=>{if(!trustSnap('cash_macdougal',s))return;setCashM(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
     const uw=onSnapshot(D('writeups'),(s)=>{if(!trustSnap('writeups',s))return;setWriteups(s.exists()?s.data().list:[]);setWuLoaded(true);},()=>setConnected(false));
     const ucat=onSnapshot(D('catering'),(s)=>{if(!trustSnap('catering',s))return;setCatering(s.exists()?(s.data().list||[]):[]);setCateringLoaded(true);},()=>setConnected(false));
+    const upp=onSnapshot(D('pay_people'),(s)=>{if(!trustSnap('pay_people',s))return;setPayPeople(s.exists()?(s.data().list||[]):[]);},()=>{});
     const upipe=onSnapshot(D('catpipe'),(s)=>{if(!trustSnap('catpipe',s))return;setPipe(s.exists()?(s.data().list||[]):[]);setPipeLoaded(true);},()=>setConnected(false));
     const umar=onSnapshot(D('catmargin'),(s)=>{if(!trustSnap('catmargin',s))return;setCmargin(s.exists()?(s.data().list||[]):[]);setCmarginLoaded(true);},()=>setConnected(false));
     const uloy=onSnapshot(D('catloyal'),(s)=>{if(!trustSnap('catloyal',s))return;setLoyal(s.exists()?(s.data().list||[]):[]);setLoyalLoaded(true);},()=>setConnected(false));
@@ -720,7 +725,7 @@ function App(){
     };
     const r1=onSnapshot(D('emp_astoria'),(s)=>{if(!trustSnap('r_a',s))return;if(s.exists()){rosterDocs.a=s.data().list||[];rebuild();}},()=>{});
     const r2=onSnapshot(D('emp_macdougal'),(s)=>{if(!trustSnap('r_m',s))return;if(s.exists()){rosterDocs.m=s.data().list||[];rebuild();}},()=>{});
-    return ()=>{um();ux();uca();ucm();uw();ucat();upipe();umar();uloy();uinq();uby();ubr();umi();uea();uem();uda();udm();r1();r2();};
+    return ()=>{um();ux();uca();ucm();uw();ucat();upp();upipe();umar();uloy();uinq();uby();ubr();umi();uea();uem();uda();udm();r1();r2();};
   },[authed]);
 
   useEffect(()=>{
@@ -816,6 +821,13 @@ function App(){
     setCatForm(null);flash('Catering saved ✓');
   }
   function deleteCatering(id){setCatArm(null);setCatOpen(null);saveCatering((catering||[]).filter(c=>c.id!==id));}
+
+  useEffect(()=>{
+    if(!authed)return;
+    setPayWk(null);
+    const u=onSnapshot(D('pay_week_'+payWeek),(s)=>{setPayWk(s.exists()?s.data():{e:{},submitted:false});},()=>{});
+    return ()=>u();
+  },[authed,payWeek]);
 
   // ---- catering CRM: pipeline / margins / loyalty (company-wide, manager-only) ----
   const num=(v)=>Number(String(v==null?'':v).replace(/[$,]/g,''))||0;
@@ -1954,7 +1966,7 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
         ${STORES.map(s=>html`<button class=${store===s.id?'on':''} onClick=${()=>setStore(s.id)}>${s.label}</button>`)}
       </div>
       <div class="tabs">
-        ${[['log','Daily log'],['sched','Schedule'],['ord','Ordering'],['cat','Catering'],['by','Backyard'],['mi','Inventory'],['xfer','Transfers'],['cash','Cash'],['wu','Write-ups']].map(([id,label])=>html`
+        ${[['log','Daily log'],['sched','Schedule'],['ord','Ordering'],['cat','Catering'],['by','Backyard'],['mi','Inventory'],['xfer','Transfers'],['cash','Cash'],['pay','Payroll'],['wu','Write-ups']].map(([id,label])=>html`
           <button class=${tab===id?'on':''} key=${id} onClick=${()=>setTab(id)}>${label}</button>`)}
       </div>
     </div><div class="meander"></div></div>`;
@@ -2808,6 +2820,110 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
        :catSection==='margin'?marginView
        :catSection==='loyal'?loyalView
        :bookingsView}
+    <//>`;
+
+// ---- payroll: the checks to write ----
+  const payCalc=(pp,e)=>{
+    e=e||{}; const out={check:0,adp:0,cash:0,other:0,detail:''};
+    if(e.skip)return out;
+    const n2=(v)=>{const f=parseFloat(String(v==null?'':v).replace(/[$,]/g,''));return isNaN(f)?null:f;};
+    const ov=n2(e.override), hA=n2(e.hrs)||0, hB=n2(e.hrs2)||0, tips=n2(e.tips)||0, total=hA+hB;
+    const R2=(x)=>Math.round(x*100)/100;
+    if(pp.type==='flat'){
+      if(pp.rail==='split'){out.cash=pp.cash||0;out.adp=pp.adp||0;out.detail='cash + ADP';}
+      else{const amt=(pp.flat||0)+(pp.flat2&&hB?pp.flat2:0);out[pp.rail==='adp'?'adp':'check']=amt;out.detail='flat';}
+    }else if(pp.type==='tiered'){
+      const extra=total>(pp.tierHrs||0)?R2((total-pp.tierHrs)*(pp.rate||0)):0;
+      out[pp.rail==='adp'?'adp':'check']=R2((pp.tierAmt||0)+extra);
+      out.detail=extra?`${total} hrs`:`first ${pp.tierHrs} hrs`;
+    }else{
+      const rate=pp.rate||0, rateB=pp.rate2||rate, otH=Math.max(0,total-40);
+      const payA=R2(hA*rate), payB=R2(hB*rateB), otPrem=R2(otH*(rate*0.5));
+      const amt=R2(payA+payB+otPrem+tips); out.other=payB;
+      const bits=[`${R2(hA)} × ${money(rate)}`];
+      if(hB>0)bits.push(`+${R2(hB)} other store`);
+      if(otH>0)bits.push(`OT ${R2(otH)}`);
+      if(tips>0)bits.push(`tips ${money(tips)}`);
+      out.detail=bits.join(' · ');
+      if(pp.rail==='split_ot'){const reg=R2(Math.min(total,40)*rate);out.adp=R2(reg+tips);out.check=R2(amt-out.adp);out.detail+=' · OT by check';}
+      else out[pp.rail==='adp'?'adp':'check']=amt;
+    }
+    if(ov!=null){const rail=pp.rail==='adp'?'adp':'check';out.check=0;out.adp=0;out.cash=0;out[rail]=ov;out.detail='set by hand';}
+    return out;
+  };
+  const payWritten=(payWk&&payWk.written)||{};
+  function markWritten(pid){
+    const w={...payWritten}; w[pid]?delete w[pid]:w[pid]={by:myName.trim()||'Manager',at:nowStamp()};
+    const next={...(payWk||{}),written:w};
+    setPayWk(next);                       // tick straight away, don't wait on the round-trip
+    writeK('pay_week_'+payWeek,next);
+  }
+  const payRows=(payPeople||[]).filter(pp=>pp.active!==false)
+    .map(pp=>({pp,c:payCalc(pp,((payWk&&payWk.e)||{})[pp.id])}))
+    .filter(x=>x.c.check>0||x.c.cash>0);
+  const payDoneN=payRows.filter(x=>payWritten[x.pp.id]).length;
+  const payTotal=payRows.reduce((n,x)=>n+x.c.check+x.c.cash,0);
+  const payLeft=payRows.filter(x=>!payWritten[x.pp.id]).reduce((n,x)=>n+x.c.check+x.c.cash,0);
+  const payView=html`
+    <${Fragment}>
+      <div class="wknav">
+        <button class="arrow2" onClick=${()=>setPayWeek(shiftMonday(payWeek,-1))}>‹</button>
+        <div class="wkmid" style="flex:1;text-align:center">
+          <b style="font-size:16px">${weekLabel(payWeek)}</b>
+          <div class="sub">${payWk&&payWk.submitted?'SENT BY '+((payWk.by||'MARIO').toUpperCase()):'NOT SENT YET'}</div>
+        </div>
+        <button class="arrow2" onClick=${()=>setPayWeek(shiftMonday(payWeek,1))}>›</button>
+      </div>
+      ${payPeople===null?html`<div class="empty">⏳ Loading payroll…</div>`
+       :!payWk||!payWk.submitted?html`
+        <div class="empty"><b>Nothing sent for this week yet.</b><br/>
+          Mario sends it from the payroll portal — it'll appear here the moment he does.</div>`
+       :payRows.length===0?html`<div class="empty">No checks to write this week.</div>`
+       :html`
+        <div class="card" style="padding:12px 15px">
+          <div class="vrow"><div class="lbl" style="margin:0">CHECKS TO WRITE</div>
+            <span class="mono" style="font-size:11px;color:var(--faint)">${payDoneN}/${payRows.length} DONE</span></div>
+          <div class="mi-prog" style="margin:8px 0 4px"><i style=${{width:(payRows.length?payDoneN/payRows.length*100:0)+'%'}}></i></div>
+          <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:13px;margin-top:8px">
+            <span>Total <b>${money(payTotal)}</b></span>
+            <span>Still to write <b style=${{color:payLeft>0?'var(--tomato)':'var(--green)'}}>${money(payLeft)}</b></span>
+          </div>
+        </div>
+        ${STORES.map(s=>{
+          const rows=payRows.filter(x=>x.pp.store===s.id);
+          if(!rows.length)return null;
+          return html`
+            <div class="card" key=${s.id}>
+              <div class="vrow"><div class="ttl" style="margin:0">${s.label.toUpperCase()}</div>
+                <span class="mono" style="font-size:11px;color:var(--faint)">${money(rows.reduce((n,x)=>n+x.c.check+x.c.cash,0))}</span></div>
+              ${rows.map(({pp,c})=>{
+                const done=payWritten[pp.id];
+                return html`
+                  <div class="todo" key=${pp.id} style=${done?'opacity:.55':''}>
+                    <button class=${'box'+(done?' on':'')} onClick=${()=>markWritten(pp.id)}>${done?'✓':''}</button>
+                    <div class="tx">
+                      <b style=${done?'text-decoration:line-through':''}>${pp.name}</b>
+                      <b style="float:right">${money(c.check+c.cash)}</b>
+                      <div class="muted mono" style="font-size:11px;margin-top:2px">
+                        ${c.cash>0?'CASH '+money(c.cash)+(c.check>0?' + CHECK '+money(c.check):''):'CHECK'}
+                        ${c.detail?' · '+c.detail:''}${done?' · written by '+done.by+' '+done.at:''}
+                      </div>
+                    </div>
+                  </div>`;
+              })}
+            </div>`;
+        })}
+        ${(()=>{const adp=(payPeople||[]).filter(pp=>pp.active!==false)
+            .map(pp=>({pp,c:payCalc(pp,((payWk&&payWk.e)||{})[pp.id])})).filter(x=>x.c.adp>0);
+          if(!adp.length)return '';
+          return html`<div class="card">
+            <div class="lbl">THROUGH ADP — MARIO HANDLES THESE</div>
+            <div class="muted" style="margin-bottom:4px">Listed so the week adds up. Nothing to write.</div>
+            ${adp.map(({pp,c})=>html`<div class="vrow" key=${pp.id} style="padding:4px 0;font-size:13.5px">
+              <span>${pp.name}</span><b>${money(c.adp)}</b></div>`)}
+            <div class="vrow" style="border-top:1px solid var(--bg);margin-top:6px;padding-top:6px">
+              <b>ADP total</b><b>${money(adp.reduce((n,x)=>n+x.c.adp,0))}</b></div>
+          </div>`;})()}`}
     <//>`;
 
   // ---- backyard view (approvals + read-only stock) ----
@@ -3697,7 +3813,7 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
         ${err&&html`<div class="banner err">${err}</div>`}
         ${nameCard}
         ${storeSignal}
-        ${tab==='log'?logTab:tab==='sched'?schedView:tab==='ord'?ordView:tab==='cat'?cateringView:tab==='by'?backyardView:tab==='mi'?masterInvView:tab==='xfer'?xferView:tab==='cash'?cashView:wuList}
+        ${tab==='log'?logTab:tab==='sched'?schedView:tab==='ord'?ordView:tab==='cat'?cateringView:tab==='by'?backyardView:tab==='mi'?masterInvView:tab==='xfer'?xferView:tab==='cash'?cashView:tab==='pay'?payView:wuList}
       </div>
       ${shareBox&&html`
         <div class="modal" onClick=${e=>{if(e.target.classList.contains('modal'))setShareBox(null);}}>
