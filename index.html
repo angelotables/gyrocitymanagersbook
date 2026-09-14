@@ -452,6 +452,7 @@ const db = initializeFirestore(fb, { experimentalForceLongPolling: true }); // s
 const D = (key) => doc(db, 'gyrocity', key);
 const inqCol = () => collection(db, 'gyrocity', 'catering_inquiries', 'items');
 const inqItemDoc = (id) => doc(db, 'gyrocity', 'catering_inquiries', 'items', id);
+const catInvCol = () => collection(db, 'gyrocity', 'catering_invoices', 'items');
 const storage = getStorage(fb);
 const refCol = () => collection(db, 'gyrocity', 'refunds', 'items');
 const refItemDoc = (id) => doc(db, 'gyrocity', 'refunds', 'items', id);
@@ -680,6 +681,7 @@ function App(){
   const byArmT=useRef(null);
   const [catPay,setCatPay]=useState(null);      // {id, amount, method, note} — recording a payment
   const [inquiries,setInquiries]=useState([]);  // leads from the public inquiry form
+  const [catInvoices,setCatInvoices]=useState([]);  // PDFs Theresa uploads from the Office app
   const [refunds,setRefunds]=useState(null);    // voided delivery orders we're chasing
   const [refSeg,setRefSeg]=useState('open');
   const [rfAdd,setRfAdd]=useState(false);
@@ -793,6 +795,7 @@ function App(){
     const uda=onSnapshot(D('bankdep_astoria'),(s)=>{if(!trustSnap('bankdep_astoria',s))return;setDepA(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
     const udm=onSnapshot(D('bankdep_macdougal'),(s)=>{if(!trustSnap('bankdep_macdougal',s))return;setDepM(s.exists()?(s.data().list||[]):[]);},()=>setConnected(false));
     const uinq=onSnapshot(inqCol(),(snap)=>{setInquiries(snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.at||'').localeCompare(a.at||'')));},()=>{});
+    const ucinv=onSnapshot(catInvCol(),(snap)=>{setCatInvoices(snap.docs.map(d=>({id:d.id,...d.data()})));},()=>{});
     const uref=onSnapshot(refCol(),(snap)=>{setRefunds(snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.at||'').localeCompare(String(a.at||''))));},()=>setRefunds([]));
     // pull live rosters (both stores), merged with the built-in list
     const rosterDocs={};
@@ -803,7 +806,7 @@ function App(){
     };
     const r1=onSnapshot(D('emp_astoria'),(s)=>{if(!trustSnap('r_a',s))return;if(s.exists()){rosterDocs.a=s.data().list||[];rebuild();}},()=>{});
     const r2=onSnapshot(D('emp_macdougal'),(s)=>{if(!trustSnap('r_m',s))return;if(s.exists()){rosterDocs.m=s.data().list||[];rebuild();}},()=>{});
-    return ()=>{um();ux();uca();ucm();uw();ucat();upp();upipe();umar();uloy();uinq();uref();uby();ubr();umi();uea();uem();uda();udm();r1();r2();};
+    return ()=>{um();ux();uca();ucm();uw();ucat();upp();upipe();umar();uloy();uinq();ucinv();uref();uby();ubr();umi();uea();uem();uda();udm();r1();r2();};
   },[authed]);
 
   useEffect(()=>{
@@ -2502,8 +2505,10 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
   const catPast=catList.filter(c=>c.date&&c.date<catToday).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   const fmtCatTime=(t)=>{if(!t)return '';const p=String(t).split(':');if(p.length<2)return t;let h=+p[0];const ap=h>=12?'PM':'AM';h=h%12||12;return h+':'+p[1]+' '+ap;};
   const catHas=(v)=>v!==''&&v!==null&&v!==undefined;
+  const invoicesFor=(id)=>(catInvoices||[]).filter(v=>v.bookingId===id).sort((a,b)=>String(b.at||'').localeCompare(String(a.at||'')));
   const catCard=(c)=>{
     const open=catOpen===c.id;
+    const invs=invoicesFor(c.id);
     const paid=catPaid(c),bal=catBalance(c),st=CAT_ST[catStatus(c)];
     const paying=catPay&&catPay.id===c.id;
     return html`
@@ -2519,6 +2524,7 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
           <div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
             ${catHas(c.price)?html`<b style="font-size:14px">${money(c.price)}</b>`:''}
             <span class="pill" style=${{background:st.color,fontSize:'9.5px'}}>${st.label}</span>
+            ${invs.length>0&&html`<span class="pill" style=${{background:'var(--olive2)',fontSize:'9.5px'}}>📄 INVOICE</span>`}
             ${bal>0&&paid>0?html`<span style="font-size:12px;color:var(--tomato);font-weight:700">${money(bal)} due</span>`:''}
           </div>
         </button>
@@ -2531,6 +2537,17 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
             <div class="field"><div class="fl">SET-UP</div><div class="fv">Utensils: <b>${c.utensils?'Yes':'No'}</b> · Sterno: <b>${c.sterno?'Yes':'No'}</b></div></div>
             ${c.notes&&html`<div class="field"><div class="fl">NOTES</div><div class="fv">${c.notes}</div></div>`}
 
+            ${invs.length>0&&html`
+              <div class="field"><div class="fl">INVOICE${invs.length>1?'S':''} FROM THE OFFICE</div>
+                <div class="fv">
+                  ${invs.map(v=>html`
+                    <div class="vrow" style="padding:7px 0;border-bottom:1px solid var(--bg);gap:10px" key=${v.id}>
+                      <span style="min-width:0">📄 ${v.fileName||'Invoice'}${catHas(v.amount)&&Number(v.amount)>0?html` · <b>${money(v.amount)}</b>`:''}
+                        <span class="dim" style="display:block;font-size:11.5px">by ${v.by||'Office'}${v.at?' · '+new Date(v.at).toLocaleDateString(undefined,{month:'short',day:'numeric'}):''}</span></span>
+                      <a class="btn blue" style="flex:none;padding:8px 14px;font-size:11px;text-decoration:none" href=${v.url} target="_blank" rel="noopener">OPEN PDF</a>
+                    </div>`)}
+                </div>
+              </div>`}
             <div class="field"><div class="fl">PAYMENT</div>
               <div class="fv">
                 <div class="vrow" style="padding:2px 0"><span>Price</span><b>${money(catMoney(c.price))}</b></div>
