@@ -207,6 +207,9 @@
   .rf-lb .x{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;background:rgba(255,255,255,.16);color:#fff;
     border:none;border-radius:50%;width:40px;height:40px;font-size:21px;cursor:pointer;line-height:1}
   body.ro .rf-file,body.ro .rf-pick{display:none}
+  .taxrow{display:flex;align-items:center;gap:10px;margin-top:12px;cursor:pointer;font-size:14px;user-select:none}
+  .taxbox{width:24px;height:24px;border:1.5px solid var(--line);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;background:#FBFAF6;flex:none}
+  .taxbox.on{background:var(--navy);border-color:var(--navy)}
   .subtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
   .subtabs button{border:1px solid var(--line);background:var(--card);color:var(--faint);border-radius:8px;padding:9px 15px;
     font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;font-family:inherit;box-shadow:none;transition:all .15s}
@@ -873,12 +876,16 @@ function App(){
     try{await setDoc(D('catering'),{list:next.slice(0,500)});setErr('');}
     catch(e){setErr('Save failed — check internet. ('+(e.message||e)+')');}
   }
-  const catBlank=()=>({id:'c'+Date.now().toString(36),name:'',date:'',arrive:'',address:'',people:'',food:'',utensils:false,sterno:false,price:'',notes:'',payments:[],deposit:'',depositMethod:'Cash'});
+  const catBlank=()=>({id:'c'+Date.now().toString(36),name:'',date:'',arrive:'',address:'',people:'',food:'',utensils:false,sterno:false,price:'',taxable:false,notes:'',payments:[],deposit:'',depositMethod:'Cash'});
   const CAT_METHODS=['Cash','Card','Check','Zelle','Venmo','Other'];
   const catMoney=(v)=>Number(String(v==null?'':v).replace(/[$,]/g,''))||0;
   const catPaid=(c)=>(c.payments||[]).reduce((s,p)=>s+(Number(p.amount)||0),0);
-  const catBalance=(c)=>catMoney(c.price)-catPaid(c);
-  const catStatus=(c)=>{const pr=catMoney(c.price),paid=catPaid(c);if(pr>0&&paid>=pr)return 'paid';if(paid>0)return 'deposit';return 'unpaid';};
+  const CAT_TAX=0.08875;   // NYC combined sales tax on prepared food / catering
+  const catNet=(c)=>catMoney(c.price);
+  const catTaxAmt=(c)=>c.taxable?Math.round(catNet(c)*CAT_TAX*100)/100:0;
+  const catTotal=(c)=>catNet(c)+catTaxAmt(c);
+  const catBalance=(c)=>catTotal(c)-catPaid(c);
+  const catStatus=(c)=>{const tot=catTotal(c),paid=catPaid(c);if(tot>0&&paid>=tot)return 'paid';if(paid>0)return 'deposit';return 'unpaid';};
   const CAT_ST={paid:{label:'PAID ✓',color:'var(--green)'},deposit:{label:'DEPOSIT',color:'var(--amber)'},unpaid:{label:'UNPAID',color:'var(--olive)'}};
   function submitCatering(){
     const d=catForm;
@@ -2522,7 +2529,8 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
             ${c.arrive?'Arrive '+fmtCatTime(c.arrive):''}${c.arrive&&catHas(c.people)?' · ':''}${catHas(c.people)?c.people+' ppl':''}
           </div>
           <div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            ${catHas(c.price)?html`<b style="font-size:14px">${money(c.price)}</b>`:''}
+            ${catHas(c.price)?html`<b style="font-size:14px">${money(catTotal(c))}</b>`:''}
+            ${c.taxable?html`<span class="dim" style="font-size:11px">incl. tax</span>`:''}
             <span class="pill" style=${{background:st.color,fontSize:'9.5px'}}>${st.label}</span>
             ${invs.length>0&&html`<span class="pill" style=${{background:'var(--olive2)',fontSize:'9.5px'}}>📄 INVOICE</span>`}
             ${bal>0&&paid>0?html`<span style="font-size:12px;color:var(--tomato);font-weight:700">${money(bal)} due</span>`:''}
@@ -2550,7 +2558,9 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
               </div>`}
             <div class="field"><div class="fl">PAYMENT</div>
               <div class="fv">
-                <div class="vrow" style="padding:2px 0"><span>Price</span><b>${money(catMoney(c.price))}</b></div>
+                <div class="vrow" style="padding:2px 0"><span>Net price</span><b>${money(catNet(c))}</b></div>
+                ${c.taxable&&html`<div class="vrow" style="padding:2px 0"><span>Sales tax (${(CAT_TAX*100).toFixed(3)}%)</span><b>${money(catTaxAmt(c))}</b></div>`}
+                <div class="vrow" style="padding:2px 0;border-top:1px solid var(--bg);margin-top:2px"><span><b>Total</b></span><b>${money(catTotal(c))}</b></div>
                 <div class="vrow" style="padding:2px 0"><span>Paid</span><b style="color:var(--green)">${money(paid)}</b></div>
                 <div class="vrow" style="padding:3px 0 2px;border-top:1px solid var(--bg);margin-top:2px">
                   <span>Balance due</span><b style=${{color:bal>0?'var(--tomato)':'var(--green)'}}>${bal>0?money(bal):'Paid in full ✓'}</b>
@@ -2613,9 +2623,20 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
       <div class="row mt12">
         <div><div class="lbl" style="margin-bottom:4px"># OF PEOPLE</div>
           <input inputmode="numeric" placeholder="e.g. 40" value=${(catForm||{}).people??''} onInput=${e=>setCatForm({...catForm,people:e.target.value})} /></div>
-        <div><div class="lbl" style="margin-bottom:4px">PRICE</div>
-          <input inputmode="decimal" placeholder="$" value=${(catForm||{}).price??''} onInput=${e=>setCatForm({...catForm,price:e.target.value})} /></div>
+        <div><div class="lbl" style="margin-bottom:4px">NET PRICE</div>
+          <input inputmode="decimal" placeholder="$ before tax" value=${(catForm||{}).price??''} onInput=${e=>setCatForm({...catForm,price:e.target.value})} /></div>
       </div>
+
+      ${(()=>{const net=catMoney((catForm||{}).price);const on=!!(catForm||{}).taxable;const tax=on?Math.round(net*CAT_TAX*100)/100:0;return html`
+        <label class="taxrow" onClick=${e=>{e.preventDefault();setCatForm({...catForm,taxable:!on});}}>
+          <span class=${'taxbox'+(on?' on':'')}>${on?'✓':''}</span>
+          <span style="flex:1">Add sales tax <span class="dim">(${(CAT_TAX*100).toFixed(3)}%)</span></span>
+          ${on&&net>0?html`<b>+${money(tax)}</b>`:''}
+        </label>
+        ${net>0?html`<div class="vrow" style="padding:2px 2px 0;font-size:13px">
+          <span class="dim">${on?'Total with tax':'Total'}</span>
+          <b style="font-size:15px">${money(net+tax)}</b></div>`:''}
+      `;})()}
 
       ${!catList.some(c=>c.id===(catForm||{}).id)&&html`
         <div class="row mt12">
