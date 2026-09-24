@@ -627,6 +627,9 @@ function App(){
   const [catering,setCatering]=useState(null);
   const [cateringLoaded,setCateringLoaded]=useState(false);
   const [catForm,setCatForm]=useState(null);   // null = closed; object = new/edit draft
+  const [pasteOpen,setPasteOpen]=useState(false);
+  const [pasteTxt,setPasteTxt]=useState('');
+  const [pasteMsg,setPasteMsg]=useState('');
   const [catTab,setCatTab]=useState('active');  // active | past | inq (within Bookings)
   const [catSection,setCatSection]=useState('overview'); // overview | book | pipe | margin | loyal
   // payroll — Mario enters it in the payroll portal, we write the checks here
@@ -909,6 +912,67 @@ function App(){
     setCatForm(null);flash('Catering saved ✓');
   }
   function deleteCatering(id){setCatArm(null);setCatOpen(null);saveCatering((catering||[]).filter(c=>c.id!==id));}
+  // ---- paste-an-order parser: free text -> a New catering draft ----
+  function parseCateringOrder(txt){
+    const isoD=(y,m,d)=>y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const MON={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+    const parseDate=(str)=>{
+      let x=String(str).trim().replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\.?,?\s*/i,'');
+      let m=x.match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/);
+      if(m){let y=m[3]?(m[3].length===2?2000+ +m[3]:+m[3]):new Date().getFullYear();return isoD(y,+m[1],+m[2]);}
+      m=x.match(/([A-Za-z]{3,})\.?\s+(\d{1,2})(?:st|nd|rd|th)?(?:,?\s*(\d{4}))?/);
+      if(m){const mo=MON[m[1].slice(0,3).toLowerCase()];if(mo){let y=m[3]?+m[3]:new Date().getFullYear();return isoD(y,mo,+m[2]);}}
+      return '';
+    };
+    const parseTime=(str)=>{
+      const m=String(str).match(/(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)?/i);
+      if(!m)return '';
+      let h=+m[1];const min=m[2]||'00';const ap=(m[3]||'').toLowerCase().replace(/\./g,'');
+      if(ap==='pm'&&h<12)h+=12; if(ap==='am'&&h===12)h=0;
+      if(h>23||(+min)>59)return '';
+      return String(h).padStart(2,'0')+':'+min;
+    };
+    const out={name:'',date:'',arrive:'',address:'',people:'',price:'',food:'',notes:''};
+    let perPerson=null,total=null; const addr=[],food=[],notes=[]; let inAddr=false;
+    const lines=String(txt).replace(/\r/g,'').split('\n').map(l=>l.replace(/\s+$/,''));
+    for(let ln of lines){
+      const t=ln.trim();
+      if(!t){ inAddr=false; food.push(''); continue; }
+      if(/^catering$/i.test(t)) continue;
+      let m;
+      if(m=t.match(/^(company|client|customer|name|event)\s*:\s*(.+)$/i)){ out.name=m[2].trim(); inAddr=false; continue; }
+      if(m=t.match(/^address\s*:\s*(.+)$/i)){ addr.push(m[1].trim()); inAddr=true; continue; }
+      if(m=t.match(/^date\s*:?\s*(.+)$/i)){ const d=parseDate(m[1]); if(d){out.date=d; inAddr=false; continue;} }
+      if(m=t.match(/^(arrival(?:\s*time)?|arrive|delivery(?:\s*time)?|drop\s*off)\s*:\s*(.+)$/i)){ const tm=parseTime(m[2]); if(tm)out.arrive=tm; inAddr=false; continue; }
+      if(m=t.match(/^(\d+)\s*(people|ppl|guests?|pax|heads?)\b/i)){ out.people=m[1]; inAddr=false; continue; }
+      if(m=t.match(/\$?\s*([\d,]+(?:\.\d+)?)\s*(?:\/|per)\s*(?:person|head|pp|guest)/i)){ perPerson=parseFloat(m[1].replace(/,/g,'')); inAddr=false; continue; }
+      if(m=t.match(/^(total|price|cost|quote)\s*:?\s*\$\s*([\d,]+(?:\.\d+)?)/i)){ total=parseFloat(m[2].replace(/,/g,'')); inAddr=false; continue; }
+      if(m=t.match(/^\$\s*([\d,]+(?:\.\d+)?)\s*$/)){ total=parseFloat(m[1].replace(/,/g,'')); inAddr=false; continue; }
+      if(inAddr && /\d{5}|,\s*[A-Za-z]{2}\b|new york|\bny\b|floor|suite|ste\b|apt\b/i.test(t) && !/-/.test(t)){ addr.push(t); continue; }
+      inAddr=false;
+      if(/must be there|must arrive|no later than|deadline|by \d/i.test(t)){ notes.push(t); if(!out.arrive){const tm=parseTime(t); if(tm)out.arrive=tm;} continue; }
+      food.push(t);
+    }
+    if(perPerson!=null){ const ppl=parseInt(out.people)||0; out.price = ppl?String(Math.round(perPerson*ppl*100)/100):String(perPerson); }
+    else if(total!=null){ out.price=String(total); }
+    out.address=addr.join(', ');
+    while(food.length&&!food[0])food.shift();
+    while(food.length&&!food[food.length-1])food.pop();
+    out.food=food.join('\n');
+    out.notes=notes.join(' ');
+    return out;
+  }
+  function readPastedOrder(){
+    if(!pasteTxt.trim()){setPasteMsg('Paste the order first.');return;}
+    const parsed=parseCateringOrder(pasteTxt);
+    const got=['name','date','people','price','food','address'].filter(k=>parsed[k]);
+    if(!parsed.name && !parsed.food && !parsed.people){ setPasteMsg('Couldn’t read that — check it looks like the sample and try again.'); return; }
+    setCatForm({...catBlank(),...parsed});
+    setPasteOpen(false);setPasteTxt('');setPasteMsg('');setConvertingInq(null);setCatOpen(null);
+    flash('Read the order in — review the fields and Save.');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
 
   useEffect(()=>{
     if(!authed)return;
@@ -2896,7 +2960,20 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
 
   const bookingsView=html`
     <${Fragment}>
-      ${catForm?catFormCard:html`<button class="btn wide mb12" style=${{background:'linear-gradient(135deg,var(--navy),var(--blue))'}} onClick=${()=>{setCatForm(catBlank());setErr('');setConvertingInq(null);}}>+ New catering</button>`}
+      ${catForm?catFormCard:html`
+        <${Fragment}>
+          <button class="btn wide" style=${{background:'linear-gradient(135deg,var(--navy),var(--blue))',marginBottom:'8px'}} onClick=${()=>{setCatForm(catBlank());setErr('');setConvertingInq(null);setPasteOpen(false);}}>+ New catering</button>
+          ${pasteOpen?html`
+            <div class="card" style="border-left:5px solid var(--olive2);margin-bottom:12px">
+              <div class="vrow"><b style="font-size:15px;color:var(--navy)">Paste an order</b>
+                <button class="ghost" onClick=${()=>{setPasteOpen(false);setPasteTxt('');setPasteMsg('');}}>Cancel</button></div>
+              <div class="muted" style="margin:6px 0 8px">Paste the whole order — the way it was sent to you — and it fills the form. Review, then Save.</div>
+              <textarea style="min-height:150px" placeholder=${'CATERING\n\n40 people\n$31 per person\n\nCompany: …\nAddress: …\nDate: …\nArrival time: …\n\nChicken Souvlaki - 45\n…'} value=${pasteTxt} onInput=${e=>{setPasteTxt(e.target.value);if(pasteMsg)setPasteMsg('');}}></textarea>
+              ${pasteMsg&&html`<div class="note" style="color:var(--tomato);margin-top:8px">${pasteMsg}</div>`}
+              <button class="btn olive wide mt12" onClick=${readPastedOrder}>Read it in →</button>
+            </div>`
+          :html`<button class="btn wide olive mb12" onClick=${()=>{setPasteOpen(true);setPasteMsg('');}}>📋 Paste an order</button>`}
+        <//>`}
       <div class="subtabs">
         ${[['active','Active ('+catActive.length+')'],['past','Past ('+catPast.length+')'],['inq','Inquiries'+(inquiries.length?' ('+inquiries.length+')':'')]].map(([id,label])=>html`
           <button class=${catTab===id?'on':''} key=${id} onClick=${()=>setCatTab(id)}>${label}</button>`)}
