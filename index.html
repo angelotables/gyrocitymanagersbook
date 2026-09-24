@@ -207,6 +207,15 @@
   .rf-lb .x{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;background:rgba(255,255,255,.16);color:#fff;
     border:none;border-radius:50%;width:40px;height:40px;font-size:21px;cursor:pointer;line-height:1}
   body.ro .rf-file,body.ro .rf-pick{display:none}
+  .blk-row{display:flex;gap:10px;align-items:flex-start;padding:10px 6px;border-bottom:1px solid var(--bg)}
+  .blk-row.off{opacity:.5}
+  .blk-chk{flex:none;padding-top:2px}
+  .blk-chk input{width:20px;height:20px}
+  .blk-body{flex:1;min-width:0}
+  .blk-path{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:var(--faint);margin-bottom:5px;word-break:break-all}
+  .blk-in{width:100%;padding:8px 9px;font-size:14px;border:1.5px solid var(--line);border-radius:9px;background:#FBFAF6;margin-bottom:5px}
+  .blk-3{display:flex;gap:6px}
+  .blk-3 .blk-in{margin-bottom:0}
   .taxrow{display:flex;align-items:center;gap:10px;margin-top:12px;cursor:pointer;font-size:14px;user-select:none}
   .taxbox{width:24px;height:24px;border:1.5px solid var(--line);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;background:#FBFAF6;flex:none}
   .taxbox.on{background:var(--navy);border-color:var(--navy)}
@@ -661,6 +670,10 @@ function App(){
   const [pasteMsg,setPasteMsg]=useState('');
   const [invUpBusy,setInvUpBusy]=useState(false);
   const [invUpMsg,setInvUpMsg]=useState('');
+  const [bulkPhase,setBulkPhase]=useState('idle'); // idle|reading|review|importing|done
+  const [bulkRows,setBulkRows]=useState([]);
+  const [bulkProg,setBulkProg]=useState('');
+  const [bulkResult,setBulkResult]=useState(null);
   const [catTab,setCatTab]=useState('active');  // active | past | inq (within Bookings)
   const [catSection,setCatSection]=useState('overview'); // overview | book | pipe | margin | loyal
   // payroll — Mario enters it in the payroll portal, we write the checks here
@@ -1060,6 +1073,63 @@ function App(){
       window.scrollTo({top:0,behavior:'smooth'});
     }catch(e){ setInvUpMsg('Couldn’t upload it — '+(e.message||e)); setInvUpBusy(false); }
   }
+  // ---- bulk: upload a whole folder (with subfolders) of paid invoices ----
+  function detectStore(path){
+    const p=String(path||'').toLowerCase();
+    if(/astoria/.test(p)) return 'astoria';
+    if(/macdougal|mcdougal|dougal|greenwich|village|manhattan|west\s*4|w\.?\s*4/.test(p)) return 'macdougal';
+    return '';
+  }
+  const bulkRowSet=(i,patch)=>setBulkRows(rows=>rows.map((r,j)=>j===i?{...r,...patch}:r));
+  async function pickFolder(fileList){
+    const files=[...fileList].filter(f=>/\.pdf$/i.test(f.name||'')||f.type==='application/pdf');
+    if(!files.length){ setBulkPhase('idle'); setErr('No PDFs found in that folder.'); return; }
+    setBulkResult(null); setBulkRows([]); setBulkPhase('reading');
+    const rows=[];
+    for(let i=0;i<files.length;i++){
+      const f=files[i];
+      setBulkProg('Reading '+(i+1)+' of '+files.length+' — '+(f.name||''));
+      const relPath=f.webkitRelativePath||f.name;
+      let client='',date='',amount='',people='',food='',read=false;
+      try{
+        const text=await extractPdfText(f);
+        if(text&&text.replace(/\s/g,'').length>20){ const pr=parseInvoiceText(text); client=pr.name||''; date=pr.date||''; amount=pr.price||''; people=pr.people||''; food=pr.food||''; read=true; }
+      }catch(e){}
+      rows.push({file:f, relPath, client, date, amount, people, food, store:detectStore(relPath), include:true, read});
+    }
+    setBulkRows(rows); setBulkProg(''); setBulkPhase('review');
+  }
+  function bulkApplyStore(st){ if(!st)return; setBulkRows(rows=>rows.map(r=>r.store?r:{...r,store:st})); }
+  async function runBulkImport(){
+    const rows=bulkRows.filter(r=>r.include);
+    if(!rows.length){ setErr('Nothing ticked to import.'); return; }
+    setBulkPhase('importing');
+    const newRecs=[], invDocs=[]; let done=0, failed=0;
+    for(let i=0;i<rows.length;i++){
+      const r=rows[i];
+      setBulkProg('Importing '+(i+1)+' of '+rows.length+'…');
+      try{
+        const id='c'+Date.now().toString(36)+'-'+i;
+        const safe=(r.file.name||'invoice.pdf').replace(/[^A-Za-z0-9._-]/g,'_');
+        const path=sref(storage,'catering_invoices/'+id+'/'+Date.now().toString(36)+'-'+safe);
+        await uploadBytes(path,r.file,{contentType:'application/pdf'});
+        const url=await getDownloadURL(path);
+        const price=catMoney(r.amount);
+        const rec={...catBlank(), id, name:(r.client||r.file.name||'Catering').replace(/\.pdf$/i,'').trim(),
+          store:r.store||'', date:r.date||'', people:r.people||'', food:r.food||'', price, taxable:false,
+          payments:price>0?[{id:'p'+id,amount:price,method:'Paid',note:'Backlogged — paid in full',by:myName.trim()||'',at:nowStamp()}]:[],
+          by:myName.trim()||'', at:nowStamp()};
+        delete rec.deposit; delete rec.depositMethod;
+        newRecs.push(rec);
+        const iid=id+'i';
+        invDocs.push({id:iid,bookingId:id,client:rec.name,eventDate:rec.date,amount:price,fileName:r.file.name||'invoice.pdf',url,by:myName.trim()||'Office',at:new Date().toISOString()});
+        done++;
+      }catch(e){ failed++; }
+    }
+    if(newRecs.length){ await saveCatering([...newRecs, ...(catering||[])]); for(const d of invDocs){ setDoc(catInvItemDoc(d.id),d).catch(()=>{}); } }
+    setBulkResult({done,failed}); setBulkProg(''); setBulkPhase('done');
+  }
+  function bulkReset(){ setBulkPhase('idle'); setBulkRows([]); setBulkProg(''); setBulkResult(null); }
 
 
   useEffect(()=>{
@@ -3052,9 +3122,56 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
       <div style="font-size:12.5px;color:var(--faint);margin-top:14px">${ovLost} lead${ovLost===1?'':'s'} lost · ${ovVip} VIP client${ovVip===1?'':'s'} (5+ orders)</div>
     <//>`;
 
+  const bulkIncluded=bulkRows.filter(r=>r.include).length;
+  const bulkPanel=html`
+    <div class="card" style="border-left:5px solid var(--olive2);margin-bottom:12px">
+      ${bulkPhase==='reading'||bulkPhase==='importing'?html`
+        <div style="text-align:center;padding:14px 8px">
+          <div style="font-weight:700;font-size:15px;color:var(--navy)">${bulkPhase==='reading'?'Reading the invoices…':'Importing…'}</div>
+          <div class="muted" style="margin-top:6px">${bulkProg}</div>
+        </div>`:''}
+
+      ${bulkPhase==='done'&&bulkResult?html`
+        <div style="text-align:center;padding:14px 8px">
+          <div style="font-weight:800;font-size:17px;color:var(--green)">Imported ${bulkResult.done} invoice${bulkResult.done===1?'':'s'} ✓</div>
+          ${bulkResult.failed>0?html`<div class="muted" style="color:var(--tomato);margin-top:4px">${bulkResult.failed} couldn’t be uploaded — try those again.</div>`:''}
+          <div class="muted" style="margin-top:6px">They’re in your bookings, marked paid, with the PDF on file.</div>
+          <button class="btn wide mt12" onClick=${bulkReset}>Done</button>
+        </div>`:''}
+
+      ${bulkPhase==='review'?html`
+        <div class="vrow"><b style="font-size:15px;color:var(--navy)">Review ${bulkRows.length} invoice${bulkRows.length===1?'':'s'}</b>
+          <button class="ghost" onClick=${bulkReset}>Cancel</button></div>
+        <div class="muted" style="margin:6px 0 10px">Tick the ones to bring in, fix anything the reader got wrong, then import. All are logged as paid.</div>
+        <div class="row" style="align-items:center;margin-bottom:10px">
+          <span class="muted" style="flex:none">Set store on blanks:</span>
+          ${STORES.map(o=>html`<button class="btn" style=${{background:'var(--card)',color:'var(--ink)',border:'1.5px solid var(--line)',boxShadow:'none',padding:'8px 12px'}} onClick=${()=>bulkApplyStore(o.id)}>${o.label}</button>`)}
+        </div>
+        <div style="max-height:52vh;overflow:auto;margin:0 -4px">
+          ${bulkRows.map((r,i)=>html`
+            <div class=${'blk-row'+(r.include?'':' off')} key=${i}>
+              <label class="blk-chk"><input type="checkbox" checked=${r.include} onChange=${e=>bulkRowSet(i,{include:e.target.checked})} /></label>
+              <div class="blk-body">
+                <div class="blk-path">${r.relPath}${r.read?'':html` · <span style="color:var(--tomato)">couldn’t read — fill in</span>`}</div>
+                <input class="blk-in" placeholder="Client / event" value=${r.client} onInput=${e=>bulkRowSet(i,{client:e.target.value})} />
+                <div class="blk-3">
+                  <input class="blk-in" type="date" value=${r.date} onInput=${e=>bulkRowSet(i,{date:e.target.value})} />
+                  <input class="blk-in" inputmode="decimal" placeholder="$ total" value=${r.amount} onInput=${e=>bulkRowSet(i,{amount:e.target.value})} />
+                  <select class="blk-in" value=${r.store} onChange=${e=>bulkRowSet(i,{store:e.target.value})}>
+                    <option value="">store…</option>
+                    ${STORES.map(o=>html`<option value=${o.id} key=${o.id}>${o.label}</option>`)}
+                  </select>
+                </div>
+              </div>
+            </div>`)}
+        </div>
+        <button class="btn wide olive mt12" onClick=${runBulkImport}>Import ${bulkIncluded} invoice${bulkIncluded===1?'':'s'} →</button>
+      `:''}
+    </div>`;
+
   const bookingsView=html`
     <${Fragment}>
-      ${catForm?catFormCard:html`
+      ${catForm?catFormCard:bulkPhase!=='idle'?bulkPanel:html`
         <${Fragment}>
           <button class="btn wide" style=${{background:'linear-gradient(135deg,var(--navy),var(--blue))',marginBottom:'8px'}} onClick=${()=>{setCatForm(catBlank());setErr('');setConvertingInq(null);setPasteOpen(false);}}>+ New catering</button>
           ${pasteOpen?html`
@@ -3075,6 +3192,11 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
                   onChange=${e=>{const f=e.target.files[0];if(f)readInvoiceFile(f);e.target.value='';}} />
               </label>
               ${invUpMsg&&!invUpBusy&&html`<div class="note" style="color:var(--tomato);margin:-6px 0 12px">${invUpMsg}</div>`}
+              <label class="btn wide olive mb12" style="display:block;text-align:center">
+                📁 Upload a folder of invoices
+                <input type="file" accept="application/pdf,.pdf" webkitdirectory directory multiple style="display:none"
+                  onChange=${e=>{const fs=e.target.files;if(fs&&fs.length)pickFolder(fs);e.target.value='';}} />
+              </label>
             <//>`}
         <//>`}
       <div class="subtabs">
