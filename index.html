@@ -2730,8 +2730,8 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
   // ---- catering ----
   const catList=catering||[];
   const catToday=new Date().toISOString().slice(0,10);
-  const catActive=catList.filter(c=>!c.date||c.date>=catToday).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-  const catPast=catList.filter(c=>c.date&&c.date<catToday).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const catActive=catList.filter(c=>catStatus(c)!=='paid').sort((a,b)=>(a.date||'').localeCompare(b.date||''));  // not fully paid — still needs invoicing / collecting
+  const catDone=catList.filter(c=>catStatus(c)==='paid').sort((a,b)=>(b.date||'').localeCompare(a.date||''));      // fully paid — completed
   const fmtCatTime=(t)=>{if(!t)return '';const p=String(t).split(':');if(p.length<2)return t;let h=+p[0];const ap=h>=12?'PM':'AM';h=h%12||12;return h+':'+p[1]+' '+ap;};
   const catHas=(v)=>v!==''&&v!==null&&v!==undefined;
   const invoicesFor=(id)=>(catInvoices||[]).filter(v=>v.bookingId===id).sort((a,b)=>String(b.at||'').localeCompare(String(a.at||'')));
@@ -2891,12 +2891,11 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
 
       <button class="btn wide mt12" onClick=${submitCatering}>Save catering</button>
     </div>`;
-  const catActiveBooked=catActive.reduce((s,c)=>s+catMoney(c.price),0);
+  const catActiveBooked=catActive.reduce((s,c)=>s+catTotal(c),0);
   const catActiveCollected=catActive.reduce((s,c)=>s+catPaid(c),0);
   const catActiveDue=catActive.reduce((s,c)=>s+Math.max(0,catBalance(c)),0);
-  const catPastRevenue=catPast.reduce((s,c)=>s+catMoney(c.price),0);
-  const catPastCollected=catPast.reduce((s,c)=>s+catPaid(c),0);
-  const catPastDue=catPast.reduce((s,c)=>s+Math.max(0,catBalance(c)),0);
+  const catDoneRevenue=catDone.reduce((s,c)=>s+catTotal(c),0);
+  const catDoneCollected=catDone.reduce((s,c)=>s+catPaid(c),0);
   const inqCard=(q)=>html`
     <div class="wcard" key=${q.id} style=${{borderLeftColor:'var(--amber)'}}>
       <div style="padding:14px 15px">
@@ -3103,23 +3102,67 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
   const ovVip=(loyal||[]).filter(c=>(Number(c.orders)||0)>=5).length;
   const ovActive=pipeList.filter(l=>['new','contacted','quoted'].includes(l.status)).slice(0,6);
   const ovTop=[...(loyal||[])].sort((a,b)=>(Number(b.spend)||0)-(Number(a.spend)||0)).slice(0,6);
-  const kpi=(n,l)=>html`<div class="card" style="flex:1;min-width:130px;padding:12px 14px"><div style="font-size:22px;font-weight:800;color:var(--navy)">${n}</div><div style="font-size:11.5px;color:var(--faint);margin-top:2px">${l}</div></div>`;
+  const kpi=(n,l,c)=>html`<div class="card" style="flex:1;min-width:132px;padding:12px 14px;margin:0"><div style="font-size:22px;font-weight:800;color:${c||'var(--navy)'}">${n}</div><div style="font-size:11.5px;color:var(--faint);margin-top:2px">${l}</div></div>`;
+  // ---- catering dashboard: real orders + money ----
+  const catRevenue=catList.reduce((s,c)=>s+catTotal(c),0);
+  const catCollectedAll=catList.reduce((s,c)=>s+catPaid(c),0);
+  const catOutstanding=catList.reduce((s,c)=>s+Math.max(0,catBalance(c)),0);
+  const catCount=catList.length;
+  const catAvgOrder=catCount?catRevenue/catCount:0;
+  const _y=String(new Date().getFullYear()), _ym=new Date().toISOString().slice(0,7);
+  const catYearRev=catList.filter(c=>(c.date||'').slice(0,4)===_y).reduce((s,c)=>s+catTotal(c),0);
+  const catMonthRev=catList.filter(c=>(c.date||'').slice(0,7)===_ym).reduce((s,c)=>s+catTotal(c),0);
+  const catByStore=STORES.map(st=>{const m=catList.filter(c=>c.store===st.id);return {id:st.id,label:st.label,n:m.length,rev:m.reduce((s,c)=>s+catTotal(c),0)};}).filter(x=>x.n>0);
+  const catNoStoreN=catList.filter(c=>!c.store).length;
+  const catTopClients=Object.values(catList.reduce((acc,c)=>{const k=(c.name||'—').trim().toLowerCase()||'—';if(!acc[k])acc[k]={name:c.name||'—',n:0,rev:0};acc[k].n++;acc[k].rev+=catTotal(c);return acc;},{})).sort((a,b)=>b.rev-a.rev).slice(0,6);
+  const catMonths6=(()=>{const out=[];for(let i=5;i>=0;i--){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-i);const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');out.push({k,label:d.toLocaleDateString(undefined,{month:'short'}),rev:catList.filter(c=>(c.date||'').slice(0,7)===k).reduce((s,c)=>s+catTotal(c),0)});}return out;})();
+  const catMonMax=Math.max(1,...catMonths6.map(m=>m.rev));
   const catOverview=html`
     <${Fragment}>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-        ${kpi(ovLeads,'Total leads')}
-        ${kpi(ovWin.toFixed(0)+'%','Win rate')}
-        ${kpi(money(mTot.rev),'Catering revenue')}
-        ${kpi(mAvg.toFixed(1)+'%','Avg margin')}
-        ${kpi(ovRepeat,'Repeat clients')}
-      </div>
-      <div class="lbl">ACTIVE LEADS TO FOLLOW UP</div>
-      ${ovActive.length?ovActive.map(l=>html`<div class="wcard" key=${l.id} style="padding:11px 15px;margin-bottom:8px"><b style="font-size:14.5px">${l.company}</b><div style="font-size:12.5px;color:var(--faint);margin-top:2px">${(PIPE_ST[l.status]||PIPE_ST.new).label}${num(l.value)>0?' · '+money(l.value)+' est.':''}</div></div>`)
-        :html`<div class="empty" style="padding:14px 0">Nothing active right now.</div>`}
-      <div class="lbl mt12">TOP CLIENTS BY SPEND</div>
-      ${ovTop.length&&ovTop.some(c=>(Number(c.spend)||0)>0)?ovTop.map(c=>html`<div class="wcard" key=${c.id} style="padding:11px 15px;margin-bottom:8px"><div class="vrow"><b style="font-size:14.5px">${c.name}</b><b style="font-size:14px">${money(c.spend)}</b></div><div style="font-size:12.5px;color:var(--faint);margin-top:2px">${Number(c.orders)||0} orders · ${tierFor(Number(c.orders)||0)}</div></div>`)
-        :html`<div class="empty" style="padding:14px 0">No client spend logged yet.</div>`}
-      <div style="font-size:12.5px;color:var(--faint);margin-top:14px">${ovLost} lead${ovLost===1?'':'s'} lost · ${ovVip} VIP client${ovVip===1?'':'s'} (5+ orders)</div>
+      ${catCount===0?html`<div class="empty" style="padding:26px 10px">No catering logged yet.<br/>Add one, paste an order, or upload past invoices in <b>Bookings</b>.</div>`:html`
+      <${Fragment}>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+          ${kpi(money(catRevenue),'Total revenue')}
+          ${kpi(money(catCollectedAll),'Collected','var(--green)')}
+          ${kpi(money(catOutstanding),catOutstanding>0?'To collect':'All collected',catOutstanding>0?'var(--tomato)':'var(--green)')}
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+          ${kpi(catCount,'Caterings')}
+          ${kpi(money(catAvgOrder),'Avg order')}
+          ${kpi(money(catMonthRev),'This month')}
+          ${kpi(money(catYearRev),_y)}
+        </div>
+
+        <div class="lbl">LAST 6 MONTHS</div>
+        <div class="card" style="padding:12px 14px">
+          ${catMonths6.map(m=>html`
+            <div key=${m.k} style="padding:6px 0">
+              <div class="vrow" style="font-size:13px"><span class="muted">${m.label}</span><b>${m.rev?money(m.rev):'—'}</b></div>
+              <div style="height:7px;background:#EDEFF3;border-radius:5px;overflow:hidden;margin-top:4px"><i style=${{display:'block',height:'100%',width:Math.round(m.rev/catMonMax*100)+'%',background:'linear-gradient(90deg,var(--blue),#4a8cc0)',borderRadius:'5px'}}></i></div>
+            </div>`)}
+        </div>
+
+        ${catByStore.length>0&&html`
+          <div class="lbl mt12">BY STORE</div>
+          <div class="card" style="padding:6px 14px">
+            ${catByStore.map(st=>html`
+              <div class="vrow" key=${st.id} style="padding:9px 0;border-bottom:1px solid var(--bg)"><span><b>${st.label}</b> <span class="muted">· ${st.n} order${st.n===1?'':'s'}</span></span><b>${money(st.rev)}</b></div>`)}
+            ${catNoStoreN>0?html`<div class="vrow" style="padding:9px 0"><span class="muted">No store set · ${catNoStoreN}</span><span></span></div>`:''}
+          </div>`}
+
+        <div class="lbl mt12">TOP CLIENTS BY SPEND</div>
+        ${catTopClients.length&&catTopClients.some(c=>c.rev>0)?catTopClients.map(c=>html`
+          <div class="wcard" key=${c.name} style="padding:11px 15px;margin-bottom:8px"><div class="vrow"><b style="font-size:14.5px">${c.name}</b><b style="font-size:14px">${money(c.rev)}</b></div><div style="font-size:12.5px;color:var(--faint);margin-top:2px">${c.n} catering${c.n===1?'':'s'}</div></div>`)
+          :html`<div class="empty" style="padding:14px 0">No priced catering yet.</div>`}
+
+        <div class="lbl mt12">PIPELINE</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          ${kpi(ovLeads,'Leads')}
+          ${kpi(ovWin.toFixed(0)+'%','Win rate')}
+          ${kpi(ovRepeat,'Repeat clients')}
+        </div>
+        ${ovActive.length?html`<div style="font-size:12.5px;color:var(--faint);margin-top:10px">${ovActive.length} lead${ovActive.length===1?'':'s'} to follow up in <b>Pipeline</b> · ${ovLost} lost · ${ovVip} VIP</div>`:''}
+      <//>`}
     <//>`;
 
   const bulkIncluded=bulkRows.filter(r=>r.include).length;
@@ -3200,32 +3243,31 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
             <//>`}
         <//>`}
       <div class="subtabs">
-        ${[['active','Active ('+catActive.length+')'],['past','Past ('+catPast.length+')'],['inq','Inquiries'+(inquiries.length?' ('+inquiries.length+')':'')]].map(([id,label])=>html`
+        ${[['active','Active ('+catActive.length+')'],['done','Completed ('+catDone.length+')'],['inq','Inquiries'+(inquiries.length?' ('+inquiries.length+')':'')]].map(([id,label])=>html`
           <button class=${catTab===id?'on':''} key=${id} onClick=${()=>setCatTab(id)}>${label}</button>`)}
       </div>
       ${catTab==='active'&&catActive.length>0&&html`
         <div class="card" style="padding:11px 14px">
-          <div class="lbl" style="margin-bottom:6px">UPCOMING — MONEY</div>
+          <div class="lbl" style="margin-bottom:6px">TO COLLECT — MONEY</div>
           <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px">
             <span>Booked <b>${money(catActiveBooked)}</b></span>
             <span>Collected <b style="color:var(--green)">${money(catActiveCollected)}</b></span>
             <span>Outstanding <b style=${{color:catActiveDue>0?'var(--tomato)':'var(--green)'}}>${money(catActiveDue)}</b></span>
           </div>
         </div>`}
-      ${catTab==='past'&&catPast.length>0&&html`
+      ${catTab==='done'&&catDone.length>0&&html`
         <div class="card" style="padding:11px 14px">
-          <div class="lbl" style="margin-bottom:6px">PAST — ${catPast.length} EVENT${catPast.length===1?'':'S'}</div>
+          <div class="lbl" style="margin-bottom:6px">COMPLETED — ${catDone.length} EVENT${catDone.length===1?'':'S'}</div>
           <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px">
-            <span>Revenue <b>${money(catPastRevenue)}</b></span>
-            <span>Collected <b style="color:var(--green)">${money(catPastCollected)}</b></span>
-            ${catPastDue>0?html`<span>Still owed <b style="color:var(--tomato)">${money(catPastDue)}</b></span>`:''}
+            <span>Revenue <b>${money(catDoneRevenue)}</b></span>
+            <span>Collected <b style="color:var(--green)">${money(catDoneCollected)}</b></span>
           </div>
         </div>`}
       ${catTab==='inq'
         ?(inquiries.length===0?html`<div class="empty">No new inquiries.<br/>Leads from your public catering form land here.</div>`:inquiries.map(inqCard))
         :catTab==='active'
-        ?(catActive.length===0?html`<div class="empty">No upcoming catering scheduled.${catForm?'':' Tap “+ New catering” above to add one.'}</div>`:catActive.map(catCard))
-        :(catPast.length===0?html`<div class="empty">No past catering on record yet.</div>`:catPast.map(catCard))}
+        ?(catActive.length===0?html`<div class="empty">Nothing to collect on — every catering is paid in full. 🎉</div>`:catActive.map(catCard))
+        :(catDone.length===0?html`<div class="empty">No completed catering yet. Fully-paid jobs land here.</div>`:catDone.map(catCard))}
     <//>`;
   const cateringView=!cateringLoaded?html`<div class="empty">⏳ Syncing catering…</div>`:html`
     <${Fragment}>
