@@ -456,6 +456,7 @@ const D = (key) => doc(db, 'gyrocity', key);
 const inqCol = () => collection(db, 'gyrocity', 'catering_inquiries', 'items');
 const inqItemDoc = (id) => doc(db, 'gyrocity', 'catering_inquiries', 'items', id);
 const catInvCol = () => collection(db, 'gyrocity', 'catering_invoices', 'items');
+const catInvItemDoc = (id) => doc(db, 'gyrocity', 'catering_invoices', 'items', id);
 const storage = getStorage(fb);
 const refCol = () => collection(db, 'gyrocity', 'refunds', 'items');
 const refItemDoc = (id) => doc(db, 'gyrocity', 'refunds', 'items', id);
@@ -544,6 +545,34 @@ const dkey=(d)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${
 const todayKey=()=>dkey(new Date());
 const nowTime=()=>new Date().toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
 const nowStamp=()=>{const d=new Date();return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})+' '+nowTime();};
+let _pdfjsP=null;
+function loadPdfjs(){
+  if(window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if(_pdfjsP) return _pdfjsP;
+  _pdfjsP=new Promise((res,rej)=>{const sc=document.createElement('script');
+    sc.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    sc.onload=()=>{try{window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';res(window.pdfjsLib);}catch(e){rej(e);}};
+    sc.onerror=()=>rej(new Error('Could not load the PDF reader — check the connection.'));document.head.appendChild(sc);});
+  return _pdfjsP;
+}
+async function extractPdfText(file){
+  const lib=await loadPdfjs();
+  const buf=await file.arrayBuffer();
+  const pdf=await lib.getDocument({data:buf}).promise;
+  let text='';
+  for(let i=1;i<=pdf.numPages;i++){const pg=await pdf.getPage(i);const c=await pg.getTextContent();text+=c.items.map(it=>it.str).join('\n')+'\n';}
+  return text;
+}
+function catParseDate(str){
+  const isoD=(y,m,d)=>y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+  const MON={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+  let x=String(str||'').trim().replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\.?,?\s*/i,'');
+  let m=x.match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/);
+  if(m){let y=m[3]?(m[3].length===2?2000+ +m[3]:+m[3]):new Date().getFullYear();return isoD(y,+m[1],+m[2]);}
+  m=x.match(/([A-Za-z]{3,})\.?\s+(\d{1,2})(?:st|nd|rd|th)?(?:,?\s*(\d{4}))?/);
+  if(m){const mo=MON[m[1].slice(0,3).toLowerCase()];if(mo){let y=m[3]?+m[3]:new Date().getFullYear();return isoD(y,mo,+m[2]);}}
+  return '';
+}
 function dayInfo(offset){const d=new Date();d.setDate(d.getDate()-offset);return {key:dkey(d),dow:d.toLocaleDateString(undefined,{weekday:'short'}),md:(d.getMonth()+1)+'/'+d.getDate()};}
 function prettyDay(key){const [y,m,d]=key.split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'});}
 
@@ -630,6 +659,8 @@ function App(){
   const [pasteOpen,setPasteOpen]=useState(false);
   const [pasteTxt,setPasteTxt]=useState('');
   const [pasteMsg,setPasteMsg]=useState('');
+  const [invUpBusy,setInvUpBusy]=useState(false);
+  const [invUpMsg,setInvUpMsg]=useState('');
   const [catTab,setCatTab]=useState('active');  // active | past | inq (within Bookings)
   const [catSection,setCatSection]=useState('overview'); // overview | book | pipe | margin | loyal
   // payroll — Mario enters it in the payroll portal, we write the checks here
@@ -907,7 +938,18 @@ function App(){
       rec.payments=dep>0?[{id:'p'+Date.now().toString(36),amount:dep,method:d.depositMethod||'Cash',note:'Deposit',by:myName.trim(),at:nowStamp()}]:[];
     }
     delete rec.deposit;delete rec.depositMethod;
+    if(d._paidBacklog){
+      const amt=catMoney(rec.price);
+      if(amt>0) rec.payments=[{id:'p'+Date.now().toString(36),amount:amt,method:'Paid',note:'Backlogged — paid in full',by:myName.trim()||d.by||'',at:rec.at}];
+    }
+    delete rec._paidBacklog; const pend=rec._pendingInvoice; delete rec._pendingInvoice;
     saveCatering(exists?(catering||[]).map(c=>c.id===rec.id?rec:c):[rec,...(catering||[])]);
+    if(pend&&pend.url){
+      const iid=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+      setDoc(catInvItemDoc(iid),{id:iid,bookingId:rec.id,client:rec.name,eventDate:rec.date||'',
+        amount:pend.amount||catMoney(rec.price),fileName:pend.fileName||'invoice.pdf',url:pend.url,
+        by:myName.trim()||'Office',at:new Date().toISOString()}).catch(()=>{});
+    }
     if(convertingInq){deleteDoc(inqItemDoc(convertingInq)).catch(()=>{});setConvertingInq(null);}
     setCatForm(null);flash('Catering saved ✓');
   }
@@ -971,6 +1013,52 @@ function App(){
     setPasteOpen(false);setPasteTxt('');setPasteMsg('');setConvertingInq(null);setCatOpen(null);
     flash('Read the order in — review the fields and Save.');
     window.scrollTo({top:0,behavior:'smooth'});
+  }
+  // ---- upload a past (paid) invoice PDF: read it, attach it, backlog it ----
+  function parseInvoiceText(txt){
+    const base=parseCateringOrder(txt);
+    if(!base.name){const m=txt.match(/(?:bill\s*to|sold\s*to|customer|client|company)\s*:\s*([^\n]+)/i);if(m)base.name=m[1].trim();}
+    const ev=txt.match(/event\s*date\s*:?\s*([^\n]+)/i);
+    const inv=txt.match(/invoice\s*date\s*:?\s*([^\n]+)/i);
+    if(ev){const d=catParseDate(ev[1]);if(d)base.date=d;}
+    else if(inv&&!base.date){const d=catParseDate(inv[1]);if(d)base.date=d;}
+    // total = the largest dollar figure on the invoice (grand total ≥ subtotal, tax, line items)
+    const amts=[...txt.matchAll(/\$\s*([\d,]+(?:\.\d{2})?)/g)].map(x=>parseFloat(x[1].replace(/,/g,''))).filter(v=>v>0);
+    if(amts.length)base.price=String(Math.max(...amts));
+    // strip money / total / label lines out of the menu block
+    base.food=String(base.food||'').split('\n').filter(l=>{
+      const t=l.trim(); if(!t)return true;
+      if(/\b(invoice|sub\s*total|subtotal|sales\s*tax|gratuity|service\s*charge|balance|amount\s*due|grand\s*total|total|paid|bill\s*to|sold\s*to|remit|terms|thank you)\b/i.test(t))return false;
+      if(/\bdate\b\s*:/i.test(t)||/^(event|invoice|order|due)\s*date\b/i.test(t))return false;
+      if(/^\$?\s*[\d,]+(?:\.\d{2})?\s*$/.test(t))return false;
+      return true;
+    }).join('\n').replace(/\n{3,}/g,'\n\n').trim();
+    return base;
+  }
+  async function readInvoiceFile(file){
+    if(!file)return;
+    if(file.type!=='application/pdf'&&!/\.pdf$/i.test(file.name||'')){setInvUpMsg('Pick a PDF invoice.');return;}
+    if(file.size>20*1024*1024){setInvUpMsg('That PDF is over 20MB — export a smaller one.');return;}
+    setInvUpMsg('');setInvUpBusy(true);
+    try{
+      const draft=catBlank();
+      // 1) upload the PDF to this booking's folder
+      setInvUpMsg('Uploading…');
+      const safe=(file.name||'invoice.pdf').replace(/[^A-Za-z0-9._-]/g,'_');
+      const path=sref(storage,'catering_invoices/'+draft.id+'/'+Date.now().toString(36)+'-'+safe);
+      await uploadBytes(path,file,{contentType:'application/pdf'});
+      const url=await getDownloadURL(path);
+      // 2) read the text (best effort)
+      let parsed={},readOk=false;
+      try{ const text=await extractPdfText(file); if(text&&text.replace(/\s/g,'').length>20){parsed=parseInvoiceText(text);readOk=true;} }catch(e){}
+      // 3) build a paid draft with the invoice attached
+      setCatForm({...draft,...parsed,taxable:false,
+        _paidBacklog:true,
+        _pendingInvoice:{url,fileName:file.name||'invoice.pdf',amount:catMoney(parsed.price)}});
+      setPasteOpen(false);setConvertingInq(null);setCatOpen(null);setInvUpBusy(false);setInvUpMsg('');
+      flash(readOk?'Read the invoice in — check the fields and Save.':'Invoice attached — I couldn’t read the text (likely a scan), so fill in the fields and Save.');
+      window.scrollTo({top:0,behavior:'smooth'});
+    }catch(e){ setInvUpMsg('Couldn’t upload it — '+(e.message||e)); setInvUpBusy(false); }
   }
 
 
@@ -2972,7 +3060,16 @@ Prior write-ups on file at time of this notice: ${w.priorCount}`;
               ${pasteMsg&&html`<div class="note" style="color:var(--tomato);margin-top:8px">${pasteMsg}</div>`}
               <button class="btn olive wide mt12" onClick=${readPastedOrder}>Read it in →</button>
             </div>`
-          :html`<button class="btn wide olive mb12" onClick=${()=>{setPasteOpen(true);setPasteMsg('');}}>📋 Paste an order</button>`}
+          :html`
+            <${Fragment}>
+              <button class="btn wide olive" style="margin-bottom:8px" onClick=${()=>{setPasteOpen(true);setPasteMsg('');}}>📋 Paste an order</button>
+              <label class="btn wide olive mb12" style=${{opacity:invUpBusy?0.6:1,display:'block',textAlign:'center'}}>
+                ${invUpBusy?(invUpMsg||'Reading…'):'📄 Upload a past invoice (paid)'}
+                <input type="file" accept="application/pdf,.pdf" style="display:none" disabled=${invUpBusy}
+                  onChange=${e=>{const f=e.target.files[0];if(f)readInvoiceFile(f);e.target.value='';}} />
+              </label>
+              ${invUpMsg&&!invUpBusy&&html`<div class="note" style="color:var(--tomato);margin:-6px 0 12px">${invUpMsg}</div>`}
+            <//>`}
         <//>`}
       <div class="subtabs">
         ${[['active','Active ('+catActive.length+')'],['past','Past ('+catPast.length+')'],['inq','Inquiries'+(inquiries.length?' ('+inquiries.length+')':'')]].map(([id,label])=>html`
