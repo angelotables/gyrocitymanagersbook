@@ -428,6 +428,191 @@
   body.ro .card:has(> .lbl:only-child){display:none}
   .mt8{margin-top:8px}.mt10{margin-top:10px}.mt12{margin-top:12px}.mb8{margin-bottom:8px}.mb10{margin-bottom:10px}.mb12{margin-bottom:12px}
 </style>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Commissioner:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style id="hyalos">
+/* ==========================================================================
+   HYALOS — Gyro City design skin (v1)
+   Visual layer only. Loaded after the app's own styles; changes no behaviour.
+   Aegean wallpaper behind, frosted panes on top, a raised "lens" for what's
+   selected. Store colors stay Managers Book's: Astoria navy, MacDougal green.
+   ========================================================================== */
+:root{
+  --navy:#0E2A47; --navy2:#17395C; --blue:#2563D6; --sky:#7FB2DC;
+  --tomato:#C4122F; --amber:#9A5A00; --green:#16835A;
+  --ink:#0E1A2B; --faint:#5F6B7C; --dim:#6B7789;
+  --bg:#E6ECF5; --card:rgba(255,255,255,.70); --line:rgba(14,26,43,.10); --edge:rgba(14,26,43,.10);
+  --r:22px;
+  --shadow:0 1px 1px rgba(22,48,96,.04),0 14px 34px -18px rgba(22,48,96,.30);
+  --shadow-lg:0 20px 44px -18px rgba(22,48,96,.38);
+  --disp:'Commissioner','Inter',system-ui,sans-serif;
+  /* hyalos */
+  --hy-cond:'Barlow Condensed','Fira Sans Extra Condensed','Arial Narrow',system-ui,sans-serif;
+  --hy-body:'Commissioner','Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+  --hy-pane:rgba(255,255,255,.66); --hy-pane-strong:rgba(255,255,255,.84); --hy-field:rgba(255,255,255,.72);
+  --hy-edge:rgba(255,255,255,.82); --hy-hair:rgba(14,26,43,.08);
+  --hy-lens:linear-gradient(180deg,#FFFFFF,rgba(255,255,255,.80));
+  --hy-lens-shadow:inset 0 1px 0 #fff,0 6px 16px -6px rgba(22,48,96,.30),0 0 0 .5px rgba(22,48,96,.07);
+  --hy-navy:linear-gradient(180deg,#1E3A66,#0F2445);
+  --hy-cta:linear-gradient(180deg,#3C82F0,#1F5FD6);
+  --hy-ok:linear-gradient(180deg,#22A06B,#16835A);
+  --hy-bad:linear-gradient(180deg,#E0364F,#B5102B);
+  --hy-accent-ink:#1D4FAE; --hy-accent-soft:rgba(37,99,214,.11);
+}
+
+/* ---------- wallpaper ---------- */
+html{background:#E6ECF5}
+body{background:transparent!important;font-family:var(--hy-body);color:var(--ink);font-size:15px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:
+  radial-gradient(60% 42% at 8% 0%,rgba(118,164,255,.55),transparent 70%),
+  radial-gradient(55% 40% at 100% 26%,rgba(96,206,214,.42),transparent 70%),
+  radial-gradient(60% 40% at 6% 84%,rgba(255,206,160,.42),transparent 70%),
+  radial-gradient(55% 40% at 96% 100%,rgba(160,170,255,.30),transparent 70%),#E6ECF5}
+::selection{background:rgba(37,99,214,.22)}
+
+/* ---------- type ---------- */
+h1{font-family:var(--hy-cond);font-weight:700;letter-spacing:.06em}
+.ttl{font-family:var(--hy-cond);font-weight:700;font-size:16px;letter-spacing:.06em;color:var(--navy);text-transform:uppercase}
+.lbl,th,.pos-h,.tag{font-family:var(--hy-cond);font-weight:600;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.pill{font-family:var(--hy-cond);font-weight:700;font-size:12px;letter-spacing:.1em;border-radius:8px;padding:4px 9px}
+.day .sub,.wkmid .sub{font-family:var(--hy-cond);font-weight:600;font-size:11.5px;letter-spacing:.1em}
+.cnt,.empty,.muted{color:var(--faint)}
+button,input,select,textarea{font-family:var(--hy-body)}
+
+/* ---------- header: one glass pane ---------- */
+.hdr{background:rgba(255,255,255,.50);color:var(--ink);border-radius:0 0 30px 30px;
+  border:1px solid rgba(255,255,255,.75);border-top:0;
+  -webkit-backdrop-filter:blur(28px) saturate(1.9);backdrop-filter:blur(28px) saturate(1.9);
+  box-shadow:inset 0 -1px 0 rgba(255,255,255,.6),0 18px 40px -22px rgba(22,48,96,.40)}
+.hdr::before,.hdr::after{display:none}
+.hdr h1{color:var(--navy);font-size:30px;letter-spacing:.08em;line-height:1}
+.hdr .tag,.greet{color:var(--faint)}
+.greet{font-size:14px;margin-top:3px}
+.hello{background:rgba(255,255,255,.80);border:1px solid rgba(255,255,255,.9);color:var(--navy);
+  font-family:var(--hy-body);font-size:13px;font-weight:600;letter-spacing:.02em;padding:9px 15px;
+  box-shadow:inset 0 1px 0 #fff,0 6px 16px -8px rgba(22,48,96,.35)}
+.hello:active{background:#fff;transform:scale(.96)}
+
+/* store switch: a segmented capsule with a lens on the selected store */
+.stores{background:rgba(14,26,43,.06);border-radius:18px;padding:4px;gap:3px;margin:16px 0 10px;box-shadow:inset 0 1px 2px rgba(14,26,43,.06)}
+.stores button{color:var(--faint);font-family:var(--hy-body);font-weight:600;font-size:15px;border-radius:14px;padding:10px 0;letter-spacing:0;transition:background-color .25s,color .2s,box-shadow .25s}
+.stores button.on{background:var(--hy-lens);color:var(--navy);box-shadow:var(--hy-lens-shadow);transform:none}
+
+/* section tabs: scrolling capsule, lens on the open tab */
+.tabs{gap:2px;padding:4px;margin:0 0 14px;border-radius:20px;background:rgba(255,255,255,.55);
+  border:1px solid rgba(255,255,255,.85);box-shadow:inset 0 1px 0 #fff,0 8px 20px -14px rgba(22,48,96,.35)}
+.tabs button{flex:none;color:var(--faint);font-family:var(--hy-body);font-size:14.5px;font-weight:500;letter-spacing:0;text-transform:none;
+  border:0;border-radius:15px;padding:9px 15px;line-height:1.2;transition:background-color .2s,color .2s,box-shadow .2s}
+.tabs button.on{background:var(--hy-lens);color:var(--ink);font-weight:600;box-shadow:var(--hy-lens-shadow);border:0}
+.tabs button:active{transform:scale(.97)}
+
+/* week navigator inside the header (Staff Book) and on the page */
+.wkmid b{font-weight:600;font-size:17px;color:var(--ink)}
+.wkmid .sub{color:var(--faint)}
+.wkmid .sub.pub{color:var(--green)}
+.wknav .arrow,.wknav .arrow2,.arrow{background:rgba(255,255,255,.78);color:var(--navy);border:1px solid rgba(255,255,255,.9);
+  border-radius:16px;box-shadow:inset 0 1px 0 #fff,0 6px 16px -10px rgba(22,48,96,.35)}
+
+/* ---------- panes ---------- */
+.card,.wcard,.rf-card,.empcard,.by-card,.lcard{background-color:var(--hy-pane);border-color:var(--hy-edge);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),var(--shadow)}
+.card{border-radius:24px;padding:16px 17px;margin-bottom:14px}
+.wcard,.empcard,.rf-card{border-radius:20px}
+.by-card{border-radius:18px}
+.mi-bar{border-radius:20px;background:var(--hy-navy);box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 14px 30px -14px rgba(15,36,69,.55)}
+.mi-tile{background-color:var(--hy-pane);border-color:var(--hy-edge);border-radius:20px;box-shadow:inset 0 1px 0 #fff,var(--shadow)}
+.mi-tile.done{background-color:rgba(236,248,241,.86);border-color:rgba(22,131,90,.22)}
+
+/* ---------- day chips ---------- */
+.day{background:rgba(255,255,255,.70);border:1px solid rgba(255,255,255,.88);border-radius:18px;font-family:var(--hy-body);font-weight:600;
+  box-shadow:inset 0 1px 0 #fff,0 6px 14px -10px rgba(22,48,96,.35)}
+.day.on{background:var(--hy-navy);border-color:transparent;color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 10px 20px -8px rgba(15,36,69,.55)}
+.day.on .sub{color:rgba(255,255,255,.72)}
+
+/* ---------- chips & sub-tabs ---------- */
+.chip,.subtabs button,.by-sub button,.rf-pick button,.vd-pick button{background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.88);
+  color:var(--ink);box-shadow:inset 0 1px 0 #fff,0 0 0 .5px var(--hy-hair);border-radius:999px}
+.chip{font-weight:500}
+.subtabs button,.by-sub button{font-family:var(--hy-body);font-size:13.5px;font-weight:600;letter-spacing:0;text-transform:none;padding:9px 16px;color:var(--faint)}
+.chip.on,.subtabs button.on,.by-sub button.on,.rf-pick button.on,.vd-pick button.on{background:var(--hy-navy);border-color:transparent;color:#fff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 8px 16px -8px rgba(15,36,69,.55)}
+.chip.sev.on{background:var(--hy-bad);box-shadow:0 8px 16px -8px rgba(181,16,43,.5)}
+
+/* ---------- fields ---------- */
+input,textarea,select,.by-search,.by-cin,.by-uin{background:var(--hy-field);border:1px solid rgba(255,255,255,.9);border-radius:16px;
+  box-shadow:inset 0 1px 2px rgba(14,26,43,.05),0 0 0 .5px var(--hy-hair)}
+input:focus,textarea:focus,select:focus,.by-search:focus,.by-cin:focus{border-color:rgba(37,99,214,.55);background:#fff;
+  box-shadow:0 0 0 4px rgba(37,99,214,.14)}
+input[type=checkbox],input[type=radio]{box-shadow:none}
+.shift{background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.88);border-radius:16px;box-shadow:inset 0 1px 0 #fff,0 0 0 .5px var(--hy-hair)}
+.addshift{border-radius:16px}
+
+/* ---------- buttons: capsules with a sheen ---------- */
+.btn,.by-btn{border-radius:999px;font-family:var(--hy-body);font-weight:600;letter-spacing:.04em;background:var(--hy-navy);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 10px 22px -10px rgba(15,36,69,.55)}
+.btn.blue{background:var(--hy-cta);box-shadow:inset 0 1px 0 rgba(255,255,255,.32),0 10px 22px -8px rgba(37,99,214,.45)}
+.btn.tomato{background:var(--hy-bad);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 10px 22px -8px rgba(181,16,43,.45)}
+.btn.olive{background:linear-gradient(180deg,#5D6B7A,#46525F);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 10px 20px -10px rgba(40,52,66,.5)}
+.xlsbtn{border-radius:999px;font-family:var(--hy-body);font-weight:600;letter-spacing:.04em;background:var(--hy-ok);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 10px 22px -10px rgba(22,131,90,.5)}
+.btn[disabled],.xlsbtn[disabled]{opacity:.45}
+.ordbtn{border-radius:9px;background:rgba(255,255,255,.75);border-color:rgba(255,255,255,.9)}
+
+/* ---------- notices ---------- */
+.banner{border-radius:18px;box-shadow:0 8px 20px -14px rgba(22,48,96,.35)}
+.banner.err{background:rgba(253,234,237,.88);border-color:rgba(196,18,47,.18)}
+.banner.info,.note{background:rgba(255,246,222,.85);border-color:rgba(160,110,10,.18)}
+.note{border-radius:0 14px 14px 0}
+
+/* ---------- floating chrome ---------- */
+.toast{background:rgba(16,26,42,.90);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);font-family:var(--hy-body);font-weight:600;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 14px 30px -10px rgba(0,0,0,.45)}
+.storepill{font-family:var(--hy-body);font-weight:700;letter-spacing:.08em;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 12px 26px -10px rgba(15,36,69,.55)}
+.modal{background:rgba(8,20,40,.24);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.modal>div{background:rgba(250,251,253,.90);-webkit-backdrop-filter:blur(36px) saturate(2);backdrop-filter:blur(36px) saturate(2);
+  border-radius:32px 32px 0 0;border:1px solid rgba(255,255,255,.85);border-bottom:0;box-shadow:inset 0 1px 0 #fff,0 -20px 60px -20px rgba(14,26,43,.35)}
+
+/* ---------- sign-in & PIN pad ---------- */
+.login{background:radial-gradient(90% 55% at 10% 0%,#2F62B0,transparent 70%),radial-gradient(80% 55% at 100% 100%,#127A8C,transparent 65%),
+  radial-gradient(70% 45% at 0% 100%,rgba(200,140,90,.35),transparent 70%),#0C1F3B}
+.login::before,.login::after{opacity:.55}
+.login h1{font-family:var(--hy-cond);font-size:38px;letter-spacing:.2em;color:#F4F7FB}
+.login .tag{color:rgba(244,247,251,.68)}
+.lcard{background-color:rgba(255,255,255,.95);border-radius:30px;border:1px solid rgba(255,255,255,.7);
+  -webkit-backdrop-filter:blur(30px) saturate(1.8);backdrop-filter:blur(30px) saturate(1.8);box-shadow:inset 0 1px 0 #fff,0 30px 80px -24px rgba(0,0,0,.55)}
+.whoami{font-family:var(--hy-cond);font-size:26px;letter-spacing:.02em;color:var(--navy)}
+.namegrid .chip{background:rgba(255,255,255,.75)}
+.key{background:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.9);border-radius:50%;aspect-ratio:1;padding:0;
+  display:grid;place-items:center;font-family:var(--hy-body);font-weight:500;font-size:26px;color:var(--ink);
+  box-shadow:inset 0 1px 0 #fff,0 8px 18px -10px rgba(22,48,96,.4)}
+.key:active{background:#fff;transform:scale(.95)}
+.key.ghostk{background:transparent;border-color:transparent;box-shadow:none;aspect-ratio:auto}
+.dot{border-color:rgba(14,26,43,.22)}
+.dot.f{background:var(--hy-navy)}
+
+/* ---------- tables ---------- */
+td{border-top-color:var(--hy-hair)}
+
+
+/* availability days & pickers (Staff Book) */
+.avday{border:1px solid rgba(255,255,255,.88);border-radius:18px;font-family:var(--hy-body);font-weight:600;
+  box-shadow:inset 0 1px 0 #fff,0 6px 14px -10px rgba(22,48,96,.35)}
+.avday.yes{background:var(--hy-ok);border-color:transparent;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 10px 20px -8px rgba(22,131,90,.5)}
+.avday.no{background:linear-gradient(180deg,rgba(253,228,232,.95),rgba(248,214,220,.95));border-color:rgba(196,18,47,.15)}
+.avday .sub{font-family:var(--hy-cond);font-weight:600;font-size:10.5px;letter-spacing:.06em}
+.pick{background-color:var(--hy-pane);border-color:rgba(255,255,255,.88);border-radius:20px;box-shadow:inset 0 1px 0 #fff,var(--shadow)}
+.backl{color:rgba(244,247,251,.75)}
+
+/* ---------- comfort & access ---------- */
+:focus-visible{outline:2px solid #2563D6;outline-offset:2px}
+@media (prefers-reduced-transparency: reduce){
+  .hdr,.modal>div,.lcard,.toast{background:#FAFBFD!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+  .toast{background:#101A2A!important}
+  .card,.wcard,.rf-card,.empcard,.by-card,.mi-tile,.tabs,.chip,.day,.shift{background-color:#FFFFFF}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
 </head>
 <body>
 <div id="app"></div>
@@ -510,11 +695,11 @@ const POSITIONS = [
 const DAYS7 = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const DAY_HOURS = ['11AM–10PM','11AM–10PM','11AM–10PM','11AM–10PM','11AM–12AM','12PM–12AM','12PM–10PM'];
 const SEED_EMP = [
-  ['Angelo','cashier',0,'hr'],['Kaiya','cashier',17,'hr'],['Irene','cashier',17,'hr'],['Despoina','cashier',17,'hr'],['Isabelle','cashier',17,'hr'],['Christina','cashier',17,'hr'],['Francesca','cashier',17,'hr'],['Chris G','cashier',17,'hr'],
-  ['Rafaela','expo',17,'hr'],['Daniel','expo',17,'hr'],['Michael','expo',17,'hr'],
-  ['George','cook',1300,'wk'],['Jimmy','cook',22,'hr'],['Sostis','cook',1200,'wk'],['Kosta','cook',1600,'wk'],['Theodoros','cook',22,'hr'],['Yianni','cook',22,'hr'],
-  ['Joshua','prep',19,'hr'],['Eduardo','prep',22,'hr'],['Maykol','prep',20,'hr'],
-  ['Alessandro','cashier',17,'hr'],['Mario','cashier',17,'hr'],['Ruben','cook',17,'hr'],  // appended — NEVER insert mid-list, IDs are positional
+  ['Angelo','cashier',0,'hr'],['Kaiya','cashier',0,'hr'],['Irene','cashier',0,'hr'],['Despoina','cashier',0,'hr'],['Isabelle','cashier',0,'hr'],['Christina','cashier',0,'hr'],['Francesca','cashier',0,'hr'],['Chris G','cashier',0,'hr'],
+  ['Rafaela','expo',0,'hr'],['Daniel','expo',0,'hr'],['Michael','expo',0,'hr'],
+  ['George','cook',0,'wk'],['Jimmy','cook',0,'hr'],['Sostis','cook',0,'wk'],['Kosta','cook',0,'wk'],['Theodoros','cook',0,'hr'],['Yianni','cook',0,'hr'],
+  ['Joshua','prep',0,'hr'],['Eduardo','prep',0,'hr'],['Maykol','prep',0,'hr'],
+  ['Alessandro','cashier',0,'hr'],['Mario','cashier',0,'hr'],['Ruben','cook',0,'hr'],  // appended — NEVER insert mid-list, IDs are positional
 ].map((e,i)=>({ id:'e'+i, name:e[0], role:e[1], rate:e[2], rateType:e[3] }));
 const T_OPTS = (()=>{ const o=[]; for(let m=8*60;m<=24*60;m+=15)o.push(m); return o; })();
 const fmtTime=(m)=>{if(m===24*60)return '12AM';let h2=Math.floor(m/60),mi=m%60;const ap=h2>=12&&h2<24?'PM':'AM';h2=h2%12||12;return `${h2}${mi?':'+String(mi).padStart(2,'0'):''}${ap}`;};

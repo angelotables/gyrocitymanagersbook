@@ -510,11 +510,11 @@ const POSITIONS = [
 const DAYS7 = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const DAY_HOURS = ['11AM–10PM','11AM–10PM','11AM–10PM','11AM–10PM','11AM–12AM','12PM–12AM','12PM–10PM'];
 const SEED_EMP = [
-  ['Angelo','cashier',0,'hr'],['Kaiya','cashier',17,'hr'],['Irene','cashier',17,'hr'],['Despoina','cashier',17,'hr'],['Isabelle','cashier',17,'hr'],['Christina','cashier',17,'hr'],['Francesca','cashier',17,'hr'],['Chris G','cashier',17,'hr'],
-  ['Rafaela','expo',17,'hr'],['Daniel','expo',17,'hr'],['Michael','expo',17,'hr'],
-  ['George','cook',1300,'wk'],['Jimmy','cook',22,'hr'],['Sostis','cook',1200,'wk'],['Kosta','cook',1600,'wk'],['Theodoros','cook',22,'hr'],['Yianni','cook',22,'hr'],
-  ['Joshua','prep',19,'hr'],['Eduardo','prep',22,'hr'],['Maykol','prep',20,'hr'],
-  ['Alessandro','cashier',17,'hr'],['Mario','cashier',17,'hr'],['Ruben','cook',17,'hr'],  // appended — NEVER insert mid-list, IDs are positional
+  ['Angelo','cashier',0,'hr'],['Kaiya','cashier',0,'hr'],['Irene','cashier',0,'hr'],['Despoina','cashier',0,'hr'],['Isabelle','cashier',0,'hr'],['Christina','cashier',0,'hr'],['Francesca','cashier',0,'hr'],['Chris G','cashier',0,'hr'],
+  ['Rafaela','expo',0,'hr'],['Daniel','expo',0,'hr'],['Michael','expo',0,'hr'],
+  ['George','cook',0,'wk'],['Jimmy','cook',0,'hr'],['Sostis','cook',0,'wk'],['Kosta','cook',0,'wk'],['Theodoros','cook',0,'hr'],['Yianni','cook',0,'hr'],
+  ['Joshua','prep',0,'hr'],['Eduardo','prep',0,'hr'],['Maykol','prep',0,'hr'],
+  ['Alessandro','cashier',0,'hr'],['Mario','cashier',0,'hr'],['Ruben','cook',0,'hr'],  // appended — NEVER insert mid-list, IDs are positional
 ].map((e,i)=>({ id:'e'+i, name:e[0], role:e[1], rate:e[2], rateType:e[3] }));
 const T_OPTS = (()=>{ const o=[]; for(let m=8*60;m<=24*60;m+=15)o.push(m); return o; })();
 const fmtTime=(m)=>{if(m===24*60)return '12AM';let h2=Math.floor(m/60),mi=m%60;const ap=h2>=12&&h2<24?'PM':'AM';h2=h2%12||12;return `${h2}${mi?':'+String(mi).padStart(2,'0'):''}${ap}`;};
